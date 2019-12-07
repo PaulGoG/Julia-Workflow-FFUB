@@ -34,7 +34,7 @@ end
 #Callback vector
 cb = VectorContinuousCallback(condition,affect!,3)
 #No. of balls to simulate
-N = 1000
+N = 10
 
 u0 = [5.0,10*(2*rand()-1),5.0,10*(2*rand()-1),5.0,10*(2*rand()-1)]
 tspan = (0.0,10.0)
@@ -54,17 +54,13 @@ t = Node(0.)
 
 ts = tspan[1]:0.01:tspan[end]
 
-p = [lift(t; init = [Point3f0(sim[i](t[])[1],sim[i](t[])[3],sim[i](t[])[5])]) do val
-  p[i][] = [Point3f0(sim[i](val)[3],sim[i](val)[5],sim[i](val)[1])]
-end for i in 1:N]
+p = lift(t; init = [Point3f0(sim[1](t[])[1],sim[1](t[])[3],sim[1](t[])[5])]) do val
+  p[] = [Point3f0(sim[i](val)[3],sim[i](val)[5],sim[i](val)[1]) for i in 1:N]
+end
 
 limits = FRect3D((0,0,0),(10,10,10))
 
-scene = scatter(p[1],limits=limits,markersize=0.5)
-
-for i in 2:N
-  scatter!(p[i],limits=limits,markersize=0.5)
-end
+scene = scatter(p[],limits=limits,markersize=0.5)
 
 for i in ts
   push!(t,i)
