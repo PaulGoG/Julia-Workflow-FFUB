@@ -1,11 +1,10 @@
 #Aici scriem functiile de interes
 
 function Lead(P) #Functia ce calculeaza cantitatile la legaturi
-    body
     return 𝜮ᴿₚ, 𝜮ⁱₚ, 𝜮ᵒₚ, 𝜞ₚ
 end
 
-function init(args) #Initializam 𝜮𝜑 -urile (random?)
+function Initialise(args) #Initializam 𝜮𝜑 -urile (random?)
     body
     return 𝜮ᴿ𝜑, 𝜮ⁱ𝜑, 𝜮ᵒ𝜑
 end
@@ -24,7 +23,7 @@ function KineticEq(args) #Rezolvarea ecuatiei cinetice
     return Gⁿ, Gᵖ
 end
 
-function Scatterings(args) #Recalcularea self-energiilor la imprastiere (CUM?, Discretizarea integralelor)
+function Scattering(args) #Recalcularea self-energiilor la imprastiere (CUM?, Discretizarea integralelor)
     body
     return 𝜮ᴿ𝜑, 𝜮ⁱ𝜑, 𝜮ᵒ𝜑
 end
