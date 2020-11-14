@@ -25,40 +25,80 @@ s2 = convert.(Int, round.((first.(modf.( first.(modf.(Sw.Fractional_time)) .*60)
 
 timp = Timp(string.(h1, ':', m1, ':', s1), string.(h2, ':', m2, ':', s2))
 
-#Ploturi
-
 unghiuri_Md = unique(Md.Elev_viewing_angle)
 unghiuri_Sw = sort(unique(Sw.UAV_servo_sent_position_byte))
 
-scatter(framestyle =:box,
-title = "MaxDoas",
-foreground_color_legend = nothing, background_color_legend = nothing)
+#Plot MaxDoas toate unghiurile
+
+plt = scatter(framestyle =:box,
+title = "%c NO₂ - MaxDoas",
+legend = :outertopright,
+xlabel = "Timp (UTC)",
+ylabel = "Concentratie NO₂",
+xticks = ( Md.Fractional_time[collect(1:50:length(Md.Fractional_time))], timp.Md[collect(1:50:length(Md.Fractional_time))] )
+);
 
 for i in 1:length(unghiuri_Md)
     indici = findall(x -> x == unghiuri_Md[i], Md.Elev_viewing_angle)
     x = Md.Fractional_time[indici]
     y = Md.NO2_SlCol_no2_[indici]
-    scatter(x, y, label = "α = $(unghiuri_Md[i])")
+    plt = scatter!(x, y, label = "α = $(unghiuri_Md[i])ᵒ",
+    size=(1280,900))
 end
 
-    indici = findall(x -> x == unghiuri_Md[6], Md.Elev_viewing_angle)
-    x = Md.Fractional_time[indici]
-    y = Md.NO2_SlCol_no2_[indici]
-    scatter(x, y, label = "α = $(unghiuri_Md[6])")
+display(plt)
+savefig("MaxDoas.pdf")
 
-    unghiuri_Md[8]
+#Plot SWING toate unghiurile
 
+plt = scatter(framestyle =:box,
+title = "%c NO₂ - Swing",
+legend = :outertopright,
+xlabel = "Timp (UTC)",
+ylabel = "Concentratie NO₂",
+xticks = ( Sw.Fractional_time[collect(1:70:length(Sw.Fractional_time))], timp.Sw[collect(1:70:length(Sw.Fractional_time))] )
+);
 
-scatter(Md.Fractional_time, Md.NO2_SlCol_no2_ , framestyle =:box,
-title = "MaxDoas", label = "Label",
-foreground_color_legend = nothing, background_color_legend = nothing)
+for i in 1:length(unghiuri_Sw)
+    indici = findall(x -> x == unghiuri_Sw[i], Sw.UAV_servo_sent_position_byte)
+    x = Sw.Fractional_time[indici]
+    y = Sw.NO2_SlCol_NO2_[indici]
+    plt = scatter!(x, y, label = "α = $(unghiuri_Sw[i])ᵒ",
+    size=(1280,900))
+end
 
-plot!(x,Qnc, yerror = σQnc, label = "QFaraNucleuCompus")
-xlabel!("A")
-ylabel!("Energia eliberata la fisiune (MeV)")
-y = fill(Qcmed, 7)
-err = fill(σcmed, 7)
-plot!(x, y, label = "QNCmediu", yerror = err)
-y = fill(Qncmed, 7)
-err = fill(σncmed, 7)
-plot!(x, y, label = "QFNCmediu", yerror = err)
+display(plt)
+savefig("Swing.pdf")
+
+#Plot ambele dispozitive la unghiurile comune
+
+for i in 1:length(unghiuri_Md)
+    j = findfirst(x -> x == unghiuri_Md[i], unghiuri_Sw)
+
+    if j !== nothing
+        
+    indici_Md = findall(x -> x == unghiuri_Md[i], Md.Elev_viewing_angle)
+    indici_Sw = findall(x -> x == unghiuri_Sw[j], Sw.UAV_servo_sent_position_byte)
+    
+    x = Md.Fractional_time[indici_Md]
+    y = Md.NO2_SlCol_no2_[indici_Md]
+    plt = scatter(x, y, label = "MaxDoas")
+
+    x = Sw.Fractional_time[indici_Sw]
+    y = Sw.NO2_SlCol_NO2_[indici_Sw]
+    plt = scatter!(x, y, label = "Swing")
+
+    plt = scatter!(framestyle =:box,
+    title = "%c NO₂ - la unghiul α = $(unghiuri_Md[i])ᵒ",
+    legend = :outertopright,
+    xlabel = "Timp (UTC)",
+    ylabel = "Concentratie NO₂",
+    xticks = ( Md.Fractional_time[collect(1:49:length(Md.Fractional_time))], timp.Md[collect(1:49:length(Md.Fractional_time))] ),
+    xrotation = 60,
+    size=(1280,900)
+    );
+
+    display(plt)
+    savefig("Ambele_dispozitive_$(unghiuri_Md[i]).pdf")
+    end
+end
