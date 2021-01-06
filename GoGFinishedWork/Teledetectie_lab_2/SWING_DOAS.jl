@@ -1,5 +1,4 @@
-
-#Pachetele trebuie instalate din consola la prima rulare cu comanda Pkg.add !!!
+# Data manipulation for athmospheric probes experimental values
 
 using Plots
 using CSV

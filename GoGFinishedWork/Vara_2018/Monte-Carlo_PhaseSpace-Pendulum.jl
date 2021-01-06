@@ -1,3 +1,5 @@
+# Monte Carlo simulation of a simple pendulum's phase space
+
 using Plots
 using DifferentialEquations
 
