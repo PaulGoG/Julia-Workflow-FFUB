@@ -1,3 +1,5 @@
+#Numerical method for finding root of function f(x)
+
 using Plots
 
 function f(x)

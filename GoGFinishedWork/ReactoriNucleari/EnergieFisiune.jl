@@ -1,3 +1,5 @@
+# Code written for nuclear reactor design class
+
 using Plots
 using CSV
 using DataFrames
@@ -84,5 +86,5 @@ plot!(x, y, label = "QFNCmediu", yerror = err)
 
 
 # sqrt(sum( ((Y./sum(Y)).^2).*(σQc.^2)) + sum((((Qc.-Qcmed)./sum(Y)).^2).*(σY.^2)))
-# Formula Propagarii erorilor calculata de profa cu derivate + ridicare la patrat
-# σ trebuie corectate cu formula abaterii patratice medii !!! (For future use)
+# Formula Propagarii erorilor calculata de profesor cu derivate + ridicare la patrat (nu ce am aplicat eu, worst-case scenario...)
+# σ trebuie corectate cu formula abaterii patratice medii !!! (For future use!)

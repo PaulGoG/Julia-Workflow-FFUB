@@ -1,3 +1,5 @@
+# This is very old, messy, undocumented code!!!
+
 using Plots, DifferentialEquations, LsqFit, DynamicalSystems, QuadGK
 """
     Lorenz(du, u, p, t)

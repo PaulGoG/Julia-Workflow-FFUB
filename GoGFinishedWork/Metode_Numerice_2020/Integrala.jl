@@ -1,3 +1,5 @@
+# Numerical calculation of a simple integral from experimental data using trapezoid method
+
 using Trapz
 using Plots
 using Interpolations
