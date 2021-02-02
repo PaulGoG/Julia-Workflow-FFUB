@@ -1,5 +1,6 @@
 using Plots
 using Distributions
+using Random
 using StatsPlots
 
 Numar_aruncari = 100;
@@ -7,9 +8,14 @@ Numar_aruncari = 100;
 # Generam aruncarile cap -> 1, pajura -> 0
 N_esantion = 0:Numar_aruncari;
 p_true = 0.5;
+Random.seed!(12);
 data = rand(Bernoulli(p_true), last(N_esantion));
 
-prior = Beta(1,1)
+# Introducem bias
+#data = fill(1, 50)
+#data = vcat(data, rand(Bernoulli(p_true), 50))
+
+prior = Beta(1,1);
 
 anim = Animation()
 for (i, N) in enumerate(N_esantion)
