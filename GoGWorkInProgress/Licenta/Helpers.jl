@@ -1,6 +1,6 @@
 # Function bodies that are going to be used in the calculations
 
-include("Main.jl")
+
 
 # Functii corectie inaltime efectiva → 2 corectii simple & directe
 # A treia corectie in cazul portantei re-apeleaza functia de calcul a dispersiei care la randul sau se calculeaza cu H
