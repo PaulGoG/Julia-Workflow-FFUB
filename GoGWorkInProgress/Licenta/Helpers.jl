@@ -1,12 +1,37 @@
 # Function bodies that are going to be used in the calculations
 
 # Ma gandesc ca aici sus sa fie citite Data Frames -> datele tabelate pe care sa le acceseze functiile
+# Module & import pt constantele tabelate citite cu DataFrames din alt modul
 
+# Functii corectie inaltime efectiva → curenti de aer descendenti & antrenare in cavitatea aerodinamica a cladirilor
+function H_1()
+    # H_1 = h - Δh_d
+    return h - 2*(1.5-w_0/u)*D
+end
 
-# Functii corectie inaltime efectiva → 2 corectii simple & directe
+function H_2()
+    if H_1 < H_cladire 
+        H_2 = 0
+    else
+        if H > 2.5 * H_cladire 
+            H_2 = H_1
+        else 
+            if u < 5
+                H_2 = H_1
+            else
+                H_2 = H_1 - (1.5*H_cladire - 0.6*H_1)
+            end
+        end
+    end
+    return H_2
+end
 # A treia corectie in cazul portantei re-apeleaza functia de calcul a dispersiei care la randul sau se calculeaza cu H
-# Nu mai folosim momentan strat de inversie!!! => scapam de recursivitate
-# Nu inteleg diferenta intre faza tranzitie vs faza finala
+# Nu mai folosim momentan strat de inversie!!! => scapam de recursivitate momentan
+# Nu inteleg diferenta intre faza tranzitie vs faza finala!!! -> calculez toate 5 corectiile si le plotez sa vedem ce iese
+# Model simplificat cu valoarea lui F deja data!
+function Δh_b_tranzitie()
+    Δh_b
+end
 
 
 # Functii calcul dispersii 
@@ -36,7 +61,7 @@ function σ_y(x, Pasquill, timp)
 end
 
 # Functie corectii dispersii (entangled cu corectia de portanta)
-function Σ_y(x,y?)
+function Σ_y(x,y)
     #Necesita structura cladirilor din zona in ceva matricea
     #Calcul dsursa-cladire = sqrt(x^2+y^2) [vector]
     #Pastram doar valorile pt care ds-c < 3*zcladire & arctg(modul(y)/modul(x)<5 grade sa fie apropiata cladirea de OX)
@@ -57,7 +82,7 @@ function Σ_y(x,y?)
     return Σ_y
 end
 
-function Σ_z(?)
+function Σ_z()
     #Analog exact dupa Σ_y
     #Ma gandesc ca partea cu evaluarea d-urilor la cladiri sa fie facuta separat, o singura data in alta functie...
     #Sau chiar sa fie rulata la inceputul blocului astuia de functii, sau functie in main, vedem...
@@ -93,7 +118,7 @@ end
 
 # Calcul Resuspensii
 function Resuspensie()
-    K = A*exp(-λ_1*t) + B*exp(-λ_2*t)
+    K = A*exp(-λ_1*t) + B*exp(-λ_2*t) 
     #Valori de referinta in concentratie
     #Returneaza K-ul si mai apoi cu el se calculeaza punctual 
     #Resuspensia ca fiind K*ω => reprezentare grafica 
