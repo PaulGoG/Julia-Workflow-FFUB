@@ -92,6 +92,9 @@ end
 # Inversia ∃ pe tot spatiul?, sau e data de masurari meteo?
 # Necesita H
 # Momentan rulam tot cu f = 1 si vedem dupa aceea daca mai complicam...
+function f_inversie_termica(Σ_z, H, h_i)
+    return 1 
+end
 
 # Calcul factor DEC fara descendent; T se dezintegreaza in He stabil si stim lambda din literatura
 function DEC(x)

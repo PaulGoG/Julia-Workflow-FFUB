@@ -1,9 +1,21 @@
 """
-In this code we are going to simulate atmospheric tritium emission and dispersion in the atmosphere 
+In this code we are going to simulate atmospheric tritium emission and dispersion
 for normal nuclear reactor working conditions.
 """
 # Main code body
 
-include("Helpers.jl")
-include("Plots.jl")
-include("Calcul_dilutie.jl")
+using Plots
+using Trapz
+using DataFrames
+using CSV
+
+include("RawDataRead.jl")
+
+
+include("TestDependency.jl")
+a="A"
+Selector_Constanta(a)
+
+
+
+

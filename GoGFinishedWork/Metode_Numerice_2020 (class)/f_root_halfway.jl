@@ -22,7 +22,7 @@ a = 2
 b = 4
 Tol = 10^-6
 n = 0
-clearconsole()
+
 @do begin
     global x = (a+b)/2
     global n+=1
