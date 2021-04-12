@@ -1,32 +1,86 @@
-# Function bodies that are going to be used in the calculations
-
-# Ma gandesc ca aici sus sa fie citite Data Frames -> datele tabelate pe care sa le acceseze functiile
-# Module & import pt constantele tabelate citite cu DataFrames din alt modul
-
-# Functii corectie inaltime efectiva → curenti de aer descendenti & antrenare in cavitatea aerodinamica a cladirilor
-function H_1()
-    # H_1 = h - Δh_d
-    return h - 2*(1.5-w_0/u)*D
+# Corpul functiilor principale din program
+# Conversie String - Integer pentru lucrul cu clase Pasquill
+function StringtoInteger(String)
+    if String == "A"
+        return 1
+    elseif String == "B"
+        return 2
+    elseif String == "C"
+        return 3
+    elseif String == "D"
+        return 4
+    elseif String == "E"
+        return 5
+    elseif String == "F"
+        return 6
+    end
 end
-
-function H_2()
+function IntegertoString(Integer)
+    if Integer == 1
+        return "A"
+    elseif Integer == 2
+        return "B"
+    elseif Integer == 3
+        return "C"
+    elseif Integer == 4
+        return "D"
+    elseif Integer == 5
+        return "E"
+    elseif Integer == 6
+        return "F"
+    end
+end
+# Functia de calcul a vitezei vantului la o anumita inaltime
+# Calculam valoarea intr-un punct pe OZ, vectorul complet & u_z mediat pe clasele Pasquill
+# Suprafata poate fi "Apa", "Agricol", "Padure_Oras"
+# Pasquill poate fi orice string de la A la F
+function u_z(z, Pasquill, Suprafata) 
+    m = T_4.m[(T_4.Clasa_Pasquill .== Pasquill) .& (T_4.Tip_Suprafata .== Suprafata)]
+    return u_10*(z/10.0)^m[1]
+end
+function Construct_Vector_u_z(z, Pasquill, Suprafata)
+    A = zeros(length(z))
+    for i in 1:length(z)
+        A[i] = u_z(z[i], Pasquill, Suprafata)
+    end
+    return A
+end
+function u_mediu_z(z, Suprafata)
+    u = 0.0
+    for i in 1:6
+        u = u + u_z(z, IntegertoString(i), Suprafata)
+    end
+    return u/6
+end
+# Functii corectie inaltime efectiva → curenti de aer descendenti & antrenare in cavitatea aerodinamica a cladirilor
+function H_1(Suprafata)
+    u = u_mediu_z(h, Suprafata)
+    if w_0 < 1.5*u
+        return h - 2*(1.5-w_0/u)*D
+    else
+        return h
+    end
+end
+function H_2(Suprafata)
+    H_1 = H_1(Suprafata)
+    H_cladire = # Trebuie sa implementez cladirile
     if H_1 < H_cladire 
-        H_2 = 0
+        return 0
     else
         if H > 2.5 * H_cladire 
-            H_2 = H_1
+            return H_1
         else 
-            if u < 5
-                H_2 = H_1
+            if u_mediu_z(h, Suprafata) < 5
+                return H_1
             else
-                H_2 = H_1 - (1.5*H_cladire - 0.6*H_1)
+                return H_1 - (1.5*H_cladire - 0.6*H_1)
             end
         end
     end
-    return H_2
 end
-# A treia corectie in cazul portantei re-apeleaza functia de calcul a dispersiei care la randul sau se calculeaza cu H
-# Nu mai folosim momentan strat de inversie!!! => scapam de recursivitate momentan
+
+#Urmeaza implementare Cladiri
+
 # Nu inteleg diferenta intre faza tranzitie vs faza finala!!! -> calculez toate 5 corectiile si le plotez sa vedem ce iese
 # Model simplificat cu valoarea lui F deja data!
 function Δh_b_tranzitie()
