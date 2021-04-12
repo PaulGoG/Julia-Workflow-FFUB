@@ -12,9 +12,11 @@ I = trapz(x,y)
 itp = interpolate(y , BSpline(Cubic(Reflect(OnGrid())))) # Domeniu arbitrar
 sitp = scale(itp, 1:0.1:2) #Rescalare
 plot(itp)
-plot(a, sitp.(a))
 
 a = collect(1:0.01:2)
+plot(a, sitp.(a))
+
+
 b = itp.(a)
 scatter(a,b)
 scatter!(x,y)

@@ -16,8 +16,8 @@ Sw = CSV.File("SWING.csv"; select=[3, 6, 14], normalizenames=true) |> DataFrame 
 
 Sw.UAV_servo_sent_position_byte = 88 .- Sw.UAV_servo_sent_position_byte #Corectie unghi SWING (operatii vectoriale)
 
-#Transformare timp fractionar in UTC
-#Pentru timp fractionar denumit T.frac
+# Transformare timp fractionar in UTC
+# Pentru timp fractionar denumit T.frac
 # h = [T.frac]
 # m = [{T.frac} * 60]
 # s = {{T.frac} * 60} * 60
@@ -29,7 +29,7 @@ m2 = string.(convert.(Int, last.(modf.(first.(modf.(Sw.Fractional_time)) .*60)))
 s1 = string.(convert.(Int, round.((first.(modf.( first.(modf.(Md.Fractional_time)) .*60) )) .* 60)))
 s2 = string.(convert.(Int, round.((first.(modf.( first.(modf.(Sw.Fractional_time)) .*60) )) .* 60)))
 
-#Adaugam 0-uri in fata cifrelor
+# Adaugam 0-uri in fata cifrelor
 
 for i in 1:length(Md.Fractional_time)
     if parse(Int, h1[i]) < 10
@@ -55,14 +55,14 @@ for i in 1:length(Sw.Fractional_time)
     end
 end
 
-#Creem obiectul de tip struct cu timpii in format UTC
+# Creem obiectul de tip struct cu timpii in format UTC
 
 timp = Timp(string.(h1, ':', m1, ':', s1), string.(h2, ':', m2, ':', s2))
 
 unghiuri_Md = unique(Md.Elev_viewing_angle)
 unghiuri_Sw = sort(unique(Sw.UAV_servo_sent_position_byte))
 
-#Grafic MaxDoas cu toate unghiurile
+# Grafic MaxDoas cu toate unghiurile
 
 plt = plot(
     framestyle =:box,
@@ -84,7 +84,7 @@ end
 display(plt)
 savefig("Grafice\\MaxDoas.png")
 
-#Grafic SWING toate unghiurile
+# Grafic SWING toate unghiurile
 
 plt = plot(
     framestyle =:box,
@@ -106,7 +106,7 @@ end
 display(plt)
 savefig("Grafice\\Swing.png")
 
-#Grafice cu ambele dispozitive la toate unghiurile comune
+# Grafice cu ambele dispozitive la toate unghiurile comune
 
 for i in 1:length(unghiuri_Md)
     j = findfirst(x -> x == unghiuri_Md[i], unghiuri_Sw) #Gasim unghiurile comune
