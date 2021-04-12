@@ -121,7 +121,8 @@ end
 
 # Calcul Resuspensii
 function Resuspensie()
-    K = A*exp(-λ_1*t) + B*exp(-λ_2*t) 
+    t_zile = (t_R - x/u) * 86400
+    K = A*exp(-λ_1*t_zile) + B*exp(-λ_2*t_zile) 
     #Valori de referinta in concentratie
     #Returneaza K-ul si mai apoi cu el se calculeaza punctual 
     #Resuspensia ca fiind K*ω => reprezentare grafica 
