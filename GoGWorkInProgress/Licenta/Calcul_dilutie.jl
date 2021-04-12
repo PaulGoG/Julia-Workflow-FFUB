@@ -11,7 +11,6 @@ end
 # Astfel, valorile o sa fie linii // cu OY marginite de marginile "evantaiului" sectoarelor de cerc
 function dilutie_durata_prelungita(x, y)
 
-    θ_L = 2*π/16
     N_sector = div(atan(y, x),θ_L)
 
     χ_Q = (2/π)^0.5 * 1/(Σ_z*u*x*θ_L) * exp(-H^2/(2*Σ_z^2)) * f_inversie_termica(Σ_z, H, h_i)
@@ -22,7 +21,6 @@ end
 # Aici nu mai exista dependenta explicita nici macar de x, totul se considera pe termen foarte lung
 function dilutie_lunga_durata(x, y)
 
-    θ_L = 2*π/16
     k = div(atan(y, x),θ_L)
     #Modificare cu sumare si vectorii Fk & Fki uri -> Fiind date tabelate le vom citi in Data Frames in antetul acestui fisier
     #Momentan f_inversie_termica il setam cu valoarea 1
