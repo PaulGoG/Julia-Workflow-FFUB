@@ -14,6 +14,7 @@ function StringtoInteger(String)
     elseif String == "F"
         return 6
     end
+    return nothing
 end
 function IntegertoString(Integer)
     if Integer == 1
@@ -29,15 +30,23 @@ function IntegertoString(Integer)
     elseif Integer == 6
         return "F"
     end
+    return nothing
 end
-# Functia de calcul a vitezei vantului la o anumita inaltime
-# Calculam valoarea intr-un punct pe OZ, vectorul complet & u_z mediat pe clasele Pasquill
+
+# Calculul vitezei vantului pe directia OX la o anumita inaltime
 # Suprafata poate fi "Apa", "Agricol", "Padure_Oras"
 # Pasquill poate fi orice string de la A la F
+# Valoarea este constanta dupa inaltimea de 200 m
+
+# Calculul u(z) intr-un punct -> Depinde de Pasquill
 function u_z(z, Pasquill, Suprafata) 
     m = T_4.m[(T_4.Clasa_Pasquill .== Pasquill) .& (T_4.Tip_Suprafata .== Suprafata)]
-    return u_10*(z/10.0)^m[1]
+    if z <= 200
+        return u_10*(z/10.0)^m[1]
+    end
+    return u_10*(200/10.0)^m[1]
 end
+# Constructia vectorului de valori u(z)
 function Construct_Vector_u_z(z, Pasquill, Suprafata)
     A = zeros(length(z))
     for i in 1:length(z)
@@ -45,6 +54,7 @@ function Construct_Vector_u_z(z, Pasquill, Suprafata)
     end
     return A
 end
+# Calculul unui u mediat pe clasele Pasquill
 function u_mediu_z(z, Suprafata)
     u = 0.0
     for i in 1:6
@@ -52,6 +62,15 @@ function u_mediu_z(z, Suprafata)
     end
     return u/6
 end
+# Constructia vectorului de valori u_med
+function Construct_Vector_u_mediu_z(z, Suprafata)
+    A = zeros(length(z))
+    for i in 1:length(z)
+        A[i] = u_mediu_z(z[i], Suprafata)
+    end
+    return A
+end
+
 # Functii corectie inaltime efectiva → curenti de aer descendenti & antrenare in cavitatea aerodinamica a cladirilor
 function H_1(Suprafata)
     u = u_mediu_z(h, Suprafata)
@@ -62,24 +81,43 @@ function H_1(Suprafata)
     end
 end
 function H_2(Suprafata)
-    H_1 = H_1(Suprafata)
-    H_cladire = # Trebuie sa implementez cladirile
-    if H_1 < H_cladire 
+    H1 = H_1(Suprafata)
+    H_cladire = Echivalent_Cladire()[1]
+    if H1 < H_cladire 
         return 0
     else
-        if H > 2.5 * H_cladire 
-            return H_1
+        if H1 > 2.5 * H_cladire 
+            return H1
         else 
             if u_mediu_z(h, Suprafata) < 5
-                return H_1
+                return H1
             else
-                return H_1 - (1.5*H_cladire - 0.6*H_1)
+                return H1 - (1.5*H_cladire - 0.6*H1)
             end
         end
     end
 end
 
-#Urmeaza implementare Cladiri
+# Implementarea cladirilor -> conform teoriei furnizam un H_cladire si A_cladire care reflecta
+# Contributia fiecarei cladiri normata la apropierea ei de cos (inversul distantei)
+# Se considera oricum doar cladirile pentru care x^2+y^2 <= (3*h_cladire)^2
+function Echivalent_Cladire()
+    d_sc = zeros(length(Cladiri[:,1]))
+    H_cl = 0.0
+    A_cl = 0.0
+    for i in 1:length(Cladiri[:,1])
+        d = sqrt(Cladiri.x[i]^2 + Cladiri.y[i]^2)
+        if d <= 3*Cladiri.z[i] && atan(abs(Cladiri.y[i]/Cladiri.x[i])) < 20*π/180
+            d_sc[i] = d
+            H_cl += Cladiri.z[i]/d
+            A_cl += Cladiri.Arie_transversala[i]/d
+        end        
+    end
+    filter!(x -> x != 0, d_sc)
+    Suma = sum(1 ./d_sc)
+    return H_cl/Suma, A_cl/Suma
+end
+
 
 # Nu inteleg diferenta intre faza tranzitie vs faza finala!!! -> calculez toate 5 corectiile si le plotez sa vedem ce iese
 # Model simplificat cu valoarea lui F deja data!

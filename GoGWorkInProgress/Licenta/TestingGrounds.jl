@@ -4,15 +4,13 @@ using DataFrames
 
 include("Constante.jl")
 include("RawDataRead.jl")
-include("TestDependency.jl")
-#include("Helpers.jl")
+include("TestingDependency.jl")
 
-S = 0
-for k in 1:16
-    F_k = first(Freq.F_k[(Freq.Zona_k .== k)])
-    F_ki = Freq.F_ki[(Freq.Zona_k .== k)]
-    global S = S + F_k * sum(F_ki)
-end
-
-Suprafata = "Agricol"
-H_1(Suprafata)
+#=
+Plotare Cladiri
+x=y = collect(-1000.0:1:1000.0)
+unghi = collect(0:0.01:2*pi)
+Cercx = 1000 *cos.(unghi)
+Cercy = 1000 *sin.(unghi)
+scatter(Cladiri.x, Cladiri.y,Cladiri.z)
+=#
