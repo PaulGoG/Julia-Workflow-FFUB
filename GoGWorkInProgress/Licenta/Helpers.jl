@@ -201,97 +201,148 @@ function H_final(x, Pasquill, Suprafata)
     end
 end
 
-
-# Functii calcul dispersii 
-function σ_z(x, Pasquill)
-    #inserare tabel 1 si tabel 2 ca dependinte in functii deja citite!. Clasa Pasquill A->F cu indicii 1->6
+#=
+Calculul dispersiilor
+Suprafata = Pajiste_Apa, Arabil, Pasune, Rural, Padure_Urban, Metropola
+=#
+function σ_z(x, Pasquill, Tip_Suprafata)
+    a_1 = T_1.a_1[(T_1.Clasa_Pasquill .== Pasquill)][1]
+    a_2 = T_1.a_2[(T_1.Clasa_Pasquill .== Pasquill)][1]
+    b_1 = T_1.b_1[(T_1.Clasa_Pasquill .== Pasquill)][1]
+    b_2 = T_1.b_2[(T_1.Clasa_Pasquill .== Pasquill)][1]
 
     g = (a_1*x^b_1)/(1+a_2*x^b_2)
 
+    c_1 = T_2.a_1[(T_2.Tip_Suprafata .== Tip_Suprafata)][1]
+    c_2 = T_2.c_2[(T_2.Tip_Suprafata .== Tip_Suprafata)][1]
+    d_1 = T_2.d_1[(T_2.Tip_Suprafata .== Tip_Suprafata)][1]
+    d_2 = T_2.d_2[(T_2.Tip_Suprafata .== Tip_Suprafata)][1]
+    z_0 = T_2.z_0[(T_2.Tip_Suprafata .== Tip_Suprafata)][1]
+
     if z_0 > 0.1
-        F = log(c_1 * x^d_1 * (1+(c_2*x^d_2^(-1))))
+        F = log(c_1 * x^d_1 * (1 + (c_2 * x^d_2)^(-1)))
     else
-        F = log((c_1*x^d_1)/(1+c_2*x^d_2))
+        F = log((c_1 * x^d_1)/(1 + c_2*x^d_2))
     end
 
     return g*F
 end
 
-function σ_y(x, Pasquill, timp)
-    #Tabel pt c_3 tabel 3
-    σ_y = (c_3*x)/(1+0.0001*x)^0.5
-    if (t < 600)
-         return σ_y
+function σ_y(x, Pasquill)
+    c_3 = T_3.c_3[(T_3.Clasa_Pasquill .== Pasquill)][1]
+    σy = (c_3 * x)/(1 + 0.0001*x)^(1/2)
+    if t_R < 600
+         return σy
     else
-         return σ_y * (t/600)^0.2
+         return σy * (t_R/600)^0.2
     end
-
 end
 
-# Functie corectii dispersii (entangled cu corectia de portanta)
-function Σ_y(x,y)
-    #Necesita structura cladirilor din zona in ceva matricea
-    #Calcul dsursa-cladire = sqrt(x^2+y^2) [vector]
-    #Pastram doar valorile pt care ds-c < 3*zcladire & arctg(modul(y)/modul(x)<5 grade sa fie apropiata cladirea de OX)
-    #Dupa triaj calculam 2 marimi mediate pentru formule 
-    #H_cladire = suma(z/dsc)/suma(1/dsc) & analog Acladire
-    #Ne trebuie neaparat H
+#=
+Aplicarea unor anumite corectii asupra dispersiilor
+Trebuie verificat ca aceste corectii sa nu reduca dilutia cu un factor
+Mai mare de 3
+=#
 
-    if H >= 2.5*H_cladire 
-        Σ_y = σ_y
+function Σ_y(x, Pasquill, Suprafata)
+    H = H_final(x, Pasquill, Suprafata)
+    H_cladire = Echivalent_Cladire()[1]
+    A_cladire = Echivalent_Cladire()[2]
+    σy = σ_y(x, Pasquill)
+    if H >= 2.5 * H_cladire 
+        return σy
     else
-        Σ_max = (σ_y^2 + C*A_cladire/π)^0.5
+        Σ_max = (σy^2 + C*A_cladire/π)^(1/2)
         if H < H_cladire 
-            Σ_y = Σ_max
+            return Σ_max
         else 
-            Σ_y = Σ_max - (H-H_cladire)/(1.5 * H_cladire) * (Σ_max - σ_y)
+            return Σ_max - (H - H_cladire)/(1.5 * H_cladire) * (Σ_max - σy)
         end
     end
-    return Σ_y
 end
 
-function Σ_z()
-    #Analog exact dupa Σ_y
-    #Ma gandesc ca partea cu evaluarea d-urilor la cladiri sa fie facuta separat, o singura data in alta functie...
-    #Sau chiar sa fie rulata la inceputul blocului astuia de functii, sau functie in main, vedem...
+function Σ_z(x, Pasquill, Suprafata, Tip_Suprafata)
+    H = H_final(x, Pasquill, Suprafata)
+    H_cladire = Echivalent_Cladire()[1]
+    A_cladire = Echivalent_Cladire()[2]
+    σz = σ_z(x, Pasquill, Tip_Suprafata)
+    if H >= 2.5 * H_cladire 
+        return σz
+    else
+        Σ_max = (σz^2 + C*A_cladire/π)^(1/2)
+        if H < H_cladire 
+            return Σ_max
+        else 
+            return Σ_max - (H - H_cladire)/(1.5 * H_cladire) * (Σ_max - σz)
+        end
+    end
 end
 
-# Functie calcul strat de inversie termica (aici am nevoie de detalii si indrumare teoretice)
-# Inversia ∃ pe tot spatiul?, sau e data de masurari meteo?
-# Necesita H
-# Momentan rulam tot cu f = 1 si vedem dupa aceea daca mai complicam...
+# Inversia termica nu face obiectul acestui program momentan
 function f_inversie_termica(Σ_z, H, h_i)
     return 1 
 end
 
-# Calcul factor DEC fara descendent; T se dezintegreaza in He stabil si stim lambda din literatura
-function DEC(x)
-    return exp(-λ*x/u)
+# Calcul factor DEC fara descendent; Tritirul se dezintegreaza in He stabil
+function DEC_scurt(x, Pasquill, Suprafata)
+    u = u_z(H_final(x, Pasquill, Suprafata), Pasquill, Suprafata)
+    return exp(-λ_i*x/u)
 end
-
-# Calcul factor DEP -> DOAR DEPUNERE USCATA!, depunerea umeda necesita masuratori meteo precise
-function DEP_scurt()
-    #Integrarea numerica
-end
-
-function DEP_lung()
-    #α si dupa integrarea numerica
-end
-# Calcul concentratie integrata in timp χ
-function χ()
-    #χ_Q * DEC * DEP * Q_0 sau Q_med
+function DEC_lung(x, Suprafata)
+    u = u_mediu_z(H_2(Suprafata), Suprafata)
+    return exp(-λ_i*x/u)
 end
 
 # Calcul depuneri uscate
-function ω_d()
+function DEP_d_scurt()
+    #Integrarea numerica
+end
+function DEP_d_lung()
+    #α si dupa integrarea numerica
+end
+function ω_d_scurt()
+    #χ * v_d care e in carte pt HTO sau HT
+end
+function ω_d_lung()
     #χ * v_d care e in carte pt HTO sau HT
 end
 
-# Calcul Resuspensii
-function Resuspensie()
+#=
+Calcul depuneri umede
+Tip_Aversa = Ploaie sau Zapada & Debit = 0.5, 1, 3, 5
+=#
+function DEP_w(Tip_Aversa, Debit)
+    Λ_L = T_7.Lambda_L[(T_7.Tip_Aversa .== Tip_Aversa) .& (T_7.Debit_mm_h .== Debit)]
+    return exp(-Λ_L*t_spalare)
+end
+function ω_w_scurt(x, Pasquill, Suprafata, Tip_Aversa, Debit)
+    Λ_H = T_7.Lambda_H[(T_7.Tip_Aversa .== Tip_Aversa) .& (T_7.Debit_mm_h .== Debit)]
+    u = u_z(H_final(x, Pasquill, Suprafata), Pasquill, Suprafata)
+    Σy = Σ_y(x, Pasquill, Suprafata)
+    return Λ_H * Q_0 * DEC_scurt(x, Pasquill, Suprafata) * DEP_w(Tip_Aversa, Debit)/(sqrt(2) * π * u * Σy) * exp(-y^2 /(2*Σy^2))
+end
+function ω_w_lung(x, Suprafata, Tip_Aversa, Debit)
+    Λ_H = T_7.Lambda_H[(T_7.Tip_Aversa .== Tip_Aversa) .& (T_7.Debit_mm_h .== Debit)]
+    u = u_mediu_z(H_2(Suprafata), Suprafata)
+    return Λ_H * Q_0 * DEC_lung(x, Suprafata) * DEP_w(Tip_Aversa, Debit)/(u * θ_L * x)
+end
+
+# Calcul concentratie integrata in timp χ
+function χ_scurt(χ_Q, x, Pasquill, Suprafata)
+    #return χ_Q * Q_0 * DEC_scurt(x, Pasquill, Suprafata) * (DEP_w(Tip_Aversa, Debit) + DEP_d_scurt())
+end
+function χ_lung(χ_Q, x, Suprafata)
+    #return χ_Q * Q_0 * DEC_lung(x, Suprafata) * (DEP_w(Tip_Aversa, Debit) + DEP_d_lung())
+end
+
+# Calculul resuspensiei inhalabile
+function Resuspensie_scurt(x, Pasquill, Suprafata)
+    u = u_z(H_final(x, Pasquill, Suprafata), Pasquill, Suprafata)
     t_zile = (t_R - x/u) * 86400
-    K = A*exp(-λ_1*t_zile) + B*exp(-λ_2*t_zile) 
-    #Valori de referinta in concentratie
-    #Returneaza K-ul si mai apoi cu el se calculeaza punctual 
-    #Resuspensia ca fiind K*ω => reprezentare grafica 
+    return A*exp(-λ_1*t_zile) + B*exp(-λ_2*t_zile)
+end
+function Resuspensie_lung(x, Suprafata)
+    u = u_mediu_z(H_2(Suprafata), Suprafata)
+    t_zile = (t_R - x/u) * 86400
+    return A*exp(-λ_1*t_zile) + B*exp(-λ_2*t_zile)
 end

@@ -25,11 +25,14 @@ const T = 295 # Temperatura medie a aerului ambiant in K
 # const F_m = T/T_0 * w_0^2 *(D/2)^2
 const S = g/T * (g/C_p + ΔT_Δz) # Parametru de stabilitate atmosferica
 
+const λ_i = 1.784E-9 # Constanta de dezintegrare a tritiului in 1/s
+const t_spalare = t_R * (15/365) # Consideram ca avem 15 zile ploioase intr-un an
 const v_dL_HTO = 0.4E-2 # Minimul vitezei de depunere uscata a HTO
 const v_dH_HTO = 0.8E-2 # Maximul vitezei de depunere uscata a HTO
 const v_dL_HT = 0.04E-2 # Minimul vitezei de depunere uscata a HT
 const v_dH_HT = 0.05E-2 # Maximul vitezei de depunere uscata a HT
-const A = 1E-5 # Constanta necesara calculului resuspensiei
-const B = 1E-9 # Constanta necesara calculului resuspensiei
-const λ_1 = 1E-2 # Constanta necesara calculului resuspensiei
-const λ_2 = 2E-5 # Constanta necesara calculului resuspensiei
+
+const A = 1E-5 # Constanta necesara calculului resuspensiei in m^-1
+const B = 1E-9 # Constanta necesara calculului resuspensiei in m^-1
+const λ_1 = 1E-2 # Constanta necesara calculului resuspensiei in zile^-1
+const λ_2 = 2E-5 # Constanta necesara calculului resuspensiei in zile^-1
