@@ -88,13 +88,80 @@ function Echivalent_Cladire()
     A_cl = 0.0
     for i in 1:length(Cladiri[:,1])
         d = sqrt(Cladiri.x[i]^2 + Cladiri.y[i]^2)
-        if d <= 3*Cladiri.z[i] && atan(abs(Cladiri.y[i]/Cladiri.x[i])) < 20*π/180
+        if d <= 3*Cladiri.z[i] && Cladiri.y[i]/Cladiri.x[i] <= Con_Aerodinamic && Cladiri.y[i]/Cladiri.x[i] >= 0 
             d_sc[i] = d
             H_cl += Cladiri.z[i]/d
             A_cl += Cladiri.Arie_transversala[i]/d
         end        
     end
-    filter!(x -> x!=0, d_sc)
+    filter!(x -> x != 0, d_sc)
     Suma = sum(1 ./d_sc)
     return H_cl/Suma, A_cl/Suma
+end
+
+function X_0()
+    if F < 55
+        return 14*F^(5/8)
+    end
+        return 34*F^(2/5)
+end
+const x_0 = X_0() # Parametru de care avem nevoie la corectia Δh_b
+
+
+function Δh_b_final(Pasquill, Suprafata)
+    u = u_z(H_2(Suprafata), Pasquill, Suprafata)
+    dh_b_stabil = 2.6*(F/(u*S))^(1/3)
+    dh_b_neutru = 1.6*F^(1/3) * (3.5*x_0)^(2/3) /u
+    dh_b_calm = 5.0 * F^(1/4) * S^(-3/8)
+    return min(dh_b_stabil, dh_b_neutru, dh_b_calm)
+end
+function Δh_b(x, Pasquill, Suprafata)
+    u = u_z(H_2(Suprafata), Pasquill, Suprafata)
+    hbfinal = Δh_b_final(Pasquill, Suprafata)
+    hbtranzitie = 1.6*F^(1/3) * x^(2/3) / u
+    if x < 3.5*x_0 && hbtranzitie <= hbfinal
+        return hbtranzitie
+    end
+    return hbfinal
+end
+
+function Δh_m_final(Pasquill, Suprafata)
+    u = u_z(H_2(Suprafata), Pasquill, Suprafata)
+    dh_m_neutru = 1.5*w_0*D/u
+    dh_m_calm = 4*(F_m/S)^(1/4)
+    dh_m_stabil = 1.5 * (F_m/u)^(1/3) * S^(-1/6)
+    return min(dh_m_neutru, dh_m_calm, dh_m_stabil)
+end
+function Δh_m(x, Pasquill, Suprafata)
+    u = u_z(H_2(Suprafata), Pasquill, Suprafata)
+    hmfinal = Δh_m_final(Pasquill, Suprafata)
+    hmtranzitie = 1.89*(w_0^2 * D/(u*(w_0 + 3*u)))^(2/3) * x^(1/3)
+    if hmtranzitie <= hmfinal
+        return hmtranzitie
+    end
+    return hmfinal
+end
+
+function Δh_mb(x, Pasquill, Suprafata)
+    u = u_z(H_2(Suprafata), Pasquill, Suprafata)
+    hmbfinal = Δh_m_final(Pasquill, Suprafata) + Δh_b_final(Pasquill, Suprafata)
+    hmbtranzitie = 3^(1/3) * (F_m*x/((1/3 + u/w_0)^2 * u^2) + F*x^2/(0.5 * u^3))^(1/3)
+    if hmbtranzitie <= hmbfinal
+        return hmbtranzitie
+    end
+    return hmbfinal
+end
+
+function H_final(x, Pasquill, Suprafata)
+    hbfinal = Δh_b_final(Pasquill, Suprafata)
+    hmfinal = Δh_m_final(Pasquill, Suprafata)
+    if abs(hbfinal - hmfinal)*2/(hbfinal + hmfinal) <= 0.1
+        return  H_2(Suprafata) + Δh_mb(x, Pasquill, Suprafata)       
+    else
+        if hmfinal > hbfinal
+            return H_2(Suprafata) + Δh_m(x, Pasquill, Suprafata)
+        else
+            return H_2(Suprafata) + Δh_b(x, Pasquill, Suprafata)
+        end
+    end
 end
