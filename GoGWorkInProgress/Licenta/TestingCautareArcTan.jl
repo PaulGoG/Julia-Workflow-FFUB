@@ -1,6 +1,6 @@
 using Plots; plotlyjs()
 
-x=y = collect(-1000:1:1000.0)
+x = y = collect(-1000:1:1000.0)
 Kek = tan(20*pi/180)
 Q = zeros(length(x),length(y))
 for i in 1:length(x)

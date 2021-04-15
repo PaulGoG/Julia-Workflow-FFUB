@@ -41,22 +41,15 @@ Pasquill poate fi orice string de la "A" la "F"
 Valoarea este constanta dupa inaltimea de 200 m
 =#
 
-# Calculul u(z) intr-un punct -> Depinde de Pasquill
+# Calculul u(z) intr-un punct -> Depinde de clasa Pasquill
 function u_z(z, Pasquill, Suprafata) 
-    m = T_4.m[(T_4.Clasa_Pasquill .== Pasquill) .& (T_4.Tip_Suprafata .== Suprafata)]
+    m = T_4.m[(T_4.Clasa_Pasquill .== Pasquill) .& (T_4.Tip_Suprafata .== Suprafata)][1]
     if z <= 200
-        return u_10*(z/10.0)^m[1]
+        return u_10*(z/10.0)^m
     end
-    return u_10*(200/10.0)^m[1]
+    return u_10*(200/10.0)^m
 end
-# Constructia vectorului de valori u(z)
-function Construct_Vector_u_z(z, Pasquill, Suprafata)
-    A = zeros(length(z))
-    for i in 1:length(z)
-        A[i] = u_z(z[i], Pasquill, Suprafata)
-    end
-    return A
-end
+
 # Calculul unui u mediat pe clasele Pasquill
 function u_mediu_z(z, Suprafata)
     u = 0.0
@@ -65,20 +58,12 @@ function u_mediu_z(z, Suprafata)
     end
     return u/6
 end
-# Constructia vectorului de valori u_med
-function Construct_Vector_u_mediu_z(z, Suprafata)
-    A = zeros(length(z))
-    for i in 1:length(z)
-        A[i] = u_mediu_z(z[i], Suprafata)
-    end
-    return A
-end
 
 # Functii corectie inaltime efectiva → curenti de aer descendenti & antrenare in cavitatea aerodinamica a cladirilor
 function H_1(Suprafata)
     u = u_mediu_z(h, Suprafata)
-    if w_0 < 1.5*u
-        return h - 2*(1.5-w_0/u)*D
+    if w_0 < 1.5 * u
+        return h - 2*(1.5 - w_0/u)*D
     else
         return h
     end
@@ -92,7 +77,7 @@ function H_2(Suprafata)
         if H1 > 2.5 * H_cladire 
             return H1
         else 
-            if u_mediu_z(h, Suprafata) < 5
+            if u_mediu_z(H1, Suprafata) < 5
                 return H1
             else
                 return H1 - (1.5*H_cladire - 0.6*H1)
@@ -114,7 +99,7 @@ function Echivalent_Cladire()
     A_cl = 0.0
     for i in 1:length(Cladiri[:,1])
         d = sqrt(Cladiri.x[i]^2 + Cladiri.y[i]^2)
-        if d <= 3*Cladiri.z[i] && Cladiri.y[i]/Cladiri.x[i] <= Con_Aerodinamic && Cladiri.y[i]/Cladiri.x[i] >= 0 
+        if d <= 3*Cladiri.z[i] && abs(Cladiri.y[i]/Cladiri.x[i]) <= Con_Aerodinamic && Cladiri.x[i] > 0
             d_sc[i] = d
             H_cl += Cladiri.z[i]/d
             A_cl += Cladiri.Arie_transversala[i]/d
@@ -211,9 +196,9 @@ function σ_z(x, Pasquill, Tip_Suprafata)
     b_1 = T_1.b_1[(T_1.Clasa_Pasquill .== Pasquill)][1]
     b_2 = T_1.b_2[(T_1.Clasa_Pasquill .== Pasquill)][1]
 
-    g = (a_1*x^b_1)/(1+a_2*x^b_2)
+    g = (a_1 * x^b_1)/(1 + a_2 * x^b_2)
 
-    c_1 = T_2.a_1[(T_2.Tip_Suprafata .== Tip_Suprafata)][1]
+    c_1 = T_2.c_1[(T_2.Tip_Suprafata .== Tip_Suprafata)][1]
     c_2 = T_2.c_2[(T_2.Tip_Suprafata .== Tip_Suprafata)][1]
     d_1 = T_2.d_1[(T_2.Tip_Suprafata .== Tip_Suprafata)][1]
     d_2 = T_2.d_2[(T_2.Tip_Suprafata .== Tip_Suprafata)][1]
@@ -230,7 +215,7 @@ end
 
 function σ_y(x, Pasquill)
     c_3 = T_3.c_3[(T_3.Clasa_Pasquill .== Pasquill)][1]
-    σy = (c_3 * x)/(1 + 0.0001*x)^(1/2)
+    σy = (c_3 * x)/(1 + 0.0001*x)^0.5
     if t_R < 600
          return σy
     else
@@ -242,6 +227,7 @@ end
 Aplicarea unor anumite corectii asupra dispersiilor
 Trebuie verificat ca aceste corectii sa nu reduca dilutia cu un factor
 Mai mare de 3
+Pentru a renunta la corectie se pune C = 0
 =#
 
 function Σ_y(x, Pasquill, Suprafata)
@@ -252,7 +238,7 @@ function Σ_y(x, Pasquill, Suprafata)
     if H >= 2.5 * H_cladire 
         return σy
     else
-        Σ_max = (σy^2 + C*A_cladire/π)^(1/2)
+        Σ_max = (σy^2 + C*A_cladire/π)^0.5
         if H < H_cladire 
             return Σ_max
         else 
@@ -260,7 +246,6 @@ function Σ_y(x, Pasquill, Suprafata)
         end
     end
 end
-
 function Σ_z(x, Pasquill, Suprafata, Tip_Suprafata)
     H = H_final(x, Pasquill, Suprafata)
     H_cladire = Echivalent_Cladire()[1]
@@ -269,7 +254,7 @@ function Σ_z(x, Pasquill, Suprafata, Tip_Suprafata)
     if H >= 2.5 * H_cladire 
         return σz
     else
-        Σ_max = (σz^2 + C*A_cladire/π)^(1/2)
+        Σ_max = (σz^2 + C*A_cladire/π)^0.5
         if H < H_cladire 
             return Σ_max
         else 
@@ -279,7 +264,7 @@ function Σ_z(x, Pasquill, Suprafata, Tip_Suprafata)
 end
 
 # Inversia termica nu face obiectul acestui program momentan
-function f_inversie_termica(Σ_z, H, h_i)
+function f_inversie_termica(Σz, H, h_i)
     return 1 
 end
 
@@ -293,18 +278,35 @@ function DEC_lung(x, Suprafata)
     return exp(-λ_i*x/u)
 end
 
-# Calcul depuneri uscate
-function DEP_d_scurt()
-    #Integrarea numerica
+# Calculul depunerii uscate pt HTO
+function DEP_d_scurt(x, Pasquill, Suprafata, Tip_Suprafata)
+    u = u_z(H_final(x, Pasquill, Suprafata), Pasquill, Suprafata)
+    xprim = collect(1:1:x)
+    H = [H_final(xprim[i], Pasquill, Suprafata) for i in 1:length(xprim)]
+    σz = [σ_z(xprim[i], Pasquill, Tip_Suprafata) for i in 1:length(xprim)]
+    yprim = exp.(- H.^2 ./(2 * σz.^2)) ./σz
+    return exp(-(2/π)^0.5 * (v_dL_HTO/u) * trapz(xprim, yprim))
 end
-function DEP_d_lung()
-    #α si dupa integrarea numerica
+function DEP_d_lung(x, Suprafata, Tip_Suprafata, zona_k)
+    Suma = 0.0
+    xprim = collect(1:1:x)
+    for j in 1:6
+        u = u_z(H_final(x, IntegertoString(j), Suprafata), IntegertoString(j), Suprafata)
+        α = Freq.F_k[(Freq.Zona_k .== zona_k) .& (Freq.Clasa_Pasquill .== IntegertoString(j))][1]
+        α = α * Freq.F_ki[(Freq.Zona_k .== zona_k) .& (Freq.Clasa_Pasquill .== IntegertoString(j))][1]
+        α = α * (tan(θ_L/2)*2/θ_L)*sqrt(2/π)*v_dL_HTO /u
+        H = [H_final(xprim[i], IntegertoString(j), Suprafata) for i in 1:length(xprim)]
+        σz = [σ_z(xprim[i], IntegertoString(j), Tip_Suprafata) for i in 1:length(xprim)]
+        yprim = exp.(- H.^2 ./(2 * σz.^2)) ./σz
+        Suma = Suma + exp(-α*trapz(xprim,yprim))
+    end
+    return Suma
 end
-function ω_d_scurt()
-    #χ * v_d care e in carte pt HTO sau HT
+function ω_d_scurt(χ_Q, x, Pasquill, Suprafata, Tip_Suprafata)
+    return v_dH_HTO * χ_Q * Q_0 * DEC_scurt(x, Pasquill, Suprafata) * DEP_d_scurt(x, Pasquill, Suprafata, Tip_Suprafata)
 end
-function ω_d_lung()
-    #χ * v_d care e in carte pt HTO sau HT
+function ω_d_lung(χ_Q, x, Suprafata, Tip_Suprafata, zona_k)
+    return v_dH_HTO * χ_Q * Q_0 * DEC_lung(x, Suprafata) * DEP_d_lung(x, Suprafata, Tip_Suprafata, zona_k)
 end
 
 #=
@@ -322,17 +324,17 @@ function ω_w_scurt(x, Pasquill, Suprafata, Tip_Aversa, Debit)
     return Λ_H * Q_0 * DEC_scurt(x, Pasquill, Suprafata) * DEP_w(Tip_Aversa, Debit)/(sqrt(2) * π * u * Σy) * exp(-y^2 /(2*Σy^2))
 end
 function ω_w_lung(x, Suprafata, Tip_Aversa, Debit)
-    Λ_H = T_7.Lambda_H[(T_7.Tip_Aversa .== Tip_Aversa) .& (T_7.Debit_mm_h .== Debit)]
+    Λ_H = T_7.Lambda_H[(T_7.Tip_Aversa .== Tip_Aversa) .& (T_7.Debit_mm_h .== Debit)][1]
     u = u_mediu_z(H_2(Suprafata), Suprafata)
     return Λ_H * Q_0 * DEC_lung(x, Suprafata) * DEP_w(Tip_Aversa, Debit)/(u * θ_L * x)
 end
 
 # Calcul concentratie integrata in timp χ
-function χ_scurt(χ_Q, x, Pasquill, Suprafata)
-    #return χ_Q * Q_0 * DEC_scurt(x, Pasquill, Suprafata) * (DEP_w(Tip_Aversa, Debit) + DEP_d_scurt())
+function χ_scurt(χ_Q, x, Pasquill, Suprafata, Tip_Suprafata, Tip_Aversa, Debit)
+    return χ_Q * Q_0 * DEC_scurt(x, Pasquill, Suprafata) * (DEP_w(Tip_Aversa, Debit) + DEP_d_scurt(x, Pasquill, Suprafata, Tip_Suprafata))
 end
-function χ_lung(χ_Q, x, Suprafata)
-    #return χ_Q * Q_0 * DEC_lung(x, Suprafata) * (DEP_w(Tip_Aversa, Debit) + DEP_d_lung())
+function χ_lung(χ_Q, x, Suprafata, zona_k)
+    return χ_Q * Q_0 * DEC_lung(x, Suprafata) * (DEP_w(Tip_Aversa, Debit) + DEP_d_lung(x, Suprafata, Tip_Suprafata, zona_k))
 end
 
 # Calculul resuspensiei inhalabile
@@ -345,4 +347,25 @@ function Resuspensie_lung(x, Suprafata)
     u = u_mediu_z(H_2(Suprafata), Suprafata)
     t_zile = (t_R - x/u) * 86400
     return A*exp(-λ_1*t_zile) + B*exp(-λ_2*t_zile)
+end
+
+# Ne spune in al catelea sector k ne aflam (Sens trigonometric)
+function Apartenenta_Sector_Cerc(x, y)
+    if x == 0 && y ==0
+        return 1.0
+    end
+    if y >= 0
+        if x >= 0
+            q = 0
+        else
+            q = 1
+        end
+    else
+        if x >= 0
+            q = 2
+        else
+            q = 1
+        end
+    end
+    return floor((atan(y/x) + q*π)/θ_L) + 1
 end
