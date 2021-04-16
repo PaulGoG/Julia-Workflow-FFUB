@@ -9,8 +9,8 @@ using Trapz
 using DataFrames
 using CSV
 
-const t_R = 3000 # Timpul de emisie in secunde
-const C = 2 # Intervine la calculul Σ-urilor, normal trebuie sa maximizeze Dilutia
+const t_R = 86400*365 # Timpul de emisie in secunde
+const C = 2 # Intervine la calculul Σ-urilor, trebuie sa maximizeze dilutia
 
 include("Constante.jl")
 include("CitireDate.jl")
@@ -24,15 +24,29 @@ Suprafata = "Padure_Oras"
 Tip_Suprafata = "Padure_Urban"
 Tip_Aversa = "Ploaie"
 Debit = 1.0
-dim_transversal = 1000
+dim_transversal = 100000
 dim_vertical = 0
+step = 1000
 
-x = collect(-(dim_transversal/2):1:(dim_transversal/2))
-y = collect(-(dim_transversal/2):1:(dim_transversal/2))
+x = collect(-(dim_transversal/2):step:(dim_transversal/2))
+y = collect(-(dim_transversal/2):step:(dim_transversal/2))
 z = collect(0:1:dim_vertical)
 
-Aux = Durata_Scurta(x, y, z, Pasquill, Suprafata, Tip_Suprafata, Tip_Aversa, Debit)
-χ_Q = Aux[1][:,:,1]
-χ = Aux[2][:,:,1]
-ω = Aux[3]
-K = Aux[4]
+if t_R <= 3600
+    χ_Q = χ_Q_Durata_Scurta(x, y, z, Pasquill, Suprafata, Tip_Suprafata)
+    χ = χ_Durata_Scurta(χ_Q, x, y, z, Pasquill, Suprafata, Tip_Suprafata, Tip_Aversa, Debit)
+    ω = ω_Scurt(χ_Q, x, y, Pasquill, Suprafata, Tip_Suprafata, Tip_Aversa, Debit)
+elseif t_R <= 86400
+    χ_Q = χ_Q_Durata_Prelungita(x, y, Pasquill, Suprafata, Tip_Suprafata)
+    χ = χ_Durata_Prelungita(χ_Q, x, y, Pasquill, Suprafata, Tip_Suprafata, Tip_Aversa, Debit)
+    ω = ω_Prelungit(χ_Q, x, y, Pasquill, Suprafata, Tip_Suprafata, Tip_Aversa, Debit)
+else
+    χ_Q = χ_Q_χ_Durata_Lunga(x, y, Suprafata, Tip_Suprafata)
+    χ = χ_Durata_Lunga(χ_Q, x, y, Suprafata, Tip_Suprafata, Tip_Aversa, Debit)
+    ω = ω_Lung(χ_Q, x, y, Suprafata, Tip_Suprafata, Tip_Aversa, Debit)
+end
+
+Reprezentari(x, y, χ_Q)
+Reprezentari(x, y, χ)
+Reprezentari(x, y, ω)
+Reprezentari(x, y, ω .* Resuspensie())

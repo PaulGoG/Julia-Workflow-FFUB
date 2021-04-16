@@ -1,22 +1,6 @@
 # Corpul functiilor principale din program
 
-# Conversie String - Integer si vice-versa pentru lucrul cu clase Pasquill
-function StringtoInteger(String)
-    if String == "A"
-        return 1
-    elseif String == "B"
-        return 2
-    elseif String == "C"
-        return 3
-    elseif String == "D"
-        return 4
-    elseif String == "E"
-        return 5
-    elseif String == "F"
-        return 6
-    end
-    return nothing
-end
+# Conversie String - Integer pentru lucrul cu clase Pasquill
 function IntegertoString(Integer)
     if Integer == 1
         return "A"
@@ -285,7 +269,7 @@ end
 # Calculul depunerii uscate pt HTO
 function DEP_d_scurt(x, Pasquill, Suprafata, Tip_Suprafata)
     u = u_z(H_final(x, Pasquill, Suprafata), Pasquill, Suprafata)
-    xprim = collect(1:1:x)
+    xprim = collect(1:(x/10):x)
     H = [H_final(xprim[i], Pasquill, Suprafata) for i in 1:length(xprim)]
     σz = [σ_z(xprim[i], Pasquill, Tip_Suprafata) for i in 1:length(xprim)]
     yprim = exp.(- H.^2 ./(2 * σz.^2)) ./σz
@@ -293,7 +277,7 @@ function DEP_d_scurt(x, Pasquill, Suprafata, Tip_Suprafata)
 end
 function DEP_d_lung(x, Suprafata, Tip_Suprafata, zona_k)
     Suma = 0.0
-    xprim = collect(1:1:x)
+    xprim = collect(1:(x/10):x)
     for j in 1:6
         u = u_z(H_final(x, IntegertoString(j), Suprafata), IntegertoString(j), Suprafata)
         α = Freq.F_k[(Freq.Zona_k .== zona_k) .& (Freq.Clasa_Pasquill .== IntegertoString(j))][1]
@@ -346,26 +330,17 @@ function χ_scurt(χ_Q, x, Pasquill, Suprafata, Tip_Suprafata, Tip_Aversa, Debit
     end
     return 0.0
 end
-function χ_lung(χ_Q, x, Suprafata, zona_k)
+function χ_lung(χ_Q, x, Suprafata, Tip_Suprafata, Tip_Aversa, Debit, zona_k)
     return χ_Q * Q_0 * DEC_lung(x, Suprafata) * (DEP_w(Tip_Aversa, Debit) + DEP_d_lung(x, Suprafata, Tip_Suprafata, zona_k))
 end
 
-# Calculul resuspensiei inhalabile
-function Resuspensie_scurt(x, Pasquill, Suprafata)
-    if x > 0
-        u = u_z(H_final(x, Pasquill, Suprafata), Pasquill, Suprafata)
-        t_zile = (t_R - x/u) * 86400
+# Factorul de resuspensie
+function Resuspensie()
+        t_zile = t_R/86400
         return A*exp(-λ_1*t_zile) + B*exp(-λ_2*t_zile)
-    end
-    return 0.0
-end
-function Resuspensie_lung(x, Suprafata)
-    u = u_mediu_z(H_2(Suprafata), Suprafata)
-    t_zile = (t_R - x/u) * 86400
-    return A*exp(-λ_1*t_zile) + B*exp(-λ_2*t_zile)
 end
 
-# Ne spune in al catelea sector k ne aflam (Sens trigonometric)
+# Ne spune in al catelea sector K ne aflam (Sens trigonometric)
 function Apartenenta_Sector_Cerc(x, y)
     if x == 0 && y ==0
         return 1.0
@@ -389,5 +364,5 @@ end
 # Perechea de puncte (x,y) intr-un sistem cu axele rotite
 function Rotatie(x, y)
     ϕ = (2*Apartenenta_Sector_Cerc(x,y) - 1) * θ_L /2
-    return (x*cos(ϕ) + y*sin(ϕ)), (-x*sin(ϕ) + y*cos(ϕ))
+    return x*cos(ϕ) + y*sin(ϕ) #(-x*sin(ϕ) + y*cos(ϕ))
 end

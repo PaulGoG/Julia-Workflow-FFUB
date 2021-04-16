@@ -42,8 +42,7 @@ end
 function dilutie_lunga_durata(x, y, Suprafata, Tip_Suprafata)
     if x != 0 
         k = Apartenenta_Sector_Cerc(x, y)
-        xrotit = Rotatie(x,y)[1]
-        yrotit = Rotatie(x,y)[2]
+        xrotit = Rotatie(x,y)
         F_k = Freq.F_k[(Freq.Zona_k .== k)][1]
         Suma = 0.0
             for i in 1:6
