@@ -9,7 +9,7 @@ using Trapz
 using DataFrames
 using CSV
 
-const t_R = 2400 # Timpul de emisie in secunde
+const t_R = 86400*365*3 # Timpul de emisie in secunde
 const C = 2 # Intervine la calculul Σ-urilor, trebuie sa maximizeze dilutia
 
 include("Constante.jl")
