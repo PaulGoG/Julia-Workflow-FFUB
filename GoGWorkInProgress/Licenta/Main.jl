@@ -9,32 +9,30 @@ using Trapz
 using DataFrames
 using CSV
 
-t_R = 86400E2 # Timpul de emisie in secunde
+const t_R = 3000 # Timpul de emisie in secunde
+const C = 2 # Intervine la calculul Σ-urilor, normal trebuie sa maximizeze Dilutia
 
 include("Constante.jl")
 include("CitireDate.jl")
 include("Helpers.jl")
 include("Calcul_dilutie.jl")
+include("Vectorize.jl")
 include("ReprezentariGrafice.jl")
 
-
-Pasquill = "C"
+Pasquill = "D"
 Suprafata = "Padure_Oras"
 Tip_Suprafata = "Padure_Urban"
+Tip_Aversa = "Ploaie"
+Debit = 1.0
 dim_transversal = 1000
 dim_vertical = 0
 
-x = collect(1:1:dim_transversal+1)
+x = collect(-(dim_transversal/2):1:(dim_transversal/2))
 y = collect(-(dim_transversal/2):1:(dim_transversal/2))
 z = collect(0:1:dim_vertical)
 
-
-χ_Q = zeros(length(x), length(y))
-    for i in 1:length(x)
-        for j in 1:length(y)
-            χ_Q[i,j] = dilutie_lunga_durata(x[i],y[j], Suprafata, Tip_Suprafata)
-        end 
-    end
-heatmap(transpose(χ_Q), xaxis = "x", yaxis = "y")
-contourf(transpose(χ_Q), xaxis = "x", yaxis = "y")
-surface(transpose(χ_Q), xaxis = "x", yaxis = "y")
+Aux = Durata_Scurta(x, y, z, Pasquill, Suprafata, Tip_Suprafata, Tip_Aversa, Debit)
+χ_Q = Aux[1][:,:,1]
+χ = Aux[2][:,:,1]
+ω = Aux[3]
+K = Aux[4]
