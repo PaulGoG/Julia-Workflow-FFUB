@@ -1,3 +1,9 @@
+#=
+Program de test unde verific daca algoritmul
+Stie sa determine singur sectorul dintr-un arc de cerc unde
+Se afla un anumit punct (x,y)
+=#
+
 using Plots; gr()
 using Trapz
 using DataFrames

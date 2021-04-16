@@ -1,14 +1,12 @@
 # Pastram aici un numar de constante vitale pentru calculele programului
 
 const u_10 = 3.5 # Viteza medie vantului la 10 metri deasupra solului in m/s
-const Q_0 = 1 # Activitatea poluantului in punctul de emisie in Bq; 1 doar de test!!!
+const Q_0 = 1E16 # Activitatea poluantului in punctul de emisie in Bq;
 const h  = 150 # Inaltimea cosului de emisie in metri
-const h_i = 100 # Inaltimea limitei inferioare a stratului de inversie atmosferica in m; Nu vom implementa strat de inversie!
 const n = 16 # Nr de regiuni in care impartim roza vanturilor -> Trebuie sa fie multiplu de 4
 const θ_L = 2*π/n # Sectorul de unghi din fiecare regiune
 const Sector_Cerc = tan(θ_L / 2)
-const Con_Aerodinamic = tan(15/2 * π/180) # limita pozitionarii cladirilor fata de directia vantului
-C = 2 # Intervine la calculul Σ-urilor, normal trebuie sa maximizeze Dilutia
+
 const w_0 = 7 # Viteza de iesire a gazelor pe cos in m/s
 const D = 10 # Diametrul interior al cosului in metri
 const ρ = 1.2 # Densitatea aerului ambiant
