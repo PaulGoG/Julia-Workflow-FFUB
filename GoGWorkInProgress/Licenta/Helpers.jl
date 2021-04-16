@@ -297,7 +297,10 @@ function ω_d_scurt(χ_Q, x, Pasquill, Suprafata, Tip_Suprafata)
     return 0.0
 end
 function ω_d_lung(χ_Q, x, Suprafata, Tip_Suprafata, zona_k)
-    return v_dH_HTO * χ_Q * Q_0 * DEC_lung(x, Suprafata) * DEP_d_lung(x, Suprafata, Tip_Suprafata, zona_k)
+    if x > 0
+        return v_dH_HTO * χ_Q * Q_0 * DEC_lung(x, Suprafata) * DEP_d_lung(x, Suprafata, Tip_Suprafata, zona_k)
+    end
+    return 0.0
 end
 
 #=
@@ -331,7 +334,10 @@ function χ_scurt(χ_Q, x, Pasquill, Suprafata, Tip_Suprafata, Tip_Aversa, Debit
     return 0.0
 end
 function χ_lung(χ_Q, x, Suprafata, Tip_Suprafata, Tip_Aversa, Debit, zona_k)
-    return χ_Q * Q_0 * DEC_lung(x, Suprafata) * (DEP_w(Tip_Aversa, Debit) + DEP_d_lung(x, Suprafata, Tip_Suprafata, zona_k))
+    if x > 0
+        return χ_Q * Q_0 * DEC_lung(x, Suprafata) * (DEP_w(Tip_Aversa, Debit) + DEP_d_lung(x, Suprafata, Tip_Suprafata, zona_k))
+    end
+    return 0.0
 end
 
 # Factorul de resuspensie
@@ -361,8 +367,13 @@ function Apartenenta_Sector_Cerc(x, y)
     return floor((atan(y/x) + q*π)/θ_L) + 1
 end
 
-# Perechea de puncte (x,y) intr-un sistem cu axele rotite
+# Coordonata x intr-un sistem cu axele rotite
 function Rotatie(x, y)
     ϕ = (2*Apartenenta_Sector_Cerc(x,y) - 1) * θ_L /2
-    return x*cos(ϕ) + y*sin(ϕ) #(-x*sin(ϕ) + y*cos(ϕ))
+    if abs(cos(ϕ)) == 1
+        return x*cos(ϕ)
+    elseif abs(sin(ϕ)) == 1
+        return y*sin(ϕ)
+    end
+    return x*cos(ϕ) + y*sin(ϕ)
 end

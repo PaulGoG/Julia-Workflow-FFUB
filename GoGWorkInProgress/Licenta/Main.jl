@@ -9,7 +9,7 @@ using Trapz
 using DataFrames
 using CSV
 
-const t_R = 86400*365 # Timpul de emisie in secunde
+const t_R = 2400 # Timpul de emisie in secunde
 const C = 2 # Intervine la calculul Σ-urilor, trebuie sa maximizeze dilutia
 
 include("Constante.jl")
@@ -24,9 +24,9 @@ Suprafata = "Padure_Oras"
 Tip_Suprafata = "Padure_Urban"
 Tip_Aversa = "Ploaie"
 Debit = 1.0
-dim_transversal = 100000
+dim_transversal = 10000
 dim_vertical = 0
-step = 1000
+step = 100
 
 x = collect(-(dim_transversal/2):step:(dim_transversal/2))
 y = collect(-(dim_transversal/2):step:(dim_transversal/2))
@@ -41,7 +41,7 @@ elseif t_R <= 86400
     χ = χ_Durata_Prelungita(χ_Q, x, y, Pasquill, Suprafata, Tip_Suprafata, Tip_Aversa, Debit)
     ω = ω_Prelungit(χ_Q, x, y, Pasquill, Suprafata, Tip_Suprafata, Tip_Aversa, Debit)
 else
-    χ_Q = χ_Q_χ_Durata_Lunga(x, y, Suprafata, Tip_Suprafata)
+    χ_Q = χ_Q_Durata_Lunga(x, y, Suprafata, Tip_Suprafata)
     χ = χ_Durata_Lunga(χ_Q, x, y, Suprafata, Tip_Suprafata, Tip_Aversa, Debit)
     ω = ω_Lung(χ_Q, x, y, Suprafata, Tip_Suprafata, Tip_Aversa, Debit)
 end

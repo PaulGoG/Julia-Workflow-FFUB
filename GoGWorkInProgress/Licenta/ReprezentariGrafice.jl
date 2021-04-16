@@ -1,10 +1,10 @@
 # Plotarea unei matrici NxN
-function Reprezentari(x, y, Matrix)
-    heatmap(x, y, transpose(Matrix), legend = false,
+function Reprezentari(x, y, P)
+    heatmap(x, y, transpose(P),  
     xlabel = "x", ylabel = "y")
-    contourf(x, y, transpose(Matrix), legend = false,
+    contourf(x, y, transpose(P), 
     xlabel = "x", ylabel = "y")
-    surface(x, y, transpose(Matrix), legend = false,
+    surface(x, y, transpose(P),  
     xlabel = "x", ylabel = "y")
     #savefig("Reprezentari_Grafice\\Denumire.png")
 end

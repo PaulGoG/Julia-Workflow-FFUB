@@ -75,7 +75,7 @@ function χ_Durata_Lunga(χ_Q, x, y, Suprafata, Tip_Suprafata, Tip_Aversa, Debit
     χ = zeros(length(x), length(y))
     for i in 1:length(x)
         for j in 1:length(y)
-            χ[i,j] = χ_lung(χ_Q[i,j], Rotatie(x[i], y[j]), Suprafata, Tip_Suprafata, Tip_Aversa, Debit, Apartenenta_Sector_Cerc(x,y))
+            χ[i,j] = χ_lung(χ_Q[i,j], Rotatie(x[i], y[j]), Suprafata, Tip_Suprafata, Tip_Aversa, Debit, Apartenenta_Sector_Cerc(x[i],y[j]))
         end 
     end
     return χ

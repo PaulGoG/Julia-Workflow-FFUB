@@ -40,7 +40,6 @@ end
 # Aici nu mai exista dependenta explicita nici macar de x, totul se considera pe termen foarte lung
 # => Sectoare de cerc in care dilutia e cuasi-omogena, depinde de coordonate doar implicit
 function dilutie_lunga_durata(x, y, Suprafata, Tip_Suprafata)
-    if x != 0 
         k = Apartenenta_Sector_Cerc(x, y)
         xrotit = Rotatie(x,y)
         F_k = Freq.F_k[(Freq.Zona_k .== k)][1]
@@ -53,7 +52,5 @@ function dilutie_lunga_durata(x, y, Suprafata, Tip_Suprafata)
                 F_ki = Freq.F_ki[(Freq.Zona_k .== k) .& (Freq.Clasa_Pasquill .== Pasquill)][1]
                 Suma = Suma + F_ki * exp(-H^2/(2*Σz^2))/(Σz*u) 
             end
-        return (2/π)^0.5 * F_k * Suma/(x*θ_L)
-    end
-    return 0.0
+        return (2/π)^0.5 * F_k * Suma/(xrotit*θ_L)
 end
