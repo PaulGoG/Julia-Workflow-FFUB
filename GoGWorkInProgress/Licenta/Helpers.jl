@@ -197,7 +197,7 @@ function σ_z(x, Pasquill, Tip_Suprafata)
     return g*F
 end
 
-function σ_y(x, Pasquill)
+function σ_y(x, Pasquill, t_R)
     c_3 = T_3.c_3[(T_3.Clasa_Pasquill .== Pasquill)][1]
     σy = (c_3 * x)/(1 + 0.0001*x)^0.5
     if t_R <= 600
@@ -214,11 +214,11 @@ Mai mare de 3
 Pentru a renunta la corectie se pune C = 0
 =#
 
-function Σ_y(x, Pasquill, Suprafata)
+function Σ_y(x, Pasquill, Suprafata, t_R)
     H = H_final(x, Pasquill, Suprafata)
     H_cladire = Echivalent_Cladire()[1]
     A_cladire = Echivalent_Cladire()[2]
-    σy = σ_y(x, Pasquill)
+    σy = σ_y(x, Pasquill, t_R)
     if H >= 2.5 * H_cladire 
         return σy
     else
@@ -269,7 +269,7 @@ end
 # Calculul depunerii uscate pt HTO
 function DEP_d_scurt(x, Pasquill, Suprafata, Tip_Suprafata)
     u = u_z(H_final(x, Pasquill, Suprafata), Pasquill, Suprafata)
-    xprim = collect(1:(x/10):x)
+    xprim = collect(1:(x/50):x)
     H = [H_final(xprim[i], Pasquill, Suprafata) for i in 1:length(xprim)]
     σz = [σ_z(xprim[i], Pasquill, Tip_Suprafata) for i in 1:length(xprim)]
     yprim = exp.(- H.^2 ./(2 * σz.^2)) ./σz
@@ -277,14 +277,16 @@ function DEP_d_scurt(x, Pasquill, Suprafata, Tip_Suprafata)
 end
 function DEP_d_lung(x, Suprafata, Tip_Suprafata, zona_k)
     Suma = 0.0
-    xprim = collect(1:(x/10):x)
+    xprim = collect(1:(x/20):x)
     for j in 1:6
-        u = u_z(H_final(x, IntegertoString(j), Suprafata), IntegertoString(j), Suprafata)
-        α = Freq.F_k[(Freq.Zona_k .== zona_k) .& (Freq.Clasa_Pasquill .== IntegertoString(j))][1]
-        α = α * Freq.F_ki[(Freq.Zona_k .== zona_k) .& (Freq.Clasa_Pasquill .== IntegertoString(j))][1]
+        Pasquill = IntegertoString(j)
+        u = u_z(H_final(x, Pasquill, Suprafata), Pasquill, Suprafata)
+        α = Freq.F_k[(Freq.Zona_k .== zona_k) .& (Freq.Clasa_Pasquill .== Pasquill)][1]
+        α = α * Freq.F_ki[(Freq.Zona_k .== zona_k) .& (Freq.Clasa_Pasquill .== Pasquill)][1]
         α = α * (Sector_Cerc*2/θ_L)*sqrt(2/π)*v_dL_HTO /u
-        H = [H_final(xprim[i], IntegertoString(j), Suprafata) for i in 1:length(xprim)]
-        σz = [σ_z(xprim[i], IntegertoString(j), Tip_Suprafata) for i in 1:length(xprim)]
+
+        H = [H_final(xprim[i], Pasquill, Suprafata) for i in 1:length(xprim)]
+        σz = [σ_z(xprim[i], Pasquill, Tip_Suprafata) for i in 1:length(xprim)]
         yprim = exp.(- H.^2 ./(2 * σz.^2)) ./σz
         Suma = Suma + exp(-α*trapz(xprim,yprim))
     end
@@ -307,42 +309,41 @@ end
 Calcul depuneri umede
 Tip_Aversa = Ploaie sau Zapada & Debit = 0.5, 1, 3, 5
 =#
-function DEP_w(Tip_Aversa, Debit)
+function DEP_w(Tip_Aversa, Debit, t_spalare)
     Λ_L = T_7.Lambda_L[(T_7.Tip_Aversa .== Tip_Aversa) .& (T_7.Debit_mm_h .== Debit)][1]
     return exp(-Λ_L*t_spalare)
 end
-function ω_w_scurt(x, y, Pasquill, Suprafata, Tip_Aversa, Debit)
+function ω_w_scurt(x, y, Pasquill, Suprafata, Tip_Aversa, Debit, t_R, t_spalare)
     if x > 0
         Λ_H = T_7.Lambda_H[(T_7.Tip_Aversa .== Tip_Aversa) .& (T_7.Debit_mm_h .== Debit)][1]
         u = u_z(H_final(x, Pasquill, Suprafata), Pasquill, Suprafata)
-        Σy = Σ_y(x, Pasquill, Suprafata)
-        return Λ_H * Q_0 * DEC_scurt(x, Pasquill, Suprafata) * DEP_w(Tip_Aversa, Debit) * exp(-y^2 /(2*Σy^2))/(sqrt(2) * π * u * Σy) 
+        Σy = Σ_y(x, Pasquill, Suprafata, t_R)
+        return Λ_H * Q_0 * DEC_scurt(x, Pasquill, Suprafata) * DEP_w(Tip_Aversa, Debit, t_spalare) * exp(-y^2 /(2*Σy^2))/(sqrt(2) * π * u * Σy) 
     end
     return 0.0
 end
-function ω_w_lung(x, Suprafata, Tip_Aversa, Debit)
+function ω_w_lung(x, Suprafata, Tip_Aversa, Debit, t_spalare)
     Λ_H = T_7.Lambda_H[(T_7.Tip_Aversa .== Tip_Aversa) .& (T_7.Debit_mm_h .== Debit)][1]
     u = u_mediu_z(H_2(Suprafata), Suprafata)
-    return Λ_H * Q_0 * DEC_lung(x, Suprafata) * DEP_w(Tip_Aversa, Debit)/(u * θ_L * x)
+    return Λ_H * Q_0 * DEC_lung(x, Suprafata) * DEP_w(Tip_Aversa, Debit, t_spalare)/(u * θ_L * x)
 end
 
 # Calcul concentratie integrata in timp χ
-function χ_scurt(χ_Q, x, Pasquill, Suprafata, Tip_Suprafata, Tip_Aversa, Debit)
+function χ_scurt(χ_Q, x, Pasquill, Suprafata, Tip_Suprafata, Tip_Aversa, Debit, t_spalare)
     if x > 0
-        return χ_Q * Q_0 * DEC_scurt(x, Pasquill, Suprafata) * (DEP_w(Tip_Aversa, Debit) + DEP_d_scurt(x, Pasquill, Suprafata, Tip_Suprafata))
+        return χ_Q * Q_0 * DEC_scurt(x, Pasquill, Suprafata) * (DEP_w(Tip_Aversa, Debit, t_spalare) + DEP_d_scurt(x, Pasquill, Suprafata, Tip_Suprafata))
     end
     return 0.0
 end
-function χ_lung(χ_Q, x, Suprafata, Tip_Suprafata, Tip_Aversa, Debit, zona_k)
+function χ_lung(χ_Q, x, Suprafata, Tip_Suprafata, Tip_Aversa, Debit, zona_k, t_spalare)
     if x > 0
-        return χ_Q * Q_0 * DEC_lung(x, Suprafata) * (DEP_w(Tip_Aversa, Debit) + DEP_d_lung(x, Suprafata, Tip_Suprafata, zona_k))
+        return χ_Q * Q_0 * DEC_lung(x, Suprafata) * (DEP_w(Tip_Aversa, Debit, t_spalare) + DEP_d_lung(x, Suprafata, Tip_Suprafata, zona_k))
     end
     return 0.0
 end
 
 # Factorul de resuspensie
-function Resuspensie()
-        t_zile = t_R/86400
+function Coeficient_Resuspensie(t_zile)
         return A*exp(-λ_1*t_zile) + B*exp(-λ_2*t_zile)
 end
 

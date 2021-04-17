@@ -1,11 +1,12 @@
 # Pastram aici un numar de constante vitale pentru calculele programului
 
 const u_10 = 3.5 # Viteza medie vantului la 10 metri deasupra solului in m/s
-const Q_0 = 1E16 # Activitatea poluantului in punctul de emisie in Bq;
+const Q_0 = 1E16 # Activitatea poluantului in punctul de emisie in Bq
 const h  = 150 # Inaltimea cosului de emisie in metri
-const n = 16 # Nr de regiuni in care impartim roza vanturilor -> Trebuie sa fie multiplu de 4
+const n = 16 # Nr de regiuni in care impartim roza vanturilor -> Trebuie sa fie multiplu de 4!
 const θ_L = 2*π/n # Sectorul de unghi din fiecare regiune
 const Sector_Cerc = tan(θ_L / 2)
+const C = 2 # Intervine la calculul Σ-urilor, trebuie sa maximizeze dilutia
 
 const w_0 = 7 # Viteza de iesire a gazelor pe cos in m/s
 const D = 10 # Diametrul interior al cosului in metri
@@ -24,7 +25,6 @@ const T = 295 # Temperatura medie a aerului ambiant in K
 const S = g/T * (g/C_p + ΔT_Δz) # Parametru de stabilitate atmosferica
 
 const λ_i = 1.784E-9 # Constanta de dezintegrare a tritiului in 1/s
-const t_spalare = t_R * (15/365) # Consideram ca avem 15 zile ploioase intr-un an
 const v_dL_HTO = 0.4E-2 # Minimul vitezei de depunere uscata a HTO
 const v_dH_HTO = 0.8E-2 # Maximul vitezei de depunere uscata a HTO
 const v_dL_HT = 0.04E-2 # Minimul vitezei de depunere uscata a HT
