@@ -5,24 +5,22 @@
     conditii de frontiera spatiale periodice
 =#
 
-using Plots; #plotlyjs();
-using Distributions
+using Plots; plotlyjs();
+#using Distributions
 
 function Sⁿ(Ψⁿⱼ₋₁, Ψⁿⱼ, Ψⁿⱼ₊₁, dx)
     return (im/2) * ((Ψⁿⱼ₊₁ - 2*Ψⁿⱼ + Ψⁿⱼ₋₁)/(dx^2)) + im*Ψⁿⱼ*abs2(Ψⁿⱼ)
 end
 
 function RungeKutta3(Ψⁿⱼ₋₁, Ψⁿⱼ, Ψⁿⱼ₊₁, dx, dt)
-
     k1 = Sⁿ(Ψⁿⱼ₋₁, Ψⁿⱼ, Ψⁿⱼ₊₁, dx)
     k2 = Sⁿ(Ψⁿⱼ₋₁ + dt*k1/2, Ψⁿⱼ + dt*k1/2, Ψⁿⱼ₊₁ + dt*k1/2, dx)
     k3 = Sⁿ(Ψⁿⱼ₋₁ + dt*k2/2, Ψⁿⱼ + dt*k2/2, Ψⁿⱼ₊₁ + dt*k2/2, dx)
-
     return Ψⁿⱼ + dt/6 * (k1 + k2*2 + k3)
 end
 
 a = 10;
-timp = 200;
+timp = 50;
 #=
 dx = 2*a/(N_x-1); # x de la -a la a
 dt = t/(N_timp-1); # t de la 0 la t
@@ -56,8 +54,7 @@ for n in 1:(N_timp-1)
     end
 end
 
-ρ = abs2.(Ψ)
+ρ = abs2.(Ψ);
 surface(x, t, ρ,
 xlabel = "x", ylabel = "t",
-ylims = (0, t[N_timp]),
-xlims = (-7.5, 7.5))
+ylims = (0, t[N_timp]))
