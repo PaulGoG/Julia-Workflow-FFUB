@@ -1,4 +1,7 @@
-# Plotarea unei matrici NxN
+#= 
+Sectiunea de cod unde se controleaza detaliile 
+legate de generarea reprezentarilor grafice
+=#
 function Reprezinta_Suprafata(x, y, P, xinf, zheader, titlu)
     plt = surface(x, y, transpose(P),  
     xlabel = "x (m)", ylabel = "y (m)", zlabel = zheader,

@@ -1,4 +1,4 @@
-# Aici citim CSV-urile cu date tabelate cu care o sa efectuam calculele
+# Citirea CSV-urilor cu date tabelate cu care o sa efectuam calculele
 
 cd(@__DIR__)
 

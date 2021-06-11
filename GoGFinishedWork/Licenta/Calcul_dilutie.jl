@@ -1,11 +1,11 @@
 #=
-Formule diferite pentru calculul dilutiei atmosferice χ/Q in functie de timpul de emisie
+Formule diferite pentru calculul dilutiei atmosferice χ/Q (s/m^3) in functie de timpul de emisie
 In cazul nostru χ/Q este o matrice NxNxN sau NXN (z=0, la sol)
 Simulam pana de poluant pentru care x>0 pe directia vantului
 =#
 
 #=
-Dilutia instantanee sau scurta durata (3 minute -> o ora) -> vector 3D
+Dilutia instantanee sau scurta durata (3 minute -> o ora) -> camp continuu 3D
 =#
 function dilutie_instantanee(x, y, z, Pasquill, Suprafata, Tip_Suprafata, t_R)
     if x > 0
@@ -19,10 +19,11 @@ function dilutie_instantanee(x, y, z, Pasquill, Suprafata, Tip_Suprafata, t_R)
 end
 
 #=
-Dilutie durata _prelungita (o ora -> 24 ore)
-Depinde de x variabil, y ∈ sector de cerc, z=0 => valori care depind doar de variatia lui x si
-Apartententa la un sector unghiular de cerc
-Mai exact dependenta explicita va fi doar de x, cea de y fiind folosita pt calculul sectorului unghiular prin arctan
+Dilutia de durata prelungita (o ora -> 24 ore) la nivelul solului
+depinde de x variabil, y ∈ sector de cerc, z=0 => valori care depind 
+explicit doar de variatia lui x si
+apartententa punctului la un sector unghiular de cerc;
+Mai exact dependenta explicita va fi doar de x, cea de y fiind folosita pt calculul sectorului unghiular prin arctan;
 Astfel, valorile o sa fie linii // cu OY marginite de conul sectorului de cerc
 =#
 function dilutie_durata_prelungita(x, y, Pasquill, Suprafata, Tip_Suprafata)
@@ -35,9 +36,12 @@ function dilutie_durata_prelungita(x, y, Pasquill, Suprafata, Tip_Suprafata)
     return 0.0
 end
 
-# Dilutie lunga_durata (> 24 ore)
-# Aici nu mai exista dependenta explicita nici macar de x, totul se considera pe termen foarte lung
-# => Sectoare de cerc in care dilutia e cuasi-omogena, depinde de coordonate doar implicit
+#=
+Dilutie lunga_durata (> 24 ore) la nivelul solului;
+Totul se considera pe termen lung si se lucreaza cu valori mediate 
+=> sectoare de cerc in care dilutia e cuasi-omogena, 
+depinde de coordonatele spatiale doar implicit (cu exceptia lui x)
+=#
 function dilutie_lunga_durata(x, y, Suprafata, Tip_Suprafata)
     k = Apartenenta_Sector_Cerc(x, y)
     xrotit = Rotatie(x,y)

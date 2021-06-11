@@ -1,7 +1,5 @@
 #=
-Simulam dispersia atmosferica a gazului de tritiu care iese la
-cosul unui reactor nuclear de tip CANDU
-!Important! -> x>0 !!!
+Fisierul principal al programului
 =#
 
 using Plots; plotlyjs()
@@ -9,9 +7,10 @@ using Trapz
 using DataFrames
 using CSV
 
-t_R = 8640*365/2 # Timpul de emisie in secunde
+t_R = 3600 # Timpul de emisie in secunde
 t_zile = t_R/86400
-t_spalare = t_R * (15/365) # Consideram ca avem 15 zile ploioase intr-un an
+# In medie avem 450.6 ore de precipitatii pe an
+t_spalare = t_R * (450.6/(365*24))
 
 include("Constante.jl")
 include("CitireDate.jl")
@@ -20,14 +19,24 @@ include("Calcul_dilutie.jl")
 include("Vectorize.jl")
 include("ReprezentariGrafice.jl")
 
-Pasquill = "D"
-Suprafata = "Padure_Oras"
-Tip_Suprafata = "Padure_Urban"
+#= 
+Pentru emisiile cu t < 24 ore folosim clasa de stabilitate atmosferica 
+neutra deoarece are frecventa de aparitie de aproape 50%
+=#
+Pasquill = "D"; 
+
+# Suprafetele depind de specificul zonei
+Suprafata = "Agricol"; # Tabel_4
+Tip_Suprafata = "Rural"; # Tabel_2
+
+# Aversa dominanta este ploaia (> 70% din timp)
 Tip_Aversa = "Ploaie"
-Debit = 3.0
-dim_transversal = 10000
+Debit = 0.5
+
+# Dimensiunile zonei analizate in m
+dim_transversal = 50000
+step = 200 # Pasul de evaluare
 dim_vertical = 0
-step = 100
 
 x = collect(-(dim_transversal/2):step:(dim_transversal/2))
 y = collect(-(dim_transversal/2):step:(dim_transversal/2))

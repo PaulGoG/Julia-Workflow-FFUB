@@ -1,7 +1,7 @@
 #=
-Program de test unde verific daca algoritmul
-Stie sa determine singur sectorul dintr-un arc de cerc unde
-Se afla un anumit punct (x,y)
+Program de test unde se verifica daca algoritmul
+stie sa determine singur sectorul dintr-un arc de cerc unde
+se afla un anumit punct (x,y)
 =#
 
 using Plots; gr()
@@ -27,7 +27,7 @@ for l in 1:(n/2)
     plot!(xplot,yprim)
     end
 end
-a = x[rand(1:1:length(x))]
-b = y[rand(1:1:length(y))]
+a = x[rand(1:1:length(x))];
+b = y[rand(1:1:length(y))];
 scatter!([a],[b])
 Apartenenta_Sector_Cerc(a,b)

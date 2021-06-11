@@ -1,5 +1,6 @@
 #=
-Aici transformam functiile calculate punctual in vectori
+Construirea campurilor multi-dimensionale ale cantitatilor 
+de interes calculate punctual in Calcul_dilutie
 =#
 
 function χ_Q_Durata_Scurta(x, y, z, Pasquill, Suprafata, Tip_Suprafata, t_R)
