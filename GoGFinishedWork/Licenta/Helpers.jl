@@ -1,4 +1,4 @@
-# Corpul functiilor principale din program
+# Corpul functiilor de calcul principale din program
 
 # Conversie String - Integer pentru lucrul cu clase Pasquill
 function IntegertoString(Integer)
@@ -19,13 +19,13 @@ function IntegertoString(Integer)
 end
 
 #=
-Calculul vitezei vantului pe directia OX la o anumita inaltime z
-Suprafata poate fi "Apa", "Agricol", "Padure_Oras"
-Pasquill poate fi orice string de la "A" la "F"
-Valoarea este constanta dupa inaltimea de 200 m
+Calculul vitezei vantului pe directia OX la o anumita inaltime z;
+suprafata poate fi "Apa", "Agricol", "Padure_Oras";
+Pasquill poate fi orice string de la "A" la "F";
+valoarea este considerata constanta dupa inaltimea de 200 m
 =#
 
-# Calculul u(z) intr-un punct -> Depinde de clasa Pasquill
+# Calculul u(z) intr-un punct -> depinde de clasa Pasquill
 function u_z(z, Pasquill, Suprafata) 
     m = T_4.m[(T_4.Clasa_Pasquill .== Pasquill) .& (T_4.Tip_Suprafata .== Suprafata)][1]
     if z <= 200
@@ -71,10 +71,10 @@ function H_2(Suprafata)
 end
 
 #=
-Implementarea cladirilor -> conform teoriei furnizam un H_cladire si A_cladire care reflecta
-Contributia fiecarei cladiri normata la apropierea ei de cos (inversul distantei)
-Se considera oricum doar cladirile pentru care x^2+y^2 <= (3*h_cladire)^2 &
-Din cadranele I si IV trigonometrice verificate cu arctan
+Implementarea cladirilor -> conform teoriei furnizam un H_cladire si A_cladire 
+care reflecta in mod colectiv contributia fiecarei cladiri 
+normata la apropierea ei de cos (folosind ca pondere inversul distantei).
+Se considera oricum doar cladirile pentru care x^2 + y^2 <= (3*h_cladire)^2
 =#
 
 function Echivalent_Cladire()
@@ -89,15 +89,19 @@ function Echivalent_Cladire()
             A_cl += Cladiri.Arie_transversala[i]/d
         end        
     end
-    filter!(x -> x != 0, d_sc)
-    Suma = sum(1 ./d_sc)
+    if iszero(d_sc)
+        return 0, 0
+    else 
+        filter!(x -> x != 0, d_sc)
+        Suma = sum(1 ./d_sc)
+    end
     return H_cl/Suma, A_cl/Suma
 end
 
 #=
 Implementarea corectiilor suprainaltarii penei de poluant din cauza
-Impulsului gazelor la iesirea din cos & a portantei gazelor din cauza
-Diferentei de temperatura fata de mediul ambiant
+impulsului gazelor la iesirea din cos & a portantei gazelor din cauza
+diferentei de temperatura fata de mediul ambiant (tranzitie si final)
 =#
 
 function X_0()
@@ -155,7 +159,7 @@ function Δh_mb(x, Pasquill, Suprafata)
     return hmbfinal
 end
 
-# Valoarea finala-corectata a inaltimii efective de emisie
+# Valoarea finala corectata complet a inaltimii efective de emisie
 function H_final(x, Pasquill, Suprafata)
     hbfinal = Δh_b_final(Pasquill, Suprafata)
     hmfinal = Δh_m_final(Pasquill, Suprafata)
@@ -171,9 +175,10 @@ function H_final(x, Pasquill, Suprafata)
 end
 
 #=
-Calculul dispersiilor
+Calculul dispersiilor cu formulele Briggs
 Suprafata = Pajiste_Apa, Arabil, Pasune, Rural, Padure_Urban, Metropola
 =#
+
 function σ_z(x, Pasquill, Tip_Suprafata)
     a_1 = T_1.a_1[(T_1.Clasa_Pasquill .== Pasquill)][1]
     a_2 = T_1.a_2[(T_1.Clasa_Pasquill .== Pasquill)][1]
@@ -208,9 +213,8 @@ function σ_y(x, Pasquill, t_R)
 end
 
 #=
-Aplicarea unor anumite corectii asupra dispersiilor
-Trebuie verificat ca aceste corectii sa nu reduca dilutia cu un factor
-Mai mare de 3
+Aplicarea unor anumite corectii asupra dispersiilor (timp de emisie si prezenta cladirilor)
+Trebuie verificat ca aceste corectii sa nu reduca dilutia prea mult
 Pentru a renunta la corectie se pune C = 0
 =#
 
@@ -247,13 +251,14 @@ function Σ_z(x, Pasquill, Suprafata, Tip_Suprafata)
     end
 end
 
-#= Inversia termica nu face obiectul acestui program
+#= 
+Inversia termica nu face obiectul acestui program
 function f_inversie_termica(Σz, H, h_i)
     return 1 
 end
 =#
 
-# Calcul factor DEC fara descendent; Tritirul se dezintegreaza in He stabil
+# Calcul factor DEC fara descendent; Tritirul se dezintegreaza direct in He stabil
 function DEC_scurt(x, Pasquill, Suprafata)
     if x > 0
     u = u_z(H_final(x, Pasquill, Suprafata), Pasquill, Suprafata)
@@ -266,7 +271,12 @@ function DEC_lung(x, Suprafata)
     return exp(-λ_i*x/u)
 end
 
-# Calculul depunerii uscate pt HTO
+#= 
+Calculul depunerii uscate pt HTO
+Integrala prin metoda trapezelor se face prin 
+50 respectiv 20 de puncte la fiecare valoare a lui x 
+pentru care e apelata functia
+=#
 function DEP_d_scurt(x, Pasquill, Suprafata, Tip_Suprafata)
     u = u_z(H_final(x, Pasquill, Suprafata), Pasquill, Suprafata)
     xprim = collect(1:(x/50):x)
@@ -307,7 +317,7 @@ end
 
 #=
 Calcul depuneri umede
-Tip_Aversa = Ploaie sau Zapada & Debit = 0.5, 1, 3, 5
+Tip_Aversa = Ploaie sau Zapada & Debit = 0.5, 1, 3, 5 in mm/h
 =#
 function DEP_w(Tip_Aversa, Debit, t_spalare)
     Λ_L = T_7.Lambda_L[(T_7.Tip_Aversa .== Tip_Aversa) .& (T_7.Debit_mm_h .== Debit)][1]
@@ -342,12 +352,12 @@ function χ_lung(χ_Q, x, Suprafata, Tip_Suprafata, Tip_Aversa, Debit, zona_k, t
     return 0.0
 end
 
-# Factorul de resuspensie
+# Calcul factor de resuspensie
 function Coeficient_Resuspensie(t_zile)
-        return A*exp(-λ_1*t_zile) + B*exp(-λ_2*t_zile)
+    return A*exp(-λ_1*t_zile) + B*exp(-λ_2*t_zile)
 end
 
-# Ne spune in al catelea sector K ne aflam (Sens trigonometric)
+# Ne spune in al catelea sector K ne aflam (conventia sensului trigonometric, plecand din Est)
 function Apartenenta_Sector_Cerc(x, y)
     if x == 0 && y ==0
         return 1.0

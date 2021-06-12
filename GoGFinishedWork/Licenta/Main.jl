@@ -1,7 +1,8 @@
 #=
-Simulam dispersia atmosferica a gazului de tritiu care iese la
-cosul unui reactor nuclear de tip CANDU
-!Important! -> x>0 !!!
+Fisierul principal al programului;
+Kernelul trebuie oprit la fiecare modificare a timpului 
+de emisie t_R deoarece prin intermediul lui se defineste 
+activitatea totala a poluantului emis Q_0 in Constante.jl
 =#
 
 using Plots; plotlyjs()
@@ -9,9 +10,10 @@ using Trapz
 using DataFrames
 using CSV
 
-t_R = 8640*365/2 # Timpul de emisie in secunde
+t_R = 3600*24*365*5 # Timpul de emisie in secunde
 t_zile = t_R/86400
-t_spalare = t_R * (15/365) # Consideram ca avem 15 zile ploioase intr-un an
+# In medie avem 450.6 ore de precipitatii pe an
+t_spalare = t_R * (450.6/(365*24))
 
 include("Constante.jl")
 include("CitireDate.jl")
@@ -20,14 +22,24 @@ include("Calcul_dilutie.jl")
 include("Vectorize.jl")
 include("ReprezentariGrafice.jl")
 
-Pasquill = "D"
-Suprafata = "Padure_Oras"
-Tip_Suprafata = "Padure_Urban"
+#= 
+Pentru emisiile cu t < 24 ore folosim clasa de stabilitate atmosferica 
+neutra deoarece are frecventa de aparitie de aproape 50%
+=#
+Pasquill = "D"; 
+
+# Suprafetele depind de specificul zonei
+Suprafata = "Agricol"; # Tabel_4
+Tip_Suprafata = "Rural"; # Tabel_2
+
+# Aversa dominanta este ploaia (> 70% din timp)
 Tip_Aversa = "Ploaie"
-Debit = 3.0
-dim_transversal = 10000
+Debit = 0.5
+
+# Dimensiunile zonei analizate in m
+dim_transversal = 60000
+step = 150 # Pasul de evaluare
 dim_vertical = 0
-step = 100
 
 x = collect(-(dim_transversal/2):step:(dim_transversal/2))
 y = collect(-(dim_transversal/2):step:(dim_transversal/2))
@@ -51,7 +63,7 @@ if t_R <= 3600
     Reprezinta_Contur(x, y, ω, x[Int(dim_transversal/(step*2) + 1)], "ω (Bq/m^2)", "ω")
 
     K = Coeficient_Resuspensie(t_zile)
-    Resuspensie = ω .* K
+    Resuspensie = ω .* K;
     Reprezinta_Suprafata(x, y, Resuspensie, x[Int(dim_transversal/(step*2) + 1)], "Resuspensie (Bq/m^3)", "Resuspensie")
     Reprezinta_Gradient(x, y, Resuspensie, x[Int(dim_transversal/(step*2) + 1)], "Resuspensie (Bq/m^3)", "Resuspensie")
     Reprezinta_Contur(x, y, Resuspensie, x[Int(dim_transversal/(step*2) + 1)], "Resuspensie (Bq/m^3)", "Resuspensie")
@@ -73,7 +85,7 @@ elseif t_R <= 86400
     Reprezinta_Contur(x, y, ω, x[Int(dim_transversal/(step*2) + 1)], "ω (Bq/m^2)", "ω")
 
     K = Coeficient_Resuspensie(t_zile)
-    Resuspensie = ω .* K
+    Resuspensie = ω .* K;
     Reprezinta_Suprafata(x, y, Resuspensie, x[Int(dim_transversal/(step*2) + 1)], "Resuspensie (Bq/m^3)", "Resuspensie")
     Reprezinta_Gradient(x, y, Resuspensie, x[Int(dim_transversal/(step*2) + 1)], "Resuspensie (Bq/m^3)", "Resuspensie")
     Reprezinta_Contur(x, y, Resuspensie, x[Int(dim_transversal/(step*2) + 1)], "Resuspensie (Bq/m^3)", "Resuspensie")
@@ -95,8 +107,10 @@ else
     Reprezinta_Contur(x, y, ω, x[1], "ω (Bq/m^2)", "ω")
 
     K = Coeficient_Resuspensie(t_zile)
-    Resuspensie = ω .* K
+    Resuspensie = ω .* K;
     Reprezinta_Suprafata(x, y, Resuspensie, x[1], "Resuspensie (Bq/m^3)", "Resuspensie")
     Reprezinta_Gradient(x, y, Resuspensie, x[1], "Resuspensie (Bq/m^3)", "Resuspensie")
     Reprezinta_Contur(x, y, Resuspensie, x[1], "Resuspensie (Bq/m^3)", "Resuspensie")
 end
+
+Graficul_Resuspensiei(t_zile)
