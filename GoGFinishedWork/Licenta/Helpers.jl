@@ -271,7 +271,12 @@ function DEC_lung(x, Suprafata)
     return exp(-λ_i*x/u)
 end
 
-# Calculul depunerii uscate pt HTO
+#= 
+Calculul depunerii uscate pt HTO
+Integrala prin metoda trapezelor se face prin 
+50 respectiv 20 de puncte la fiecare valoare a lui x 
+pentru care e apelata functia
+=#
 function DEP_d_scurt(x, Pasquill, Suprafata, Tip_Suprafata)
     u = u_z(H_final(x, Pasquill, Suprafata), Pasquill, Suprafata)
     xprim = collect(1:(x/50):x)

@@ -63,7 +63,7 @@ if t_R <= 3600
     Reprezinta_Contur(x, y, ω, x[Int(dim_transversal/(step*2) + 1)], "ω (Bq/m^2)", "ω")
 
     K = Coeficient_Resuspensie(t_zile)
-    Resuspensie = ω .* K
+    Resuspensie = ω .* K;
     Reprezinta_Suprafata(x, y, Resuspensie, x[Int(dim_transversal/(step*2) + 1)], "Resuspensie (Bq/m^3)", "Resuspensie")
     Reprezinta_Gradient(x, y, Resuspensie, x[Int(dim_transversal/(step*2) + 1)], "Resuspensie (Bq/m^3)", "Resuspensie")
     Reprezinta_Contur(x, y, Resuspensie, x[Int(dim_transversal/(step*2) + 1)], "Resuspensie (Bq/m^3)", "Resuspensie")
@@ -85,7 +85,7 @@ elseif t_R <= 86400
     Reprezinta_Contur(x, y, ω, x[Int(dim_transversal/(step*2) + 1)], "ω (Bq/m^2)", "ω")
 
     K = Coeficient_Resuspensie(t_zile)
-    Resuspensie = ω .* K
+    Resuspensie = ω .* K;
     Reprezinta_Suprafata(x, y, Resuspensie, x[Int(dim_transversal/(step*2) + 1)], "Resuspensie (Bq/m^3)", "Resuspensie")
     Reprezinta_Gradient(x, y, Resuspensie, x[Int(dim_transversal/(step*2) + 1)], "Resuspensie (Bq/m^3)", "Resuspensie")
     Reprezinta_Contur(x, y, Resuspensie, x[Int(dim_transversal/(step*2) + 1)], "Resuspensie (Bq/m^3)", "Resuspensie")
@@ -107,8 +107,10 @@ else
     Reprezinta_Contur(x, y, ω, x[1], "ω (Bq/m^2)", "ω")
 
     K = Coeficient_Resuspensie(t_zile)
-    Resuspensie = ω .* K
+    Resuspensie = ω .* K;
     Reprezinta_Suprafata(x, y, Resuspensie, x[1], "Resuspensie (Bq/m^3)", "Resuspensie")
     Reprezinta_Gradient(x, y, Resuspensie, x[1], "Resuspensie (Bq/m^3)", "Resuspensie")
     Reprezinta_Contur(x, y, Resuspensie, x[1], "Resuspensie (Bq/m^3)", "Resuspensie")
 end
+
+Graficul_Resuspensiei(t_zile)
