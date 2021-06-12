@@ -6,7 +6,8 @@ function Reprezinta_Suprafata(x, y, P, xinf, zheader, titlu)
     plt = surface(x, y, transpose(P),  
     xlabel = "x (m)", ylabel = "y (m)", zlabel = zheader,
     xlim = (xinf, x[length(x)]),
-    dpi = 1200, camera = (60,20))
+    dpi = 1200, camera = (60,20), 
+    c = :turbo)
     display(plt)
     savefig("Reprezentari_Grafice\\SurfacePlot_$(titlu).png")
 end

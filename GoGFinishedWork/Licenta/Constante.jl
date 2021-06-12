@@ -1,7 +1,7 @@
 #  Constantele necesare pentru calculele programului
 
 const u_10 = 4 # Viteza medie vantului la 10 metri deasupra solului in m/s
-const Q_0 = 6.8/1.9 * 10e14 * t_R # Activitatea totala a poluantului emis in Bq
+const Q_0 = 21562658.548959918822932521562659 * t_R # Activitatea totala a poluantului emis in Bq, conversie de la 6.8*10^14 Bq/an
 const h  = 50.3 # Inaltimea cosului de emisie in m
 const n = 16 # Nr de regiuni in care impartim roza vanturilor -> Trebuie sa fie multiplu de 4!
 const θ_L = 2*π/n # Sectorul de unghi din fiecare regiune

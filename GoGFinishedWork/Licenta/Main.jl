@@ -1,5 +1,8 @@
 #=
-Fisierul principal al programului
+Fisierul principal al programului;
+Kernelul trebuie oprit la fiecare modificare a timpului 
+de emisie t_R deoarece prin intermediul lui se defineste 
+activitatea totala a poluantului emis Q_0 in Constante.jl
 =#
 
 using Plots; plotlyjs()
@@ -7,7 +10,7 @@ using Trapz
 using DataFrames
 using CSV
 
-t_R = 3600 # Timpul de emisie in secunde
+t_R = 3600*24*365*5 # Timpul de emisie in secunde
 t_zile = t_R/86400
 # In medie avem 450.6 ore de precipitatii pe an
 t_spalare = t_R * (450.6/(365*24))
@@ -34,8 +37,8 @@ Tip_Aversa = "Ploaie"
 Debit = 0.5
 
 # Dimensiunile zonei analizate in m
-dim_transversal = 50000
-step = 200 # Pasul de evaluare
+dim_transversal = 60000
+step = 150 # Pasul de evaluare
 dim_vertical = 0
 
 x = collect(-(dim_transversal/2):step:(dim_transversal/2))
