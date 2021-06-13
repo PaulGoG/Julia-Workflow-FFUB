@@ -16,7 +16,7 @@ include("Helpers.jl")
 x = 100*cos.(θ)
 y = 100*sin.(θ)
 xprim = collect(-100:1:100)
-plot(x,y, legend = false);
+plt = plot(x,y, legend = false);
 hline!([0]);
 vline!([0]);
 for l in 1:(n/2)
@@ -30,4 +30,5 @@ end
 a = x[rand(1:1:length(x))];
 b = y[rand(1:1:length(y))];
 scatter!([a],[b])
+display(plt)
 Apartenenta_Sector_Cerc(a,b)

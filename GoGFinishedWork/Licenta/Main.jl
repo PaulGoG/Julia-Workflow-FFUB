@@ -10,7 +10,10 @@ using Trapz
 using DataFrames
 using CSV
 
-t_R = 3600*24*365*5 # Timpul de emisie in secunde
+t_R = 3600*24*365*30 # Timpul de emisie in secunde
+
+
+
 t_zile = t_R/86400
 # In medie avem 450.6 ore de precipitatii pe an
 t_spalare = t_R * (450.6/(365*24))
@@ -111,6 +114,6 @@ else
     Reprezinta_Suprafata(x, y, Resuspensie, x[1], "Resuspensie (Bq/m^3)", "Resuspensie")
     Reprezinta_Gradient(x, y, Resuspensie, x[1], "Resuspensie (Bq/m^3)", "Resuspensie")
     Reprezinta_Contur(x, y, Resuspensie, x[1], "Resuspensie (Bq/m^3)", "Resuspensie")
-end
 
-Graficul_Resuspensiei(t_zile)
+    Graficul_Resuspensiei(t_zile)
+end

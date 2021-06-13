@@ -6,7 +6,7 @@ function Reprezinta_Suprafata(x, y, P, xinf, zheader, titlu)
     plt = surface(x, y, transpose(P),  
     xlabel = "x (km)", ylabel = "y (km)", zlabel = zheader,
     xlim = (xinf, x[length(x)]),
-    camera = (60,20), 
+    camera = (120,25), 
     c = :nipy_spectral, 
     yformatter = y->string(Int(y/1000)),
     xformatter = x->string(Int(x/1000)),
@@ -17,13 +17,35 @@ function Reprezinta_Suprafata(x, y, P, xinf, zheader, titlu)
     plt = surface(x, y, transpose(P),  
     xlabel = "x (km)", ylabel = "y (km)", zlabel = zheader,
     xlim = (xinf, x[length(x)]),
-    camera = (60,20), 
+    camera = (65,20), 
     c = :turbo, 
     yformatter = y->string(Int(y/1000)),
     xformatter = x->string(Int(x/1000)),
     zformatter = :scientific)
     display(plt)
     savefig("Reprezentari_Grafice\\SurfacePlot_$(titlu)_2.png")
+
+    plt = surface(x, y, transpose(P),  
+    xlabel = "x (km)", ylabel = "y (km)", zlabel = zheader,
+    xlim = (xinf, x[length(x)]),
+    camera = (50,10), 
+    c = :turbo, 
+    yformatter = y->string(Int(y/1000)),
+    xformatter = x->string(Int(x/1000)),
+    zformatter = :scientific)
+    display(plt)
+    savefig("Reprezentari_Grafice\\SurfacePlot_$(titlu)_3.png")
+
+    plt = surface(x, y, transpose(P),  
+    xlabel = "x (km)", ylabel = "y (km)", zlabel = zheader,
+    xlim = (xinf, x[length(x)]),
+    camera = (30,30), 
+    c = :nipy_spectral, 
+    yformatter = y->string(Int(y/1000)),
+    xformatter = x->string(Int(x/1000)),
+    zformatter = :scientific)
+    display(plt)
+    savefig("Reprezentari_Grafice\\SurfacePlot_$(titlu)_4.png")
 end
 function Reprezinta_Gradient(x, y, P, xinf, zheader, titlu)
     plt = heatmap(x, y, transpose(P),  
