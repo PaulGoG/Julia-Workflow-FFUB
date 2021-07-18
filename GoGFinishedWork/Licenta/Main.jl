@@ -116,4 +116,5 @@ else
     Reprezinta_Contur(x, y, Resuspensie, x[1], "Resuspensie (Bq/m^3)", "Resuspensie")
 
     Graficul_Resuspensiei(t_zile)
+    Animatie_Suprafata_Rotatie(x, y, Resuspensie)
 end

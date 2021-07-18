@@ -109,20 +109,20 @@ function Graficul_Resuspensiei(t_zile)
 end
 function Animatie_Suprafata_Rotatie(x, y, P)
     anim = Animation()
-    unghi_rotatie = 5
+    unghi_rotatie = 3
     for i in 1:(360/unghi_rotatie)
         surface(x, y, transpose(P),  
         xlabel = "", ylabel = "", 
-        title = "Resuspensia atmosferică", 
+        title = "Resuspensia atmosferică de tritiu", 
         grid = false, 
         framestyle =:axes, 
         zaxis = ([], false), 
-        camera = (unghi_rotatie * (i-1) + 1, 15), 
+        camera = (unghi_rotatie * (i-1) + 1, 18), 
         c = :turbo, 
         colorbar_title = "Bq/m^3", 
-        yformatter = y->("$(string(Int(y/1000))) km"),
-        xformatter = x->("$(string(Int(x/1000))) km"))
+        yformatter = y->("$(string(Int(abs(y)/1000))) km"),
+        xformatter = x->("$(string(Int(abs(x)/1000))) km"))
         frame(anim)
     end
-    gif(anim, "Reprezentari_Grafice\\Animatie_3D.gif", fps = 10)
+    gif(anim, "Reprezentari_Grafice\\Animatie_3D.gif", fps = 8)
 end
