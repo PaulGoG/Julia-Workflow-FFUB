@@ -10,7 +10,7 @@ using Trapz
 using DataFrames
 using CSV
 
-t_R = 3600*24*365*30 # Timpul de emisie in secunde
+t_R = 3600*24*365 # Timpul de emisie in secunde
 
 
 
@@ -116,4 +116,5 @@ else
     Reprezinta_Contur(x, y, Resuspensie, x[1], "Resuspensie (Bq/m^3)", "Resuspensie")
 
     Graficul_Resuspensiei(t_zile)
+    Animatie_Suprafata_Rotatie(x, y, Resuspensie)
 end

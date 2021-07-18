@@ -36,9 +36,9 @@ for (i, N) in enumerate(N_esantion)
     legend = nothing,
     xlim = (0,1),
     xticks = [0.0, 0.2, 0.35, 0.5, 0.65, 0.8, 1.0],
-    fill=0, 
-    color = :green,
-    α=0.5, w=5);
+    fill = 0, 
+    color =:green,
+    α = 0.5, w = 5);
     vline!([p_true], w = 3);
 
     frame(anim)
