@@ -10,7 +10,7 @@ using Trapz
 using DataFrames
 using CSV
 
-t_R = 3600*24*365*30 # Timpul de emisie in secunde
+t_R = 3600*24*365 # Timpul de emisie in secunde
 
 
 

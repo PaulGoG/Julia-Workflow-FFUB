@@ -107,3 +107,22 @@ function Graficul_Resuspensiei(t_zile)
     display(plt)
     savefig("Reprezentari_Grafice\\CoeficientResuspensie.png")
 end
+function Animatie_Suprafata_Rotatie(x, y, P)
+    anim = Animation()
+    unghi_rotatie = 5
+    for i in 1:(360/unghi_rotatie)
+        surface(x, y, transpose(P),  
+        xlabel = "", ylabel = "", 
+        title = "Resuspensia atmosferică", 
+        grid = false, 
+        framestyle =:axes, 
+        zaxis = ([], false), 
+        camera = (unghi_rotatie * (i-1) + 1, 15), 
+        c = :turbo, 
+        colorbar_title = "Bq/m^3", 
+        yformatter = y->("$(string(Int(y/1000))) km"),
+        xformatter = x->("$(string(Int(x/1000))) km"))
+        frame(anim)
+    end
+    gif(anim, "Reprezentari_Grafice\\Animatie_3D.gif", fps = 10)
+end
