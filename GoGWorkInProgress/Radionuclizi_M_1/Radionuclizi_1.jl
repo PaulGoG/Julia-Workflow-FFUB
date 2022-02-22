@@ -3,7 +3,7 @@ using CSV
 using DataFrames
 using LaTeXStrings
 
-#plotlyjs();
+gr();
 
 cd(@__DIR__) #Adauga path-ul la fisier
 
@@ -64,7 +64,7 @@ function Grafic_simplu(radionuclid, librarie)
     plt = scatter(
     radionuclid.A, 
     radionuclid.B,  
-    marker = :xcross,
+    marker = :circle,
     markersize = 3, 
     markerstrokewidth = 0,
     xlabel = L"\mathrm{A}", 
@@ -73,7 +73,7 @@ function Grafic_simplu(radionuclid, librarie)
     legend = :false,
     title = "Energia medie de legătură per nucleon, $(librarie[begin:end-4])",
     minorgrid = :true,
-    mc = :blue, 
+    mc = :limegreen, 
     size = (1000, 1000)
     )
     display(plt)
@@ -86,16 +86,15 @@ function Grafic_errorb(radionuclid, librarie)
     radionuclid.B, 
     yerr = radionuclid.σᴮ, 
     marker = :xcross,
-    markersize = 2.5, 
-    markerstrokewidth = 0,
+    markersize = 3, 
     xlabel = L"\mathrm{A}", 
     ylabel = latexstring("\$B(A,Z) = \\frac{W(A,Z)}{A}\$  [MeV]"), 
     framestyle = :box,
     legend = :false,
     title = "Energia medie de legătură per nucleon, $(librarie[begin:end-4])",
     minorgrid = :true,
-    msc = :purple,
-    mc = :olivedrab, 
+    msc = :red,
+    mc = :aqua, 
     size = (1000, 1000)
     )
     annotate!(150, 6.5, L"\sigma_{B(A,Z)} = \frac{1}{A} \sqrt{Z^2 \sigma_{D_p}^2 + (A-Z)^2 \sigma_{D_n}^2 + \sigma_{D(A,Z)}^2}")
@@ -107,7 +106,7 @@ function Grafic_comparativ_lib(radionuclid_1, radionuclid_2, librarie_1, librari
     plt1 = scatter(
     radionuclid_1.A, 
     radionuclid_1.B,  
-    marker = :xcross,
+    marker = :circle,
     markersize = 3,
     markerstrokewidth = 0, 
     xlabel = L"\mathrm{A}", 
@@ -122,7 +121,7 @@ function Grafic_comparativ_lib(radionuclid_1, radionuclid_2, librarie_1, librari
     plt2 = scatter(
     radionuclid_2.A, 
     radionuclid_2.B, 
-    marker = :xcross,
+    marker = :circle,
     markersize = 3,
     markerstrokewidth = 0, 
     xlabel = L"\mathrm{A}", 
@@ -191,7 +190,7 @@ function Grafice_paritati_comparativ(radionuclid, librarie)
     plt1 = scatter(
     radionuclid.A[(iseven.(radionuclid.A) .== 1) .& (iseven.(radionuclid.Z) .== 1)], 
     radionuclid.B[(iseven.(radionuclid.A) .== 1) .& (iseven.(radionuclid.Z) .== 1)],  
-    marker = :xcross,
+    marker = :circle,
     markerstrokewidth = 0,
     markersize = 3, 
     xlabel = L"\mathrm{A}", 
@@ -240,13 +239,13 @@ end
 audi95 = "AUDI95.csv"
 audi21 = "AUDI2021.csv"
 radionuclid_95 = Energie_medie_legatura(audi95)
-radionuclid_21 = Energie_medie_legatura(audi2021)
+radionuclid_21 = Energie_medie_legatura(audi21)
 
 Grafic_simplu(radionuclid_95, audi95)
 Grafic_simplu(radionuclid_21, audi21)
 Grafic_errorb(radionuclid_95, audi95)
 Grafic_errorb(radionuclid_21, audi21)
-Grafic_comparativ_lib(radionuclid_95, radionuclid_21, audi95, audi2021)
+Grafic_comparativ_lib(radionuclid_95, radionuclid_21, audi95, audi21)
 Grafice_paritati_combinate(radionuclid_95, audi95)
 Grafice_paritati_combinate(radionuclid_21, audi21)
 Grafice_paritati_comparativ(radionuclid_95, audi95)
