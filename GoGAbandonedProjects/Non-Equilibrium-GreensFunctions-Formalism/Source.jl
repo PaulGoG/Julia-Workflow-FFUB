@@ -30,7 +30,7 @@ end
 
 function Convergence(args) #Verificarea convergentei (CUM?, cu norma?)
     body
-    return Yes or No
+    return 
 end
 
 function Currents(args) #Calculul curentilor (din nou, discretizarea integralelor?)
