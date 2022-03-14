@@ -108,7 +108,7 @@ function Grafice_paritati_combinate(separare, librarie, particula, scalare)
     separare.S[(iseven.(separare.A) .== 1) .& (iseven.(separare.Z) .== 1)],  
     marker = :xcross,
     markerstrokewidth = 0,
-    markersize = 3, 
+    markersize = 4, 
     ylims = (lower_bound, upper_bound),
     xlabel = L"\mathrm{A}", 
     ylabel = "Energia de separare a $(particula) [MeV]", 
@@ -123,7 +123,7 @@ function Grafice_paritati_combinate(separare, librarie, particula, scalare)
     separare.A[(iseven.(separare.A) .== 1) .& (iseven.(separare.Z) .== 0)], 
     separare.S[(iseven.(separare.A) .== 1) .& (iseven.(separare.Z) .== 0)],  
     marker = :utriangle,
-    markersize = 3, 
+    markersize = 4, 
     markerstrokewidth = 0,
     xlabel = L"\mathrm{A}", 
     ylabel = "Energia de separare a $(particula) [MeV]", 
@@ -137,7 +137,7 @@ function Grafice_paritati_combinate(separare, librarie, particula, scalare)
     separare.A[(iseven.(separare.A) .== 0)], 
     separare.S[(iseven.(separare.A) .== 0)],  
     marker = :star5,
-    markersize = 3, 
+    markersize = 4, 
     markerstrokewidth = 0,
     xlabel = L"\mathrm{A}", 
     ylabel = "Energia de separare a $(particula) [MeV]", 
@@ -204,7 +204,234 @@ function Grafic_fitare_simplu_neutron(librarie, scalare)
     savefig(plt, "Grafice\\S_fitare_simplu_neutron.png")
 end
 # Fit N/Z al Sₙ impartit pe layout pentru paritati
-# To be Done
+function Grafic_fitare_multiplu_neutron(librarie, scalare)
+    separare = Valori_negative(Energie_separare(librarie, 1, 0))
+    fitare(t, p) = p[1] .+ p[2].*t .+ p[3].*t.^2
+
+    # p-p
+    y = separare.S[(iseven.(separare.A) .== 1) .& (iseven.(separare.Z) .== 1)]
+    x = (separare.A[(iseven.(separare.A) .== 1) .& (iseven.(separare.Z) .== 1)] .- separare.Z[(iseven.(separare.A) .== 1) .& (iseven.(separare.Z) .== 1)]) ./ (separare.Z[(iseven.(separare.A) .== 1) .& (iseven.(separare.Z) .== 1)])
+    deleteat!(y, findall(z -> z>2.2, x))
+    deleteat!(x, findall(z -> z>2.2, x))
+    p0 = [1.0, 1.0, 1.0]
+    fit = curve_fit(fitare, x, y, p0)
+    A = round(fit.param[1], digits = 7)
+    B = round(fit.param[2], digits = 7)
+    C = round(fit.param[3], digits = 7)
+    if sign(B) == 1
+        semn1 = "+"
+    elseif sign(B) == -1
+        semn1 = "-"
+    end
+    if sign(C) == 1
+        semn2 = "+"
+    elseif sign(C) == -1
+        semn2 = "-"
+    end
+    plt1 = scatter(
+        x,
+        y,
+        marker = :circle,
+        markersize = 4, 
+        markerstrokewidth = 0,
+        ylims = (0, maximum(y)*scalare),
+        xlims = (minimum(x)*scalare, maximum(x)*scalare),
+        xlabel = "", 
+        ylabel = "Energia de separare a neutronului [MeV]", 
+        framestyle = :box,
+        label = "p-p",
+        minorgrid = :true,
+        mc = :lightblue, 
+        size = (1000, 1000)
+    )
+    plt1 = plot!(
+        sort(x),
+        z -> A + B*z + C*z^2,
+        color = :red,
+        label = latexstring("\$ $(A) $(semn1) $(abs(B)) \\; \\frac{N}{Z} $(semn2) $(abs(C)) \\; \\left( \\frac{N}{Z} \\right)^2\$")
+    )
+
+    # i-i
+    y = separare.S[(iseven.(separare.A) .== 1) .& (iseven.(separare.Z) .== 0)]
+    x = (separare.A[(iseven.(separare.A) .== 1) .& (iseven.(separare.Z) .== 0)] .- separare.Z[(iseven.(separare.A) .== 1) .& (iseven.(separare.Z) .== 0)]) ./ (separare.Z[(iseven.(separare.A) .== 1) .& (iseven.(separare.Z) .== 0)])
+    deleteat!(y, findall(z -> z>2.2, x))
+    deleteat!(x, findall(z -> z>2.2, x))
+    p0 = [1.0, 1.0, 1.0]
+    fit = curve_fit(fitare, x, y, p0)
+    A = round(fit.param[1], digits = 7)
+    B = round(fit.param[2], digits = 7)
+    C = round(fit.param[3], digits = 7)
+    if sign(B) == 1
+        semn1 = "+"
+    elseif sign(B) == -1
+        semn1 = "-"
+    end
+    if sign(C) == 1
+        semn2 = "+"
+    elseif sign(C) == -1
+        semn2 = "-"
+    end
+    plt2 = scatter(
+        x,
+        y,
+        marker = :circle,
+        markersize = 4, 
+        markerstrokewidth = 0,
+        ylims = (0, maximum(y)*scalare),
+        xlims = (minimum(x)*scalare, maximum(x)*scalare),
+        xlabel = "", 
+        ylabel = "", 
+        framestyle = :box,
+        label = "i-i",
+        minorgrid = :true,
+        mc = :lightblue, 
+        size = (1000, 1000)
+    )
+    plt2 = plot!(
+        sort(x),
+        z -> A + B*z + C*z^2,
+        color = :red,
+        label = latexstring("\$ $(A) $(semn1) $(abs(B)) \\; \\frac{N}{Z} $(semn2) $(abs(C)) \\; \\left( \\frac{N}{Z} \\right)^2\$")
+    )
+
+    # p-i
+    y = separare.S[(iseven.(separare.A) .== 0) .& (iseven.(separare.Z) .== 1)]
+    x = (separare.A[(iseven.(separare.A) .== 0) .& (iseven.(separare.Z) .== 1)] .- separare.Z[(iseven.(separare.A) .== 0) .& (iseven.(separare.Z) .== 1)]) ./ (separare.Z[(iseven.(separare.A) .== 0) .& (iseven.(separare.Z) .== 1)])
+    deleteat!(y, findall(z -> z>2.2, x))
+    deleteat!(x, findall(z -> z>2.2, x))
+    p0 = [1.0, 1.0, 1.0]
+    fit = curve_fit(fitare, x, y, p0)
+    A = round(fit.param[1], digits = 7)
+    B = round(fit.param[2], digits = 7)
+    C = round(fit.param[3], digits = 7)
+    if sign(B) == 1
+        semn1 = "+"
+    elseif sign(B) == -1
+        semn1 = "-"
+    end
+    if sign(C) == 1
+        semn2 = "+"
+    elseif sign(C) == -1
+        semn2 = "-"
+    end
+    plt3 = scatter(
+        x,
+        y,
+        marker = :circle,
+        markersize = 4, 
+        markerstrokewidth = 0,
+        ylims = (0, maximum(y)*scalare),
+        xlims = (minimum(x)*scalare, maximum(x)*scalare),
+        xlabel = L"\frac{N}{Z}", 
+        ylabel = "Energia de separare a neutronului [MeV]", 
+        framestyle = :box,
+        label = "p-i",
+        minorgrid = :true,
+        mc = :lightblue, 
+        size = (1000, 1000)
+    )
+    plt3 = plot!(
+        sort(x),
+        z -> A + B*z + C*z^2,
+        color = :red,
+        label = latexstring("\$ $(A) $(semn1) $(abs(B)) \\; \\frac{N}{Z} $(semn2) $(abs(C)) \\; \\left( \\frac{N}{Z} \\right)^2\$")
+    )
+
+    # i-p
+    y = separare.S[(iseven.(separare.A) .== 0) .& (iseven.(separare.Z) .== 0)]
+    x = (separare.A[(iseven.(separare.A) .== 0) .& (iseven.(separare.Z) .== 0)] .- separare.Z[(iseven.(separare.A) .== 0) .& (iseven.(separare.Z) .== 0)]) ./ (separare.Z[(iseven.(separare.A) .== 0) .& (iseven.(separare.Z) .== 0)])
+    deleteat!(y, findall(z -> z>2.2, x))
+    deleteat!(x, findall(z -> z>2.2, x))
+    p0 = [1.0, 1.0, 1.0]
+    fit = curve_fit(fitare, x, y, p0)
+    A = round(fit.param[1], digits = 7)
+    B = round(fit.param[2], digits = 7)
+    C = round(fit.param[3], digits = 7)
+    if sign(B) == 1
+        semn1 = "+"
+    elseif sign(B) == -1
+        semn1 = "-"
+    end
+    if sign(C) == 1
+        semn2 = "+"
+    elseif sign(C) == -1
+        semn2 = "-"
+    end
+    plt4 = scatter(
+        x,
+        y,
+        marker = :circle,
+        markersize = 4, 
+        markerstrokewidth = 0,
+        ylims = (0, maximum(y)*scalare),
+        xlims = (minimum(x)*scalare, maximum(x)*scalare),
+        xlabel = L"\frac{N}{Z}", 
+        ylabel = "", 
+        framestyle = :box,
+        label = "i-p",
+        minorgrid = :true,
+        mc = :lightblue, 
+        size = (1000, 1000)
+    )
+    plt4 = plot!(
+        sort(x),
+        z -> A + B*z + C*z^2,
+        color = :red,
+        label = latexstring("\$ $(A) $(semn1) $(abs(B)) \\; \\frac{N}{Z} $(semn2) $(abs(C)) \\; \\left( \\frac{N}{Z} \\right)^2\$")
+    )
+    plt = plot(plt1, plt2, plt3, plt4, layout = (2, 2))
+    display(plt)
+    savefig(plt, "Grafice\\S_fitare_multiplu_neutron.png")
+end
+# Grafice S in functie de N si Z
+function Grafic_dublu_NZ(separare, librarie, particula, scalare)
+    upper_bound = maximum(separare.S)*scalare
+    if minimum(separare.S) < 0 
+        lower_bound = minimum(separare.S)*scalare
+    else
+        lower_bound = 0
+    end
+    plt1 = scatter(
+    separare.Z, 
+    separare.S,  
+    marker = :circle,
+    markersize = 4, 
+    markerstrokewidth = 0,
+    ylims = (lower_bound, upper_bound),
+    xlabel = L"\mathrm{Z}", 
+    ylabel = "Energia de separare a $(particula) [MeV]", 
+    framestyle = :box,
+    legend = :false,
+    title = "Energia de separare a $(particula) în funcție de Z și N, $(librarie[begin:end-4])",
+    minorgrid = :true,
+    mc = :purple, 
+    size = (1000, 1000)
+    )
+    if lower_bound < 0
+        hline!([0], ls = :dashdot, label = "")
+    end
+    plt2 = scatter(
+    (separare.A .- separare.Z), 
+    separare.S,  
+    marker = :circle,
+    markersize = 4, 
+    markerstrokewidth = 0,
+    ylims = (lower_bound, upper_bound),
+    xlabel = L"\mathrm{N}", 
+    ylabel = "Energia de separare a $(particula) [MeV]", 
+    framestyle = :box,
+    legend = :false,
+    minorgrid = :true,
+    mc = :green, 
+    size = (1000, 1000)
+    )
+    if lower_bound < 0
+        hline!([0], ls = :dashdot, label = "")
+    end
+    plt = plot(plt1, plt2, layout = (2,1))
+    display(plt)
+    savefig(plt, "Grafice\\S_dublu_NZ_$(librarie[begin:end-4]).png")
+end
 # Apelarea functiilor definite
 audi95 = "AUDI95.csv"
 audi21 = "AUDI2021.csv"
@@ -220,3 +447,6 @@ Grafice_paritati_combinate(separare_p_95, audi95, L"^1_1p", scalare)
 Grafic_simplu(separare_α_95, audi95, L"^4_2\alpha", scalare)
 Grafic_simplu(separare_d_95, audi95, L"^2_1H", scalare)
 Grafic_fitare_simplu_neutron(audi95, scalare)
+Grafic_fitare_multiplu_neutron(audi95, scalare)
+Grafic_dublu_NZ(separare_n_95, audi95, L"^1_0n", scalare)
+Grafic_dublu_NZ(separare_p_95, audi95, L"^1_1p", scalare)
