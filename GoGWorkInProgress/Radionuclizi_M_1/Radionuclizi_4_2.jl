@@ -17,9 +17,10 @@ end
 K = 2.565e7; # ΣₐΦ viteza de activare in  Hz
 T_jum = 2.3 * 60; # Timp injumatatire Al28 in s
 λ = log(2)/T_jum; # in Hz
-τ = T_jum*2; # Intervalul fixat de timp pentru ciclurile de activare si pauza
+τ = T_jum/5; # Intervalul fixat de timp pentru ciclurile de activare si pauza
 h = 100; # Nr de intervale in care impartim timpul, elementul finit!
-m = Int(100); # Nr de cicluri activare-pauza
+m = 12; # Nr de cicluri activare-pauza
+m = Int(m);
 
 # Calculam valorile punctuale pentru N(t) la al n-lea ciclu
 function Λ_activare_n(n, t)
