@@ -1,7 +1,10 @@
 using CSV
 using DataFrames
 
-cd(@__DIR__) #Adauga path-ul la fisier
+# Program care citeste de la tastatura in consola 2 perechi (A,Z) si calculeaza 
+# energia de separare a primului nucleu din al doilea
+
+cd(@__DIR__); # Adauga calea relativa la folderul de lucru
 
 function Calcul_citire_tastatura()
     println(" ")

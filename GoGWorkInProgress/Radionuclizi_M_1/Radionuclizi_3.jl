@@ -3,10 +3,12 @@ using CSV
 using DataFrames
 using LaTeXStrings
 
+# Cod de calcul al energiei de imperechere & reprezentarile grafice asociate temei 3
+
 gr();
+cd(@__DIR__); # Adauga calea relativa la folderul de lucru
 
-cd(@__DIR__) #Adauga path-ul la fisier
-
+# Definim obiectul in care stocam datele calculate
 struct Pairing
     Z
     A
@@ -17,7 +19,9 @@ end
 librarie = "AUDI95.csv"
 df = CSV.File(librarie; delim=' ', ignorerepeated=true, header=["Z", "A", "Sym", "D", "σ"]) |> DataFrame
 
+# Calculul energiei de separare a particulei cu A_part si Z_part din nucleul cu A si Z
 function Energie_separare(A_part, Z_part, A, Z)
+    # Verificarea existentei radionuclizilor folositi in libraria de date
     if isassigned(df.D[(df.A .== A_part) .& (df.Z .== Z_part)], 1) && isassigned(df.D[(df.A .== A) .& (df.Z .== Z)], 1) && isassigned(df.D[(df.A .== A - A_part) .& (df.Z .== Z - Z_part)], 1)
         D_part = df.D[(df.A .== A_part) .& (df.Z .== Z_part)][1]
         #σ_part = df.σ[(df.A .== A_part) .& (df.Z .== Z_part)][1]
@@ -27,14 +31,18 @@ function Energie_separare(A_part, Z_part, A, Z)
     
         S = (D + D_part - df.D[(df.A .== A) .& (df.Z .== Z)][1])*1e-3
         #σˢ = sqrt(σ_part^2 + σᴰ^2 + (df.σ[(df.A .== A) .& (df.Z .== Z)][1])^2)*1e-3
+
+        # Obiectul returnat este un vector cu variabila booleana pe prima pozitie si valoarea lui S pe a doua
         return [true, S]
     else 
         return [false, 0]
     end 
 end
 
+# Calculul energiei de imperechere pentru toti radionuclizii din libraria de date
 function Energie_imperechere(formula)
     pairing = Pairing(Int[], Int[], Float64[], Float64[])
+
     for i in 1:maximum(df.A)
         Z_min = minimum(df.Z[df.A .== i])
         Z_max = maximum(df.Z[df.A .== i])
@@ -47,17 +55,18 @@ function Energie_imperechere(formula)
             Sp2 = Energie_separare(1,1,i,j)
             Sp3 = Energie_separare(1,1,i-1,j-1)
 
-            if (Sn1[1] + Sn2[1] + Sn3[1]) == 3
+            if (Sn1[1] + Sn2[1] + Sn3[1]) == 3 # Verifica existenta simultana a celor 3 valori pentru Sₙ
                 if formula == "Guttormsen"
                     Δn = abs(0.25 * (Sn1[2] - 2*Sn2[2] + Sn3[2]))
                 elseif formula == "Vladuca"
                     Δn = abs(Sn2[2] - Sn3[2])
                 else
                     println("==============================")
-                    println("!EROARE!: Formula gresita")
+                    println("!EROARE!: Formula furnizata este gresita")
                     println(" ")
                     break
                 end
+                # i-p
                 if isodd(j) && isodd(i)
                     push!(pairing.P, Δn)
                     push!(pairing.σᴾ, 1)
@@ -65,17 +74,18 @@ function Energie_imperechere(formula)
                     push!(pairing.Z, j)
                 end
             end
-            if (Sp1[1] + Sp2[1] + Sp3[1]) == 3
+            if (Sp1[1] + Sp2[1] + Sp3[1]) == 3 # Verifica existenta simultana a celor 3 valori pentru Sₚ
                 if formula == "Guttormsen"
                     Δp = abs(0.25 * (Sp1[2] - 2*Sp2[2] + Sp3[2]))
                 elseif formula == "Vladuca"
                     Δp = abs(Sp2[2] - Sp3[2])
                 else
                     println("==============================")
-                    println("!EROARE!: Formula gresita")
+                    println("!EROARE!: Formula furnizata este gresita")
                     println(" ")
                     break
                 end
+                # p-i
                 if iseven(j) && isodd(i)
                     push!(pairing.P, Δp)
                     push!(pairing.σᴾ, 1)
@@ -83,6 +93,7 @@ function Energie_imperechere(formula)
                     push!(pairing.Z, j)
                 end
             end
+            # p-p
             if iseven(j) && iseven(i) && ((Sn1[1] + Sn2[1] + Sn3[1]) == 3) && ((Sp1[1] + Sp2[1] + Sp3[1]) == 3)
                 push!(pairing.P, (Δn + Δp))
                 push!(pairing.σᴾ, 1)
@@ -93,7 +104,9 @@ function Energie_imperechere(formula)
     end
     return pairing
 end
+# Aici se opreste partea de calcul a programului
 
+# Constructia reprezentarilor grafice
 function Grafic_pairing(pairing, scalare, formula)
     upper_bound = maximum(pairing.P)*scalare
     if minimum(pairing.P) < 0 
@@ -149,7 +162,7 @@ function Grafic_pairing(pairing, scalare, formula)
             hline!([0], ls = :dashdot, label = "")
         end
         y = 2 * 12 ./sqrt.(pairing.A)
-        plt = plot!(
+    plt = plot!(
             pairing.A,
             y,
             xlabel = L"\mathrm{A}", 
@@ -158,9 +171,9 @@ function Grafic_pairing(pairing, scalare, formula)
             label = L"2 * \frac{12}{\sqrt{A}}",
             minorgrid = :true, 
             size = (1000, 1000)
-        )
-        y = 12 ./sqrt.(pairing.A)
-        plt = plot!(
+    )
+    y = 12 ./sqrt.(pairing.A)
+    plt = plot!(
             pairing.A,
             y,
             xlabel = L"\mathrm{A}", 
@@ -169,12 +182,14 @@ function Grafic_pairing(pairing, scalare, formula)
             label = L"\frac{12}{\sqrt{A}}",
             minorgrid = :true, 
             size = (1000, 1000)
-        )
-        display(plt)
-        savefig(plt, "Grafice\\Pairing_$(formula).png")
+    )
+    display(plt)
+    #savefig(plt, "Grafice\\Pairing_$(formula).png")
 end
 
+# Apelarea functiilor definite pentru executia programului
 formula = "Guttormsen"
 Grafic_pairing(Energie_imperechere(formula), 1.05, formula)
+
 formula = "Vladuca"
 Grafic_pairing(Energie_imperechere(formula), 1.05, formula)

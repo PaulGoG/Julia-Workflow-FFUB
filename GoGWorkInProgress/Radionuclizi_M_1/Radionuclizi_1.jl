@@ -3,10 +3,12 @@ using CSV
 using DataFrames
 using LaTeXStrings
 
+# Cod de calcul al energiei medie de legatura per nucleon & reprezentarile grafice asociate temei 1
+
 gr();
+cd(@__DIR__); # Adauga calea relativa la folderul de lucru
 
-cd(@__DIR__) #Adauga path-ul la fisier
-
+# Definim obiectele in care stocam datele calculate
 struct Radionuclid
     Z
     A
@@ -21,6 +23,7 @@ struct Diferente
     σᴰ
 end
 
+# Calculul energiei medie de legatura per nucleon si constructia obiectului care contine datele
 function Energie_medie_legatura(librarie)
     radionuclid = Radionuclid(Int[], Int[], Float64[], Float64[])
     # Citim fisierul de tip CSV
@@ -56,9 +59,9 @@ function Energie_medie_legatura(librarie)
     end 
 
     # Figuram doar valorile mai mari de 3 MeV pentru scalarea buna a axelor
-    deleteat!(radionuclid.A, findall(x -> x <=3, radionuclid.B))
-    deleteat!(radionuclid.Z, findall(x -> x <=3, radionuclid.B))
-    deleteat!(radionuclid.σᴮ, findall(x -> x <=3, radionuclid.B))
+    deleteat!(radionuclid.A, findall(x -> x <= 3, radionuclid.B))
+    deleteat!(radionuclid.Z, findall(x -> x <= 3, radionuclid.B))
+    deleteat!(radionuclid.σᴮ, findall(x -> x <= 3, radionuclid.B))
     deleteat!(radionuclid.B, findall(x -> x <= 3, radionuclid.B))
 
     return radionuclid # Obiectul returnat de functie este un vector de vectori de tipul structului
@@ -100,8 +103,9 @@ function Diferente_relative(librarie1, librarie2, trunchiere_sup, trunchiere_inf
     end 
     return diferente
 end
+# Aici se opreste partea de calcul a programului
 
-# Reprezentari grafice
+# Constructia reprezentarilor grafice
 # Scatter simplu
 function Grafic_simplu(radionuclid, librarie)
     plt = scatter(
@@ -120,9 +124,9 @@ function Grafic_simplu(radionuclid, librarie)
     size = (1000, 1000)
     )
     display(plt)
-    savefig(plt, "Grafice\\B_toti_radionuclizii_$(librarie[begin:end-4]).png")
+    #savefig(plt, "Grafice\\B_toti_radionuclizii_$(librarie[begin:end-4]).png")
 end
-# Scatter cu error bars
+# Scatter cu bari de incertitudine
 function Grafic_errorb(radionuclid, librarie)
     plt1 = scatter(
     radionuclid.A, 
@@ -142,9 +146,9 @@ function Grafic_errorb(radionuclid, librarie)
     )
     annotate!(150, 6.5, L"\sigma_{B(A,Z)} = \frac{1}{A} \sqrt{Z^2 \sigma_{D_p}^2 + (A-Z)^2 \sigma_{D_n}^2 + \sigma_{D(A,Z)}^2}")
     display(plt1)
-    savefig(plt1, "Grafice\\B_toti_radionuclizii_errb_$(librarie[begin:end-4]).png")
+    #savefig(plt1, "Grafice\\B_toti_radionuclizii_errb_$(librarie[begin:end-4]).png")
 end
-# Scatter comparativ intre 2 biblioteci de date
+# Scatter comparativ intre 2 librarii de date
 function Grafic_comparativ_lib(radionuclid_1, radionuclid_2, librarie_1, librarie_2)
     plt1 = scatter(
     radionuclid_1.A, 
@@ -178,7 +182,7 @@ function Grafic_comparativ_lib(radionuclid_1, radionuclid_2, librarie_1, librari
     annotate!(150, 6.5, "$(librarie_2[begin:end-4])")
     plt = plot(plt1, plt2, layout = (2, 1))
     display(plt)
-    savefig(plt, "Grafice\\B_comparat_$(librarie_1[begin:end-4])_$(librarie_2[begin:end-4]).png")
+    #savefig(plt, "Grafice\\B_comparat_$(librarie_1[begin:end-4])_$(librarie_2[begin:end-4]).png")
 end
 # Scatter in functie de paritatea A si Z
 function Grafice_paritati_combinate(radionuclid, librarie)
@@ -226,7 +230,7 @@ function Grafice_paritati_combinate(radionuclid, librarie)
     size = (1000, 1000)
     )     
     display(plt)
-    savefig(plt, "Grafice\\B_paritati_combinat_$(librarie[begin:end-4]).png")    
+    #savefig(plt, "Grafice\\B_paritati_combinat_$(librarie[begin:end-4]).png")    
 end
 # Scatter cu layout 3 linii, o coloana
 function Grafice_paritati_comparativ(radionuclid, librarie)
@@ -271,7 +275,7 @@ function Grafice_paritati_comparativ(radionuclid, librarie)
     )   
     plt = plot(plt1, plt2, plt3, layout = (3, 1))  
     display(plt)
-    savefig(plt, "Grafice\\B_paritati_comparativ_$(librarie[begin:end-4]).png")    
+    #savefig(plt, "Grafice\\B_paritati_comparativ_$(librarie[begin:end-4]).png")    
 end
 # Scatter diferente relative intre masele a doua librarii de date
 function Grafic_diferente(diferente, librarie1, librarie2, trunchiere_sup, trunchiere_inf)
@@ -296,21 +300,26 @@ function Grafic_diferente(diferente, librarie1, librarie2, trunchiere_sup, trunc
     annotate!(diferente.A[Int(ceil(length(diferente.A)))]*0.95, trunchiere_sup*1.05, latexstring("\$\\varepsilon_{\\textrm{D}} \\in [$(trunchiere_inf)\\%, $(trunchiere_sup)\\%]\$"))
     #annotate!(diferente.A[Int(ceil(length(diferente.A)/2))], Int(ceil(trunchiere_sup*0.6)), latexstring("\$\\sigma_{\\varepsilon_{\\textrm{D}}} = 100 \\sqrt{(1 + \\frac{D_{\\textrm{$(librarie2[begin:end-4])}}}{D^2_{\\textrm{$(librarie1[begin:end-4])}}})^2 \\sigma^2_{D_{\\textrm{$(librarie1[begin:end-4])}}} + (1 - \\frac{1}{D_{\\textrm{$(librarie1[begin:end-4])}}})^2 \\sigma^2_{D_{\\textrm{$(librarie2[begin:end-4])}}}}\$"))
     display(plt1)
-    savefig(plt1, "Grafice\\Diferente_relative_defecte_mase_errb_$(librarie1[begin:end-4])_$(librarie2[begin:end-4])_trunch_$(trunchiere_inf)_$(trunchiere_sup).png")
+    #savefig(plt1, "Grafice\\Diferente_relative_defecte_mase_errb_$(librarie1[begin:end-4])_$(librarie2[begin:end-4])_trunch_$(trunchiere_inf)_$(trunchiere_sup).png")
 end
 
-# Apelarea functiilor definite
+# Apelarea functiilor definite pentru executia programului
 audi95 = "AUDI95.csv"
 audi21 = "AUDI2021.csv"
 radionuclid_95 = Energie_medie_legatura(audi95)
 radionuclid_21 = Energie_medie_legatura(audi21)
+
 Grafic_simplu(radionuclid_95, audi95)
 Grafic_simplu(radionuclid_21, audi21)
+
 Grafic_errorb(radionuclid_95, audi95)
 Grafic_errorb(radionuclid_21, audi21)
+
 Grafic_comparativ_lib(radionuclid_95, radionuclid_21, audi95, audi21)
+
 Grafice_paritati_combinate(radionuclid_95, audi95)
 Grafice_paritati_combinate(radionuclid_21, audi21)
+
 Grafice_paritati_comparativ(radionuclid_95, audi95)
 Grafice_paritati_comparativ(radionuclid_21, audi21)
 

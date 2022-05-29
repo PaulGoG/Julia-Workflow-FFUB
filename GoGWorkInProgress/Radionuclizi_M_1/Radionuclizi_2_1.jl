@@ -4,10 +4,12 @@ using DataFrames
 using LaTeXStrings
 using LsqFit
 
+# Cod de calcul al energiei de separare & reprezentarile grafice asociate temei 2
+
 gr();
+cd(@__DIR__); # Adauga calea relativa la folderul de lucru
 
-cd(@__DIR__) #Adauga path-ul la fisier
-
+# Definim obiectul in care stocam datele calculate
 struct Separare
     Z
     A
@@ -15,7 +17,7 @@ struct Separare
     σˢ
 end
 
-# Calculul energiei de separare a particulei cu A_part si Z_part din nucleu
+# Calculul energiei de separare a particulei cu A_part si Z_part din nucleele gasite in libraria de date
 function Energie_separare(librarie, A_part, Z_part)
     # Citim fisierul de tip CSV
     # Z|A|Simbol|D(KeV)|σᴰ(KeV) -> forma tabelului
@@ -32,12 +34,12 @@ function Energie_separare(librarie, A_part, Z_part)
             Z_min = minimum(df.Z[df.A .== i])
             Z_max = maximum(df.Z[df.A .== i])
             for j in Z_min:Z_max 
-                # Ne asiguram ca exista perechea (A-A_particula, Z-Z_particula)
+                # Ne asiguram ca exista perechea (A - A_particula, Z - Z_particula)
                 if j >= Z_part && isassigned(df.D[(df.A .== i - A_part) .& (df.Z .== j - Z_part)], 1)
                     D = df.D[(df.A .== i - A_part) .& (df.Z .== j - Z_part)][1]
                     σᴰ = df.σ[(df.A .== i - A_part) .& (df.Z .== j - Z_part)][1]
 
-                    # Calculul valorilor
+                    # Calculul valorilor de interes
                     S = D + D_part - df.D[(df.A .== i) .& (df.Z .== j)][1]
                     σˢ = sqrt(σ_part^2 + σᴰ^2 + (df.σ[(df.A .== i) .& (df.Z .== j)][1])^2)
                     
@@ -51,21 +53,20 @@ function Energie_separare(librarie, A_part, Z_part)
             end
         end 
         return separare # Obiectul returnat de functie este un vector de vectori de tipul structului
-    else 
-        println("Perechea (A,Z) pentru particula pe care vrem sa o separam din nucleu nu exista in libraria de date $(librarie)") 
     end
 end
 
-# Stergem valorile negative ale energiei de separare acolo unde este cazul
+# Stergem valorile negative ale energiei de separare acolo unde este cazul (fluctuatii de tip statistic)
 function Valori_negative(separare)
-    deleteat!(separare.A, findall(x -> x <0, separare.S))
-    deleteat!(separare.Z, findall(x -> x <0, separare.S))
-    deleteat!(separare.σˢ, findall(x -> x <0, separare.S))
-    deleteat!(separare.S, findall(x -> x <0, separare.S))   
+    deleteat!(separare.A, findall(x -> x < 0, separare.S))
+    deleteat!(separare.Z, findall(x -> x < 0, separare.S))
+    deleteat!(separare.σˢ, findall(x -> x < 0, separare.S))
+    deleteat!(separare.S, findall(x -> x < 0, separare.S))   
     return separare
 end
+# Aici se opreste partea de calcul a programului
 
-# Reprezentari grafice
+# Constructia reprezentarilor grafice
 # Scatter simplu
 function Grafic_simplu(separare, librarie, particula, scalare)
     upper_bound = maximum(separare.S)*scalare
@@ -94,9 +95,9 @@ function Grafic_simplu(separare, librarie, particula, scalare)
         hline!([0], ls = :dashdot, label = "")
     end
     display(plt)
-    savefig(plt, "Grafice\\S_monocolor_$(librarie[begin:end-4]).png")
+    #savefig(plt, "Grafice\\S_monocolor_$(librarie[begin:end-4]).png")
 end
-# Scatter impartit pe paritati
+# Scatter impartit pe paritatile A si Z
 function Grafice_paritati_combinate(separare, librarie, particula, scalare)
     upper_bound = maximum(separare.S)*scalare
     if minimum(separare.S) < 0 
@@ -152,9 +153,9 @@ function Grafice_paritati_combinate(separare, librarie, particula, scalare)
         hline!([0], ls = :dashdot, label = "")
     end
     display(plt)
-    savefig(plt, "Grafice\\S_paritati_combinat_$(librarie[begin:end-4]).png")    
+    #savefig(plt, "Grafice\\S_paritati_combinat_$(librarie[begin:end-4]).png")    
 end
-# Fit N/Z al Sₙ pentru toate elementele
+# Fitare N/Z al Sₙ pentru toate elementele
 function Grafic_fitare_simplu_neutron(librarie, scalare)
     separare = Valori_negative(Energie_separare(audi95, 1, 0))
     fitare(t, p) = p[1] .+ p[2].*t .+ p[3].*t.^2
@@ -202,9 +203,9 @@ function Grafic_fitare_simplu_neutron(librarie, scalare)
         label = latexstring("\$ $(A) $(semn1) $(abs(B)) \\; \\frac{N}{Z} $(semn2) $(abs(C)) \\; \\left( \\frac{N}{Z} \\right)^2\$")
     )
     display(plt)
-    savefig(plt, "Grafice\\S_fitare_simplu_neutron.png")
+    #savefig(plt, "Grafice\\S_fitare_simplu_neutron.png")
 end
-# Fit N/Z al Sₙ impartit pe layout pentru paritati
+# Fit N/Z al Sₙ impartit pe layouturi in functie de paritatile A si Z
 function Grafic_fitare_multiplu_neutron(librarie, scalare)
     separare = Valori_negative(Energie_separare(librarie, 1, 0))
     fitare(t, p) = p[1] .+ p[2].*t .+ p[3].*t.^2
@@ -382,7 +383,7 @@ function Grafic_fitare_multiplu_neutron(librarie, scalare)
     )
     plt = plot(plt1, plt2, plt3, plt4, layout = (2, 2))
     display(plt)
-    savefig(plt, "Grafice\\S_fitare_multiplu_neutron.png")
+    #savefig(plt, "Grafice\\S_fitare_multiplu_neutron.png")
 end
 # Grafice S in functie de N si Z
 function Grafic_dublu_NZ(separare, librarie, particula, scalare)
@@ -431,10 +432,10 @@ function Grafic_dublu_NZ(separare, librarie, particula, scalare)
     end
     plt = plot(plt1, plt2, layout = (2,1))
     display(plt)
-    savefig(plt, "Grafice\\S_dublu_NZ_$(librarie[begin:end-4]).png")
+    #savefig(plt, "Grafice\\S_dublu_NZ_$(librarie[begin:end-4]).png")
 end
 
-# Apelarea functiilor definite
+# Apelarea functiilor definite pentru executia programului
 audi95 = "AUDI95.csv"
 audi21 = "AUDI2021.csv"
 scalare = 1.05
@@ -446,9 +447,12 @@ separare_d_95 = Valori_negative(Energie_separare(audi95, 2, 1))
 
 Grafice_paritati_combinate(separare_n_95, audi95, L"^1_0n", scalare)
 Grafice_paritati_combinate(separare_p_95, audi95, L"^1_1p", scalare)
+
 Grafic_simplu(separare_α_95, audi95, L"^4_2\alpha", scalare)
 Grafic_simplu(separare_d_95, audi95, L"^2_1H", scalare)
+
 Grafic_fitare_simplu_neutron(audi95, scalare)
 Grafic_fitare_multiplu_neutron(audi95, scalare)
+
 Grafic_dublu_NZ(separare_n_95, audi95, L"^1_0n", scalare)
 Grafic_dublu_NZ(separare_p_95, audi95, L"^1_1p", scalare)
