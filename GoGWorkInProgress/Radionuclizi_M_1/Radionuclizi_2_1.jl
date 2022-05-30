@@ -76,20 +76,20 @@ function Grafic_simplu(separare, librarie, particula, scalare)
         lower_bound = 0
     end
     plt = scatter(
-    separare.A, 
-    separare.S,  
-    marker = :circle,
-    markersize = 4, 
-    markerstrokewidth = 0,
-    ylims = (lower_bound, upper_bound),
-    xlabel = L"\mathrm{A}", 
-    ylabel = "Energia de separare a $(particula) [MeV]", 
-    framestyle = :box,
-    legend = :false,
-    title = "Energia de separare a $(particula) în funcție de A, $(librarie[begin:end-4])",
-    minorgrid = :true,
-    mc = :blue, 
-    size = (1000, 1000)
+        separare.A, 
+        separare.S,  
+        marker = :circle,
+        markersize = 4, 
+        markerstrokewidth = 0,
+        ylims = (lower_bound, upper_bound),
+        xlabel = L"\mathrm{A}", 
+        ylabel = "Energia de separare a $(particula) [MeV]", 
+        framestyle = :box,
+        legend = :false,
+        title = "Energia de separare a $(particula) în funcție de A, $(librarie[begin:end-4])",
+        minorgrid = :true,
+        mc = :blue, 
+        size = (1000, 1000)
     )
     if lower_bound < 0
         hline!([0], ls = :dashdot, label = "")
@@ -106,48 +106,48 @@ function Grafice_paritati_combinate(separare, librarie, particula, scalare)
         lower_bound = 0
     end
     plt = scatter(
-    separare.A[(iseven.(separare.A) .== 1) .& (iseven.(separare.Z) .== 1)], 
-    separare.S[(iseven.(separare.A) .== 1) .& (iseven.(separare.Z) .== 1)],  
-    marker = :xcross,
-    markerstrokewidth = 0,
-    markersize = 4, 
-    ylims = (lower_bound, upper_bound),
-    xlabel = L"\mathrm{A}", 
-    ylabel = "Energia de separare a $(particula) [MeV]", 
-    framestyle = :box,
-    label = "par-par",
-    title = "Energia de separare a $(particula) în funcție de A, $(librarie[begin:end-4])",
-    minorgrid = :true,
-    mc = :red, 
-    size = (1000, 1000)
+        separare.A[(iseven.(separare.A) .== 1) .& (iseven.(separare.Z) .== 1)], 
+        separare.S[(iseven.(separare.A) .== 1) .& (iseven.(separare.Z) .== 1)],  
+        marker = :xcross,
+        markerstrokewidth = 0,
+        markersize = 4, 
+        ylims = (lower_bound, upper_bound),
+        xlabel = L"\mathrm{A}", 
+        ylabel = "Energia de separare a $(particula) [MeV]", 
+        framestyle = :box,
+        label = "par-par",
+        title = "Energia de separare a $(particula) în funcție de A, $(librarie[begin:end-4])",
+        minorgrid = :true,
+        mc = :red, 
+        size = (1000, 1000)
     )
     plt = scatter!(
-    separare.A[(iseven.(separare.A) .== 1) .& (iseven.(separare.Z) .== 0)], 
-    separare.S[(iseven.(separare.A) .== 1) .& (iseven.(separare.Z) .== 0)],  
-    marker = :utriangle,
-    markersize = 4, 
-    markerstrokewidth = 0,
-    xlabel = L"\mathrm{A}", 
-    ylabel = "Energia de separare a $(particula) [MeV]", 
-    framestyle = :box,
-    label = "impar-impar",
-    minorgrid = :true,
-    mc = :green, 
-    size = (1000, 1000)
+        separare.A[(iseven.(separare.A) .== 1) .& (iseven.(separare.Z) .== 0)], 
+        separare.S[(iseven.(separare.A) .== 1) .& (iseven.(separare.Z) .== 0)],  
+        marker = :utriangle,
+        markersize = 4, 
+        markerstrokewidth = 0,
+        xlabel = L"\mathrm{A}", 
+        ylabel = "Energia de separare a $(particula) [MeV]", 
+        framestyle = :box,
+        label = "impar-impar",
+        minorgrid = :true,
+        mc = :green, 
+        size = (1000, 1000)
     )
     plt = scatter!(
-    separare.A[(iseven.(separare.A) .== 0)], 
-    separare.S[(iseven.(separare.A) .== 0)],  
-    marker = :star5,
-    markersize = 4, 
-    markerstrokewidth = 0,
-    xlabel = L"\mathrm{A}", 
-    ylabel = "Energia de separare a $(particula) [MeV]", 
-    framestyle = :box,
-    label = "A impar",
-    minorgrid = :true,
-    mc = :lightskyblue, 
-    size = (1000, 1000)
+        separare.A[(iseven.(separare.A) .== 0)], 
+        separare.S[(iseven.(separare.A) .== 0)],  
+        marker = :star5,
+        markersize = 4, 
+        markerstrokewidth = 0,
+        xlabel = L"\mathrm{A}", 
+        ylabel = "Energia de separare a $(particula) [MeV]", 
+        framestyle = :box,
+        label = "A impar",
+        minorgrid = :true,
+        mc = :lightskyblue, 
+        size = (1000, 1000)
     )     
     if lower_bound < 0
         hline!([0], ls = :dashdot, label = "")
@@ -394,38 +394,38 @@ function Grafic_dublu_NZ(separare, librarie, particula, scalare)
         lower_bound = 0
     end
     plt1 = scatter(
-    separare.Z, 
-    separare.S,  
-    marker = :circle,
-    markersize = 4, 
-    markerstrokewidth = 0,
-    ylims = (lower_bound, upper_bound),
-    xlabel = L"\mathrm{Z}", 
-    ylabel = "Energia de separare a $(particula) [MeV]", 
-    framestyle = :box,
-    legend = :false,
-    title = "Energia de separare a $(particula) în funcție de Z și N, $(librarie[begin:end-4])",
-    minorgrid = :true,
-    mc = :purple, 
-    size = (1000, 1000)
+        separare.Z, 
+        separare.S,  
+        marker = :circle,
+        markersize = 4, 
+        markerstrokewidth = 0,
+        ylims = (lower_bound, upper_bound),
+        xlabel = L"\mathrm{Z}", 
+        ylabel = "Energia de separare a $(particula) [MeV]", 
+        framestyle = :box,
+        legend = :false,
+        title = "Energia de separare a $(particula) în funcție de Z și N, $(librarie[begin:end-4])",
+        minorgrid = :true,
+        mc = :purple, 
+        size = (1000, 1000)
     )
     if lower_bound < 0
         hline!([0], ls = :dashdot, label = "")
     end
     plt2 = scatter(
-    (separare.A .- separare.Z), 
-    separare.S,  
-    marker = :circle,
-    markersize = 4, 
-    markerstrokewidth = 0,
-    ylims = (lower_bound, upper_bound),
-    xlabel = L"\mathrm{N}", 
-    ylabel = "Energia de separare a $(particula) [MeV]", 
-    framestyle = :box,
-    legend = :false,
-    minorgrid = :true,
-    mc = :green, 
-    size = (1000, 1000)
+        (separare.A .- separare.Z), 
+        separare.S,  
+        marker = :circle,
+        markersize = 4, 
+        markerstrokewidth = 0,
+        ylims = (lower_bound, upper_bound),
+        xlabel = L"\mathrm{N}", 
+        ylabel = "Energia de separare a $(particula) [MeV]", 
+        framestyle = :box,
+        legend = :false,
+        minorgrid = :true,
+        mc = :green, 
+        size = (1000, 1000)
     )
     if lower_bound < 0
         hline!([0], ls = :dashdot, label = "")

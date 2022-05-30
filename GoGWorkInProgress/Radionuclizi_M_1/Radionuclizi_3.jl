@@ -129,8 +129,8 @@ function Grafic_pairing(pairing, scalare, formula)
         minorgrid = :true,
         mc = :red, 
         size = (1000, 1000)
-        )
-        plt = scatter!(
+    )
+    plt = scatter!(
         pairing.A[(iseven.(pairing.A) .== 0) .& (iseven.(pairing.Z) .== 1)], 
         pairing.P[(iseven.(pairing.A) .== 0) .& (iseven.(pairing.Z) .== 1)],  
         marker = :utriangle,
@@ -143,8 +143,8 @@ function Grafic_pairing(pairing, scalare, formula)
         minorgrid = :true,
         mc = :green, 
         size = (1000, 1000)
-        )
-        plt = scatter!(
+    )
+    plt = scatter!(
         pairing.A[(iseven.(pairing.A) .== 0) .& (iseven.(pairing.Z) .== 0)], 
         pairing.P[(iseven.(pairing.A) .== 0) .& (iseven.(pairing.Z) .== 0)],  
         marker = :star5,
@@ -157,34 +157,35 @@ function Grafic_pairing(pairing, scalare, formula)
         minorgrid = :true,
         mc = :lightskyblue, 
         size = (1000, 1000)
-        )     
-        if lower_bound < 0
-            hline!([0], ls = :dashdot, label = "")
-        end
-        y = 2 * 12 ./sqrt.(pairing.A)
+    )     
+    if lower_bound < 0
+        hline!([0], ls = :dashdot, label = "")
+    end
+    y = 2 * 12 ./sqrt.(pairing.A)
     plt = plot!(
-            pairing.A,
-            y,
-            xlabel = L"\mathrm{A}", 
-            ylabel = "Energia de împerechere [MeV]", 
-            framestyle = :box,
-            label = L"2 * \frac{12}{\sqrt{A}}",
-            minorgrid = :true, 
-            size = (1000, 1000)
+        pairing.A,
+        y,
+        xlabel = L"\mathrm{A}", 
+        ylabel = "Energia de împerechere [MeV]", 
+        framestyle = :box,
+        label = L"2 * \frac{12}{\sqrt{A}}",
+        minorgrid = :true, 
+        size = (1000, 1000)
     )
     y = 12 ./sqrt.(pairing.A)
     plt = plot!(
-            pairing.A,
-            y,
-            xlabel = L"\mathrm{A}", 
-            ylabel = "Energia de împerechere [MeV]", 
-            framestyle = :box,
-            label = L"\frac{12}{\sqrt{A}}",
-            minorgrid = :true, 
-            size = (1000, 1000)
+        pairing.A,
+        y,
+        xlabel = L"\mathrm{A}", 
+        ylabel = "Energia de împerechere [MeV]", 
+        framestyle = :box,
+        label = L"\frac{12}{\sqrt{A}}",
+        minorgrid = :true, 
+        size = (1000, 1000)
     )
     display(plt)
     #savefig(plt, "Grafice\\Pairing_$(formula).png")
+    #savefig(plt, "Grafice/Pairing_$(formula).png")
 end
 
 # Apelarea functiilor definite pentru executia programului

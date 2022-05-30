@@ -16,15 +16,16 @@ end
 # Date de intrare pentru cod
 K = 2.565e7; # ΣₐΦ viteza de activare in  s^-1
 T_jum = 2.3 * 60; # Timp injumatatire Al-28 in s
-λ = log(2)/T_jum; # in s^-1
 
 # Intervalul de timp pentru ciclurile de activare si pauza
-τ = T_jum/3; 
+τ = T_jum*5; 
 # Nr de cicluri activare-pauza simulate
-m = 10;
+m = 3;
 m = Int(m);
 # Nr de intervale in care impartim timpul, elementul finit!
 h = 100;
+
+λ = log(2)/T_jum; # in s^-1
 
 # Calculam valorile punctuale pentru N(t) la al n-lea ciclu folosind formulele deduse analitic
 function Λ_activare_n(n, t)
@@ -103,3 +104,4 @@ plt = annotate!(Δt*τ*1.5, maximum(Λ.Λ)*1.05, latexstring("\$\\tau \\: = $(ro
 
 display(plt)
 #savefig(plt, "Grafice\\Cicluri_Activare_Pauza.png")
+#savefig(plt, "Grafice/Cicluri_Activare_Pauza.png")

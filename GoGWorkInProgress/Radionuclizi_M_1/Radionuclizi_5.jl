@@ -48,7 +48,7 @@ function Calcul_W_LDM(A, Z)
     return a_v*A - a_s*A^(2/3) - a_c*Z^2 *A^(-1/3) - a_sim*η^2
 end
 
-# Calculul punctual al termenului de imperechere, existenta D-urilor NU se verifica aici!
+# Calculul punctual al termenului de imperechere, existenta D-urilor NU este verificata aici!
 function Calcul_P_a(A, Z)
     D_plus = df.D[(df.A .== A+2) .& (df.Z .== Z+1)][1]*1e-3
     D_minus = df.D[(df.A .== A-2) .& (df.Z .== Z-1)][1]*1e-3
@@ -98,14 +98,17 @@ function Grafic_comparare_corectii(paturi)
         paturi.A, 
         paturi.δW_0,  
         marker = :circle,
-        markersize = 3, 
+        markersize = 4, 
         markerstrokewidth = 0,
         xlabel = L"\mathrm{A}", 
-        ylabel = latexstring("Corecția de pături \$\\delta W\$  [MeV]"), 
+        ylabel = latexstring("Corecțiile de pături \$\\delta W\$  [MeV]"), 
         framestyle = :box,
-        label = "fără termenul de împerechere",
+        label = latexstring("Fără termenul de împerechere \$\\mathrm{P_a}\$"),
         title = "Corecțiile de pături bazate pe parametrizarea Pearson a modelului picătura de lichid",
         minorgrid = :false,
+        ylims = (-15, 10),
+        yticks = [-15, -10, -5, 0, 5, 10],
+        xlims = (0.0, 280.0),
         mc = :red, 
         size = (1000, 1000)
     )
@@ -113,15 +116,16 @@ function Grafic_comparare_corectii(paturi)
         paturi.A, 
         paturi.δW,
         marker = :utriangle,
-        markersize = 3, 
+        markersize = 4, 
         markerstrokewidth = 0,
-        mc = :green,
-        label = "cu termenul de împerechere",
+        mc = :lime,
+        label = latexstring("Cu termenul de împerechere \$\\mathrm{P_a}\$"),
         size = (1000, 1000)
     )
     plt = hline!([0], label = "")
     display(plt)
-    #savefig(plt, "Grafice\\Corectii_comparate.png")    
+    #savefig(plt, "Grafice\\Corectii_comparate.png") 
+    #savefig(plt, "Grafice/Corectii_comparate.png")   
 end
 # Comparare corectie de paturi calculata vs Moller si Nix
 function Grafic_Moller_Nix(paturi)
@@ -129,40 +133,47 @@ function Grafic_Moller_Nix(paturi)
         paturi.A, 
         paturi.δW,  
         marker = :circle,
-        markersize = 3, 
+        markersize = 4, 
         markerstrokewidth = 0,
         xlabel = L"\mathrm{A}", 
-        ylabel = latexstring("Corecția de pături \$\\delta W\$  [MeV]"), 
+        ylabel = latexstring("Corecțiile de pături \$\\delta W\$  [MeV]"), 
         framestyle = :box,
-        label = "obținute cu parametrizarea Pearson a modelului picătura",
-        title = "Comparație între corecțiile de pături bazate pe parametrizarea Pearson și cele obținute de Moller și Nix",
+        label = "Calculate cu parametrizarea Pearson a modelului picătura de lichid",
+        title = "Comparație între rezultatele calculate cu \$\\mathrm{W_{LDM}}\$ și cele obținute de Moller și Nix",
         minorgrid = :false,
+        xlims = (0.0, 280.0),
+        ylims = (-20, 10),
+        yticks = [-20, -15, -10, -5, 0, 5, 10],
         mc = :red, 
         size = (1000, 1000)
     )
+    # Alegem din Moller si Nix doar radionuclizii care au corespondent calculat de noi
     y = zeros(0)
+    x = zeros(0)
     for i in minimum(dm.A):maximum(dm.A)
         Z_min = minimum(dm.Z[dm.A .== i])
         Z_max = maximum(dm.Z[dm.A .== i])
         for j in Z_min:Z_max
             if isassigned(paturi.A[(paturi.A .== i) .& (paturi.Z .== j)], 1)
                 push!(y, dm.δW[(dm.A .== i) .& (dm.Z .== j)][1])
+                push!(x, dm.A[(dm.A .== i) .& (dm.Z .== j)][1])
             end
         end
     end
     plt = scatter!(
-        paturi.A, 
+        x, 
         y,
         marker = :utriangle,
-        markersize = 3, 
+        markersize = 4, 
         markerstrokewidth = 0,
         mc = :blue,
-        label = "obținute de Moller și Nix",
+        label = "Obținute de Moller și Nix (doar cele care au corespondent calculat)",
         size = (1000, 1000)
     )
     plt = hline!([0], label = "")
     display(plt)
     #savefig(plt, "Grafice\\Corectii_comparate_Moller_Nix.png")  
+    #savefig(plt, "Grafice/Corectii_comparate_Moller_Nix.png")
 end
 # Reprezentari grafice termen perechi
 function Grafice_perechi_paritati(paturi)
@@ -175,14 +186,19 @@ function Grafice_perechi_paritati(paturi)
         marker = :circle,
         markersize = 4, 
         markerstrokewidth = 0,
+        title = "Termenul de împerechere Pearson defalcat pe parități",
         xlabel = L"\mathrm{A}", 
-        ylabel = "Corecția de perechi Pearson [MeV]", 
+        ylabel = latexstring("\$\\mathrm{P_a}\$ împerechere Pearson [MeV]"), 
+        ylims = (-8.5, 8.5),
+        xlims = (0.0, 280.0),
+        yticks = [-8, -6, -4, -2, 0, 2, 4, 6, 8],
         framestyle = :box,
-        label = "p-p",
+        label = "par-par",
         minorgrid = :false,
         mc = :red, 
         size = (1000, 1000)
     )
+    
     # i-i
     y = paturi.P_a[(iseven.(paturi.A) .== 1) .& (iseven.(paturi.Z) .== 0)]
     x = paturi.A[(iseven.(paturi.A) .== 1) .& (iseven.(paturi.Z) .== 0)]
@@ -192,10 +208,11 @@ function Grafice_perechi_paritati(paturi)
         marker = :utriangle,
         markersize = 4, 
         markerstrokewidth = 0,
-        label = "i-i",
+        label = "impar-impar",
         mc = :green, 
         size = (1000, 1000)
     )
+    
     # p-i
     y = paturi.P_a[(iseven.(paturi.A) .== 0) .& (iseven.(paturi.Z) .== 1)]
     x = paturi.A[(iseven.(paturi.A) .== 0) .& (iseven.(paturi.Z) .== 1)]
@@ -205,11 +222,12 @@ function Grafice_perechi_paritati(paturi)
         marker = :xcross,
         markersize = 4, 
         markerstrokewidth = 0,
-        label = "p-i",
+        label = "par-impar",
         minorgrid = :true,
         mc = :lightblue, 
         size = (1000, 1000)
     )
+    
     # i-p
     y = paturi.P_a[(iseven.(paturi.A) .== 0) .& (iseven.(paturi.Z) .== 0)]
     x = paturi.A[(iseven.(paturi.A) .== 0) .& (iseven.(paturi.Z) .== 0)]
@@ -219,7 +237,7 @@ function Grafice_perechi_paritati(paturi)
         marker = :star5,
         markersize = 4, 
         markerstrokewidth = 0,
-        label = "i-p",
+        label = "impar-par",
         minorgrid = :true,
         mc = :purple, 
         size = (1000, 1000)
@@ -227,6 +245,7 @@ function Grafice_perechi_paritati(paturi)
     plt = hline!([0], label = "")    
     display(plt)
     #savefig(plt, "Grafice\\Termen_perechi_Pearson.png")
+    #savefig(plt, "Grafice/Termen_perechi_Pearson.png")
 end
 
 # Reprezentare grafica B = W/A 
@@ -239,12 +258,14 @@ function Grafic_B(paturi)
         markersize = 3, 
         markerstrokewidth = 0,
         xlabel = L"\mathrm{A}", 
-        ylabel = "Energia medie de legătură per nucleon  [MeV]", 
+        ylabel = "Energia medie de legătură per nucleon B(A, Z) [MeV]", 
         framestyle = :box,
         label = L"\mathrm{W}_{\mathrm{exp}}",
-        title = "Comparație între valorile B(A, Z) obținute cu ajutorul defectelor de masă și cele obținute cu modelul picătura",
+        title = latexstring("Comparație între valorile B(A, Z) calculate cu \$\\mathrm{W_{exp}}\$ și cele calculate cu \$\\mathrm{W_{LDM}}\$"),
         minorgrid = :true,
-        mc = :red, 
+        xlims = (0.0, 280.0),
+        ylims = (3.0, 9.0),
+        mc = :lime, 
         size = (1000, 1000)
     )
     y = paturi.W_LDM./paturi.A
@@ -255,11 +276,12 @@ function Grafic_B(paturi)
         markersize = 3, 
         markerstrokewidth = 0,
         label = L"\mathrm{W}_{\mathrm{LDM}}",
-        mc = :blue, 
+        mc = :lightblue, 
         size = (1000, 1000)
     ) 
     display(plt)
-    #savefig(plt, "Grafice\\B_comparat_modele")   
+    #savefig(plt, "Grafice\\B_comparat_modele.png")  
+    #savefig(plt, "Grafice/B_comparat_modele.png") 
 end
 
 # Apelarea functiilor definite pentru executia programului

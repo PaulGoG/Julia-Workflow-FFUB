@@ -8,16 +8,17 @@ cd(@__DIR__); # Adauga calea relativa la folderul de lucru
 
 # Datele de intrare pentru cod
 Λ₀ = 56.1; # μCi
-T_jum_1 = 4.468 * 10^9; # ani
-T_jum_2 = 0.065984; # ani
+T_jum_1 = 4.468*1e9; # ani
+T_jum_2 = 0.06603; # ani
 
 # Se alege functia min sau max pentru a scala graficul la timpul de injumatatire mai mic, sau mai mare dintre cei 2
-T_scalare = min(T_jum_1, T_jum_2);
+T_scalare = max(T_jum_1, T_jum_2);
 
 # Se introduc numele celor 2 radionuclizi in format LaTeX
 nucleu_1 = L"^{238}\textrm{U}";
 nucleu_2 = L"^{234}\textrm{Th}";
-titlu = latexstring("Graficul evoluției în timp a activității pentru seria de dezintegrări radioactive $(nucleu_1) \$\\rightarrow\$ $(nucleu_2)");
+
+titlu = latexstring("Evoluția în timp a activității pentru seria de dezintegrări radioactive $(nucleu_1) \$\\rightarrow\$ $(nucleu_2)");
 
 λ₁ = log(2)/T_jum_1; # ani^-1
 λ₂ = log(2)/T_jum_2; # ani^-1
@@ -37,7 +38,8 @@ x = collect(0.0:T_scalare/10:10*T_scalare); # Reglam axa timpului la 10 timpi de
 # Reprezentare Λ₁(t)
 y = Lambda_1.(x);
 plt = plot(
-    x, y,
+    x, 
+    y,
     xlims = (minimum(x), maximum(x) * 1.01),
     ylims = (0, Λ₀ * 1.05),
     label = latexstring("$(nucleu_1):  \$\\Lambda_1(t)\$"),
@@ -72,6 +74,8 @@ plt = xticks!(x, y);
 # Legenda reprezentarii grafice
 plt = annotate!(5*T_scalare, Λ₀*1, latexstring("\$\\textrm{T}_{\\frac{1}{2}}\$ $(nucleu_1) = $(T_jum_1) ani"));
 plt = annotate!(5*T_scalare, Λ₀*0.95, latexstring("\$\\textrm{T}_{\\frac{1}{2}}\$ $(nucleu_2) = $(T_jum_2) ani"));
+plt = annotate!(5*T_scalare, Λ₀*0.9, latexstring("\$\\textrm{t}_{M}\$ = \$$(round(tₘ, digits=2))\$ ani"));
 
 display(plt);
 #savefig(plt, "Grafice\\Evolutie_Activitate_$(nucleu_1)_$(nucleu_2).png")
+#savefig(plt, "Grafice/Evolutie_Activitate_$(nucleu_1)_$(nucleu_2).png")
