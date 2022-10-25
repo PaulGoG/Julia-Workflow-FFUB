@@ -3,13 +3,21 @@ using CSV
 using DataFrames
 using LaTeXStrings
 
-# Cod de calcul al energiei eliberate la fisiune 
+# Cod de calcul pentru distributii uzuale in fisiunea U5
 
 gr();
 cd(@__DIR__); # Adauga calea relativa la folderul de lucru
 
+df = CSV.File("AUDI95.csv"; delim=' ', ignorerepeated=true, header=["Z", "A", "Sym", "D", "σD"]) |> DataFrame
+dy = CSV.File("U5YAZTKE.csv"; delim=' ', ignorerepeated=true, header=["A_H", "Z_H", "TKE", "Y", "σY"]) |> DataFrame
+
 struct Q
     Z
+    A
+    Q
+end
+
+struct Q_mediat
     A
     Q
 end
@@ -46,7 +54,7 @@ function p_A_Z(Z, Z_p)
     return 1/(sqrt(2*pi) * 0.6) * exp(-(Z - Z_p)^2 /(2*0.6^2))
 end
 function Q_A(Q, A, Z, limInfA_H, limSupA_H)
-    Q_med = Q(Int[], Int[], Float64[])
+    Q_med = Q_mediat(Int[], Float64[])
 
     for i in limInfA_H:limSupA_H
         A_H = i
@@ -88,7 +96,6 @@ end
 
 # Apelarea functiilor definite pentru executia programului
 audi95 = "AUDI95.csv"
-audi21 = "AUDI2021.csv"
 A = 236
 Z = 92
 limInfA_H = 118
