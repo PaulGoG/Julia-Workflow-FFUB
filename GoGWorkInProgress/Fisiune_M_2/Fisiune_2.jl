@@ -8,100 +8,126 @@ using LaTeXStrings
 gr();
 cd(@__DIR__); # Adauga calea relativa la folderul de lucru
 
+# Citire fisiere de date
 df = CSV.File("AUDI95.csv"; delim=' ', ignorerepeated=true, header=["Z", "A", "Sym", "D", "σD"]) |> DataFrame
 dy = CSV.File("U5YAZTKE.csv"; delim=' ', ignorerepeated=true, header=["A_H", "Z_H", "TKE", "Y", "σY"]) |> DataFrame
 
-struct Q
-    Z
-    A
-    Q
+struct distributie_unidym
+    x
+    y
+    σ
 end
 
-struct Q_mediat
-    A
-    Q
+function Y_A(dy, A, f)
+    Y = distributie_unidym(Int[],Float64[], Float64[])
+    for i in minimum(dy.A_H):maximum(dy.A_H)
+        Suma_Y = sum(dy.Y[dy.A_H .== i]) * f
+        Suma_σ = sqrt(sum(dy.σY[dy.A_H .== i].^2)) * f
+        push!(Y.x, i)
+        push!(Y.y, Suma_Y)
+        push!(Y.σ, Suma_σ)
+        push!(Y.x, A - i)
+        push!(Y.y, Suma_Y)
+        push!(Y.σ, Suma_σ)
+    end
+    if iseven(A)
+        index = findfirst(x -> x == Int(A/2), Y.x)
+        deleteat!(Y.x, index)
+        deleteat!(Y.y, index)
+        deleteat!(Y.σ, index)
+    end
+    return Y
 end
 
-function Q_A_Z(librarie, A, Z, limInfA_H, limSupA_H)
-    q = Q(Int[], Int[], Float64[])
+function Y_Z(dy, A, Z, f)
+    Y = distributie_unidym(Int[],Float64[], Float64[])
+    for i in minimum(dy.Z_H):maximum(dy.Z_H)
+        Suma_Y = sum(dy.Y[dy.Z_H .== i]) * f
+        Suma_σ = sqrt(sum(dy.σY[dy.Z_H .== i].^2)) * f
+        push!(Y.x, i)
+        push!(Y.y, Suma_Y)
+        push!(Y.σ, Suma_σ)
+        push!(Y.x, Z - i)
+        push!(Y.y, Suma_Y)
+        push!(Y.σ, Suma_σ)
+    end
+    index_true = unique(i -> Y.x[i], eachindex(Y.x))
+    index_delete = setdiff(eachindex(y_Z.x), index_true)
+    deleteat!(Y.x, index_delete)
+    deleteat!(Y.y, index_delete)
+    deleteat!(Y.σ, index_delete)
+    return Y
+end
 
-    # Citim fisierul de tip CSV
-    # Z|A|Simbol|D(KeV)|σᴰ(KeV) -> forma tabelului
-    df = CSV.File(librarie; delim=' ', ignorerepeated=true, header=["Z", "A", "Sym", "D", "σ"]) |> DataFrame
-    D = df.D[(df.A .== A) .& (df.Z .== Z)][1]
-
-    # Parcurgem radionuclizii din baza de date relevanti pentru fragmentari
-    for i in limInfA_H:limSupA_H
-        A_H = i
-        Z_UCD = Z*A_H/A
-        Z_p = floor(Z_UCD - 0.5)
-
-        for j in (Z_p - 1):(Z_p + 1)
-            Z_H = j
-            if isassigned(df.D[(df.A .== A_H) .& (df.Z .== Z_H)], 1) && isassigned(df.D[(df.A .== A - A_H) .& (df.Z .== Z - Z_H)], 1)
-                D_H = df.D[(df.A .== A_H) .& (df.Z .== Z_H)][1]
-                D_L = df.D[(df.A .== A - A_H) .& (df.Z .== Z - Z_H)][1]
-                push!(q.Q, (D - (D_H + D_L))*1e-3)
-                push!(q.Z, Z_H)
-                push!(q.A, A_H)
-            end
+function Y_N(dy, A, Z, f)
+    Y = distributie_unidym(Int[],Float64[], Float64[])
+    for i in minimum(dy.A_H):maximum(dy.A_H)
+        for j in minimum(dy.Z_H[dy.A_H .== i]):maximum(dy.Z_H[dy.A_H .== i])
+            Suma_Y = sum(dy.Y[dy.A_H .- dy.Z_H .== i - j]) * f
+            Suma_σ = sqrt(sum(dy.σY[dy.A_H .- dy.Z_H .== i - j].^2)) * f
+            push!(Y.x, i - j)
+            push!(Y.y, Suma_Y)
+            push!(Y.σ, Suma_σ)
+            push!(Y.x, A - Z - i + j)
+            push!(Y.y, Suma_Y)
+            push!(Y.σ, Suma_σ)
         end
-    end 
-    return q
+    end
+    index_true = unique(i -> Y.x[i], eachindex(Y.x))
+    index_delete = setdiff(eachindex(y_Z.x), index_true)
+    deleteat!(Y.x, index_delete)
+    deleteat!(Y.y, index_delete)
+    deleteat!(Y.σ, index_delete)
+    return Y
 end
 
 function p_A_Z(Z, Z_p)
     return 1/(sqrt(2*pi) * 0.6) * exp(-(Z - Z_p)^2 /(2*0.6^2))
 end
-function Q_A(Q, A, Z, limInfA_H, limSupA_H)
-    Q_med = Q_mediat(Int[], Float64[])
 
-    for i in limInfA_H:limSupA_H
-        A_H = i
-        Mediere_sus = 0
-        Mediere_jos = 0
-        Z_UCD = Z*A_H/A
-        Z_p = Z_UCD - 0.5
-        for j = 1:length(Q.Z[Q.A .== A_H])
-            Mediere_sus = Mediere_sus + Q.Q[Q.A .== A_H][j] * p_A_Z(Q.Z[Q.A .== A_H][j], Z_p)
-            Mediere_jos = Mediere_jos + p_A_Z(Q.Z[Q.A .== A_H][j], Z_p)
-        end
-        push!(Q_med.Q, Mediere_sus/Mediere_jos)
-        push!(Q_med.A, A_H)
-    end
-    return Q_med
-end
 # Aici se opreste partea de calcul a programului
 
 # Constructia reprezentarilor grafice
-# Scatter simplu
-function Grafic_simplu(Q, librarie)
+function Grafic_scatter(distributie)
     plt = scatter(
-        Q.A, 
-        Q.Q,  
-        marker = :circle,
-        markersize = 5, 
-        markerstrokewidth = 0,
-        xlabel = L"\mathrm{A_H}", 
-        ylabel = latexstring("\$Q\$  [MeV]"), 
+        distributie.x, 
+        distributie.y, 
+        yerr = distributie.σ, 
+        marker = :xcross,
+        markersize = 3, 
+        xlabel = "X axis", 
+        ylabel = "Y axis", 
         framestyle = :box,
         legend = :false,
-        title = "Energia eliberată la fisiune, $(librarie[begin:end-4])",
+        title = "Titlu",
         minorgrid = :true,
-        mc = :red
+        mc = :green,
+        msc = :red
+    )
+    return plt
+    #savefig(plt, "Grafice\\Q_A_$(librarie[begin:end-4]).png")
+end
+
+function Grafic_adauga_linie(distributie, plt)
+    x = sort(distributie.x)
+    y = [distributie.y[distributie.x .== i][1] for i in minimum(x):maximum(x)]
+    plot!(plt, 
+        x, 
+        y
     )
     display(plt)
     #savefig(plt, "Grafice\\Q_A_$(librarie[begin:end-4]).png")
 end
 
 # Apelarea functiilor definite pentru executia programului
-audi95 = "AUDI95.csv"
 A = 236
 Z = 92
-limInfA_H = 118
-limSupA_H = 160
+f = 100/sum(dy.Y)
 
-Q_95_A_Z = Q_A_Z(audi95, A, Z, limInfA_H, limSupA_H)
-Grafic_simplu(Q_95_A_Z, audi95)
-Q_95_A = Q_A(Q_95_A_Z, A, Z, limInfA_H, limSupA_H)
-Grafic_simplu(Q_95_A, audi95)
+y_A = Y_A(dy, A, f)
+y_Z = Y_Z(dy, A, Z, f)
+y_N = Y_N(dy, A, Z, f)
+
+Grafic_scatter(y_A)
+Grafic_adauga_linie(y_Z, Grafic_scatter(y_Z))
+Grafic_scatter(y_N)

@@ -8,14 +8,21 @@ using LaTeXStrings
 gr();
 cd(@__DIR__); # Adauga calea relativa la folderul de lucru
 
-struct Q
-    Z
-    A
-    Q
+#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+#De schimbat numele in definitia structului la ceva mai general a.i. Sa putem folosi Q la obiectul propriu-zis
+#Suprapunerea ploturilor Q(A,Z) & Q(A) cu scris pe grafice
+#Propagarea erorilor
+
+struct distributie_bidym
+    x_1
+    x_2
+    y
+    σ
 end
 
+
 function Q_A_Z(librarie, A, Z, limInfA_H, limSupA_H)
-    q = Q(Int[], Int[], Float64[])
+    Q = distributie_bidym(Int[], Int[], Float64[], Float64[])
 
     # Citim fisierul de tip CSV
     # Z|A|Simbol|D(KeV)|σᴰ(KeV) -> forma tabelului
@@ -45,8 +52,8 @@ end
 function p_A_Z(Z, Z_p)
     return 1/(sqrt(2*pi) * 0.6) * exp(-(Z - Z_p)^2 /(2*0.6^2))
 end
-function Q_A(Q, A, Z, limInfA_H, limSupA_H)
-    Q_med = Q(Int[], Int[], Float64[])
+function Q_A(q, A, Z, limInfA_H, limSupA_H)
+    q_med = Q(Int[], Int[], Float64[], Float64[])
 
     for i in limInfA_H:limSupA_H
         A_H = i
@@ -54,20 +61,19 @@ function Q_A(Q, A, Z, limInfA_H, limSupA_H)
         Mediere_jos = 0
         Z_UCD = Z*A_H/A
         Z_p = Z_UCD - 0.5
-        for j = 1:length(Q.Z[Q.A .== A_H])
-            Mediere_sus = Mediere_sus + Q.Q[Q.A .== A_H][j] * p_A_Z(Q.Z[Q.A .== A_H][j], Z_p)
-            Mediere_jos = Mediere_jos + p_A_Z(Q.Z[Q.A .== A_H][j], Z_p)
+        for j = 1:length(q.Z[q.A .== A_H])
+            Mediere_sus = Mediere_sus + q.Q[q.A .== A_H][j] * p_A_Z(q.Z[q.A .== A_H][j], Z_p)
+            Mediere_jos = Mediere_jos + p_A_Z(q.Z[q.A .== A_H][j], Z_p)
         end
-        push!(Q_med.Q, Mediere_sus/Mediere_jos)
-        push!(Q_med.A, A_H)
+        push!(q_med.Q, Mediere_sus/Mediere_jos)
+        push!(q_med.A, A_H)
     end
-    return Q_med
+    return q_med
 end
 # Aici se opreste partea de calcul a programului
 
 # Constructia reprezentarilor grafice
-# Scatter simplu
-function Grafic_simplu(Q, librarie)
+function Grafic_scatter(distributie)
     plt = scatter(
         Q.A, 
         Q.Q,  
@@ -75,10 +81,10 @@ function Grafic_simplu(Q, librarie)
         markersize = 5, 
         markerstrokewidth = 0,
         xlabel = L"\mathrm{A_H}", 
-        ylabel = latexstring("\$Q\$  [MeV]"), 
+        ylabel = latexstring("\$\\mathrm{Q}\$  [MeV]"), 
         framestyle = :box,
         legend = :false,
-        title = "Energia eliberată la fisiune, $(librarie[begin:end-4])",
+        title = "Energia eliberată la fisiune",
         minorgrid = :true,
         mc = :red
     )
@@ -88,13 +94,12 @@ end
 
 # Apelarea functiilor definite pentru executia programului
 audi95 = "AUDI95.csv"
-audi21 = "AUDI2021.csv"
 A = 236
 Z = 92
 limInfA_H = 118
 limSupA_H = 160
 
 Q_95_A_Z = Q_A_Z(audi95, A, Z, limInfA_H, limSupA_H)
-Grafic_simplu(Q_95_A_Z, audi95)
+Grafic_simplu(Q_95_A_Z)
 Q_95_A = Q_A(Q_95_A_Z, A, Z, limInfA_H, limSupA_H)
-Grafic_simplu(Q_95_A, audi95)
+Grafic_simplu(Q_95_A)
