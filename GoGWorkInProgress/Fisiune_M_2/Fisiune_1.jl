@@ -20,7 +20,7 @@ struct distributie_bidym
     σ
 end
 
-
+# Functie de calcul pentru Q(A, Z)
 function Q_A_Z(librarie, A, Z, limInfA_H, limSupA_H)
     Q = distributie_bidym(Int[], Int[], Float64[], Float64[])
 
@@ -28,30 +28,34 @@ function Q_A_Z(librarie, A, Z, limInfA_H, limSupA_H)
     # Z|A|Simbol|D(KeV)|σᴰ(KeV) -> forma tabelului
     df = CSV.File(librarie; delim=' ', ignorerepeated=true, header=["Z", "A", "Sym", "D", "σ"]) |> DataFrame
     D = df.D[(df.A .== A) .& (df.Z .== Z)][1]
+    σ_D = df.σ[(df.A .== A) .& (df.Z .== Z)][1]
 
-    # Parcurgem radionuclizii din baza de date relevanti pentru fragmentari
     for i in limInfA_H:limSupA_H
         A_H = i
         Z_UCD = Z*A_H/A
         Z_p = floor(Z_UCD - 0.5)
-
-        for j in (Z_p - 1):(Z_p + 1)
+        for j in (Z_p - 1):(Z_p + 1) # Fragmentarile 3 Z/A
             Z_H = j
             if isassigned(df.D[(df.A .== A_H) .& (df.Z .== Z_H)], 1) && isassigned(df.D[(df.A .== A - A_H) .& (df.Z .== Z - Z_H)], 1)
                 D_H = df.D[(df.A .== A_H) .& (df.Z .== Z_H)][1]
+                σ_D_H = df.σ[(df.A .== A_H) .& (df.Z .== Z_H)][1]
                 D_L = df.D[(df.A .== A - A_H) .& (df.Z .== Z - Z_H)][1]
-                push!(q.Q, (D - (D_H + D_L))*1e-3)
-                push!(q.Z, Z_H)
-                push!(q.A, A_H)
+                σ_D_H = df.σ[(df.A .== A - A_H) .& (df.Z .== Z - Z_H)][1]
+                push!(Q.y, (D - (D_H + D_L)) *1e-3)
+                push!(Q.σ, sqrt(σ_D^2 + σ_D_H^2 + σ_D_L^2)*1e-3)
+                push!(Q.x_1, Z_H)
+                push!(Q.x_2, A_H)
             end
         end
     end 
-    return q
+    return Q
 end
 
+# Distributia izobara de sarcina cu rms(A) = 0.6 & 
 function p_A_Z(Z, Z_p)
     return 1/(sqrt(2*pi) * 0.6) * exp(-(Z - Z_p)^2 /(2*0.6^2))
 end
+
 function Q_A(q, A, Z, limInfA_H, limSupA_H)
     q_med = Q(Int[], Int[], Float64[], Float64[])
 
