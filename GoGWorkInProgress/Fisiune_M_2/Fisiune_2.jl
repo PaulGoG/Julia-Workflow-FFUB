@@ -52,7 +52,7 @@ function Y_Z(dy, A, Z, f)
         push!(Y.σ, Suma_σ)
     end
     index_true = unique(i -> Y.x[i], eachindex(Y.x))
-    index_delete = setdiff(eachindex(y_Z.x), index_true)
+    index_delete = setdiff(eachindex(Y.x), index_true)
     deleteat!(Y.x, index_delete)
     deleteat!(Y.y, index_delete)
     deleteat!(Y.σ, index_delete)
@@ -88,23 +88,24 @@ end
 # Aici se opreste partea de calcul a programului
 
 # Constructia reprezentarilor grafice
-function Grafic_scatter(distributie)
+function Grafic_scatter(distributie, titlu)
     plt = scatter(
         distributie.x, 
         distributie.y, 
         yerr = distributie.σ, 
-        marker = :xcross,
-        markersize = 3, 
+        markersize = 4,
+        markerstrokewidth = 1, 
         xlabel = "X axis", 
         ylabel = "Y axis", 
         framestyle = :box,
         legend = :false,
-        title = "Titlu",
+        title = "$titlu",
         minorgrid = :true,
-        mc = :green,
-        msc = :red
+        msc = :black,
+        size = (800, 600)
     )
     return plt
+    display(plt)
     #savefig(plt, "Grafice\\Q_A_$(librarie[begin:end-4]).png")
 end
 
@@ -128,6 +129,9 @@ y_A = Y_A(dy, A, f)
 y_Z = Y_Z(dy, A, Z, f)
 y_N = Y_N(dy, A, Z, f)
 
-Grafic_scatter(y_A)
-Grafic_adauga_linie(y_Z, Grafic_scatter(y_Z))
-Grafic_scatter(y_N)
+Grafic_scatter(y_A, "Y(A)")
+Grafic_adauga_linie(y_Z, Grafic_scatter(y_Z, "Y(Z)"))
+Grafic_scatter(y_N, "Y(N)")
+
+#Efect Even-Odd
+(sum(y_Z.y[iseven.(y_Z.x)]) - sum(y_Z.y[isodd.(y_Z.x)]))/sum(y_Z.y)
