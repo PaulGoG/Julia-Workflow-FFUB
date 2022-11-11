@@ -36,6 +36,7 @@ function Q_A_Z(librarie, A, Z, limInfA_H, limSupA_H)
                 σ_D_H = df.σ[(df.A .== A_H) .& (df.Z .== Z_H)][1]
                 D_L = df.D[(df.A .== A - A_H) .& (df.Z .== Z - Z_H)][1]
                 σ_D_L = df.σ[(df.A .== A - A_H) .& (df.Z .== Z - Z_H)][1]
+
                 push!(Q.y, (D - (D_H + D_L)) *1e-3)
                 push!(Q.σ, sqrt(σ_D^2 + σ_D_H^2 + σ_D_L^2) *1e-3)
                 push!(Q.x_1, A_H)
@@ -51,6 +52,7 @@ function p_A_Z(Z, Z_p)
     return 1/(sqrt(2*π) * 0.6) * exp(-(Z - Z_p)^2 /(2*0.6^2))
 end
 
+# Functia de mediere a Q(A, Z) pe distributia p(A, Z) considerand 3 Z/A
 function Q_A(Q, A, Z, limInfA_H, limSupA_H)
     Q_med = distributie_bidym(Int[], Int[], Float64[], Float64[])
 
@@ -61,11 +63,13 @@ function Q_A(Q, A, Z, limInfA_H, limSupA_H)
         Sigma_temp² = 0
         Z_UCD = Z*A_H/A
         Z_p = Z_UCD - 0.5
+
         for j = 1:length(Q.x_2[Q.x_1 .== A_H])
             Numarator = Numarator + Q.y[Q.x_1 .== A_H][j] * p_A_Z(Q.x_2[Q.x_1 .== A_H][j], Z_p)
             Numitor = Numitor + p_A_Z(Q.x_2[Q.x_1 .== A_H][j], Z_p)
             Sigma_temp² = Sigma_temp² + (p_A_Z(Q.x_2[Q.x_1 .== A_H][j], Z_p) * Q.σ[Q.x_1 .== A_H][j])^2
         end
+
         push!(Q_med.y, Numarator/Numitor)
         push!(Q_med.σ, sqrt(Sigma_temp²)/Numitor)
         push!(Q_med.x_1, A_H)
@@ -80,20 +84,17 @@ function Grafic_scatter(Q, eticheta)
         Q.x_1, 
         Q.y,  
         yerr = Q.σ, 
-        markersize = 4, 
-        markerstrokewidth = 1,
-        xlims = (minimum(Q.x_1) - 1, maximum(Q.x_1) + 1),
+        markersize = 1,
+        xlims = (minimum(Q.x_1), maximum(Q.x_1)),
         xlabel = L"\mathrm{A_H}", 
         ylabel = latexstring("\$\\mathrm{Q}\$  [MeV]"), 
         framestyle = :box,
         label = "$eticheta",
         title = "Energia eliberată la fisiune",
         minorgrid = :true,
-        msc = :red,
-        size = (800, 600)
+        size = (900, 900)
     )
     return plt
-    #savefig(plt, "Grafice\\NumeGrafic.png")
 end
 function Grafic_suprapunere(Q, plt, eticheta)
     scatter!(plt, 
@@ -101,22 +102,23 @@ function Grafic_suprapunere(Q, plt, eticheta)
     Q.y,
     yerr = Q.σ,
     label = "$eticheta",
-    markersize = 4, 
-    markerstrokewidth = 1,
-    msc = :black
-)
-display(plt)
+    markersize = 4,
+    )
+    display(plt)
+    savefig(plt, "Grafice/NumeGrafic.png")
 end
 
 # Apelarea functiilor definite pentru executia programului
 audi95 = "AUDI95.csv"
-A = 236
-Z = 92
+A₀ = 236
+Z₀ = 92
 limInfA_H = 118
 limSupA_H = 160
 
-QAZ = Q_A_Z(audi95, A, Z, limInfA_H, limSupA_H)
-QA = Q_A(QAZ, A, Z, limInfA_H, limSupA_H)
+QAZ = Q_A_Z(audi95, A₀, Z₀, limInfA_H, limSupA_H)
+QA = Q_A(QAZ, A₀, Z₀, limInfA_H, limSupA_H)
+
 Q_mediu = sum(QA.y)/length(QA.y)
 σ_Q_mediu = 1/length(QA.y) * sqrt(sum(QA.σ .^2))
+
 Grafic_suprapunere(QA, Grafic_scatter(QAZ, "Q(A, Z)"), "Q(A)")
