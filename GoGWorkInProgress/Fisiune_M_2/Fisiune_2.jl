@@ -9,8 +9,8 @@ gr();
 cd(@__DIR__); # Adauga calea relativa la folderul de lucru
 
 # Citire fisiere de date
-df = CSV.File("AUDI95.csv"; delim=' ', ignorerepeated=true, header=["Z", "A", "Sym", "D", "σD"]) |> DataFrame
-dy = CSV.File("U5YAZTKE.csv"; delim=' ', ignorerepeated=true, header=["A_H", "Z_H", "TKE", "Y", "σY"]) |> DataFrame
+df = CSV.File("Data_files/AUDI95.csv"; delim=' ', ignorerepeated=true, header=["Z", "A", "Sym", "D", "σD"]) |> DataFrame
+dy = CSV.File("Data_files/U5YAZTKE.csv"; delim=' ', ignorerepeated=true, header=["A_H", "Z_H", "TKE", "Y", "σY"]) |> DataFrame
 
 struct distributie_unidym
     x
@@ -39,7 +39,7 @@ function Y_A(dy, A, f)
     return Y
 end
 
-function Y_Z(dy, A, Z, f)
+function Y_Z(dy, Z, f)
     Y = distributie_unidym(Int[],Float64[], Float64[])
     for i in minimum(dy.Z_H):maximum(dy.Z_H)
         Suma_Y = sum(dy.Y[dy.Z_H .== i]) * f
@@ -74,17 +74,12 @@ function Y_N(dy, A, Z, f)
         end
     end
     index_true = unique(i -> Y.x[i], eachindex(Y.x))
-    index_delete = setdiff(eachindex(y_Z.x), index_true)
+    index_delete = setdiff(eachindex(Y.x), index_true)
     deleteat!(Y.x, index_delete)
     deleteat!(Y.y, index_delete)
     deleteat!(Y.σ, index_delete)
     return Y
 end
-
-function p_A_Z(Z, Z_p)
-    return 1/(sqrt(2*pi) * 0.6) * exp(-(Z - Z_p)^2 /(2*0.6^2))
-end
-
 # Aici se opreste partea de calcul a programului
 
 # Constructia reprezentarilor grafice
@@ -93,31 +88,32 @@ function Grafic_scatter(distributie, titlu)
         distributie.x, 
         distributie.y, 
         yerr = distributie.σ, 
-        markersize = 4,
-        markerstrokewidth = 1, 
+        xlims = (minimum(distributie.x), maximum(distributie.x)),
+        ylims = (minimum(distributie.y), maximum(distributie.y)*1.1),
         xlabel = "X axis", 
         ylabel = "Y axis", 
         framestyle = :box,
         legend = :false,
         title = "$titlu",
         minorgrid = :true,
-        msc = :black,
-        size = (800, 600)
+        size = (900, 900)
     )
     return plt
-    display(plt)
-    #savefig(plt, "Grafice\\Q_A_$(librarie[begin:end-4]).png")
 end
 
-function Grafic_adauga_linie(distributie, plt)
+function Grafic_adauga_linie(distributie, plt, titlu, val_medie, sigma_medie)
     x = sort(distributie.x)
     y = [distributie.y[distributie.x .== i][1] for i in minimum(x):maximum(x)]
+    σ = [distributie.σ[distributie.x .== i][1] for i in minimum(x):maximum(x)]
     plot!(plt, 
         x, 
-        y
+        y,
+        ribbon = σ
     )
+    plt = annotate!(maximum(x)*0.925, maximum(y)*0.99, latexstring("\$<\\mathrm{Q}> =\$ $val_medie \$\\pm\$ $sigma_medie MeV"))
+    plt = vline!(x[y .== val_medie], ls = :dashdot, label = "")
     display(plt)
-    #savefig(plt, "Grafice\\Q_A_$(librarie[begin:end-4]).png")
+    savefig(plt, "Grafice/$(titlu)_T2.png")
 end
 
 # Apelarea functiilor definite pentru executia programului
@@ -126,12 +122,12 @@ Z = 92
 f = 100/sum(dy.Y)
 
 y_A = Y_A(dy, A, f)
-y_Z = Y_Z(dy, A, Z, f)
+y_Z = Y_Z(dy, Z, f)
 y_N = Y_N(dy, A, Z, f)
 
-Grafic_scatter(y_A, "Y(A)")
-Grafic_adauga_linie(y_Z, Grafic_scatter(y_Z, "Y(Z)"))
-Grafic_scatter(y_N, "Y(N)")
+Grafic_adauga_linie(y_A, Grafic_scatter(y_A, "Y(A)"), "Y(A)", 0, 0)
+Grafic_adauga_linie(y_Z, Grafic_scatter(y_Z, "Y(Z)"), "Y(Z)", 0, 0)
+Grafic_adauga_linie(y_N, Grafic_scatter(y_N, "Y(N)"), "Y(N)", 0, 0)
 
 #Efect Even-Odd
 (sum(y_Z.y[iseven.(y_Z.x)]) - sum(y_Z.y[isodd.(y_Z.x)]))/sum(y_Z.y)

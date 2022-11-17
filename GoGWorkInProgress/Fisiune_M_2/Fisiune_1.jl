@@ -84,10 +84,9 @@ function Grafic_scatter(Q, eticheta)
         Q.x_1, 
         Q.y,  
         yerr = Q.σ, 
-        markersize = 1,
         xlims = (minimum(Q.x_1), maximum(Q.x_1)),
         xlabel = L"\mathrm{A_H}", 
-        ylabel = latexstring("\$\\mathrm{Q}\$  [MeV]"), 
+        ylabel = latexstring("\$\\mathrm{Q \\: [MeV]}\$"), 
         framestyle = :box,
         label = "$eticheta",
         title = "Energia eliberată la fisiune",
@@ -96,20 +95,22 @@ function Grafic_scatter(Q, eticheta)
     )
     return plt
 end
-function Grafic_suprapunere(Q, plt, eticheta)
-    scatter!(plt, 
+function Grafic_suprapunere(Q, plt, eticheta, Q_med, Q_med_sigma)
+    plot!(plt, 
     Q.x_1, 
     Q.y,
     yerr = Q.σ,
-    label = "$eticheta",
-    markersize = 4,
+    ribbon = Q.σ,
+    label = "$eticheta"
     )
+    plt = annotate!(maximum(Q.x_1)*0.925, maximum(Q.y)*0.99, latexstring("\$<\\mathrm{Q}> =\$ $Q_med \$\\pm\$ $Q_med_sigma MeV"))
+    plt = hline!([Q_med], ls = :dashdot, label = "")
     display(plt)
-    savefig(plt, "Grafice/NumeGrafic.png")
+    savefig(plt, "Grafice/Q_value_T1.png")
 end
 
 # Apelarea functiilor definite pentru executia programului
-audi95 = "AUDI95.csv"
+audi95 = "Data_files/AUDI95.csv"
 A₀ = 236
 Z₀ = 92
 limInfA_H = 118
@@ -118,7 +119,7 @@ limSupA_H = 160
 QAZ = Q_A_Z(audi95, A₀, Z₀, limInfA_H, limSupA_H)
 QA = Q_A(QAZ, A₀, Z₀, limInfA_H, limSupA_H)
 
-Q_mediu = sum(QA.y)/length(QA.y)
-σ_Q_mediu = 1/length(QA.y) * sqrt(sum(QA.σ .^2))
+Q_mediu = round(sum(QA.y)/length(QA.y), digits = 3)
+σ_Q_mediu = round(1/length(QA.y) * sqrt(sum(QA.σ .^2)), digits = 3)
 
-Grafic_suprapunere(QA, Grafic_scatter(QAZ, "Q(A, Z)"), "Q(A)")
+Grafic_suprapunere(QA, Grafic_scatter(QAZ, "Q(A,Z)"), "Q(A)", Q_mediu, σ_Q_mediu)
