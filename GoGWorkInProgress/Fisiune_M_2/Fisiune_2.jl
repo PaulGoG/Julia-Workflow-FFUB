@@ -80,18 +80,40 @@ function Y_N(dy, A, Z, f)
     deleteat!(Y.σ, index_delete)
     return Y
 end
+
+function Sortare_distributie(distributie)
+    x = sort(distributie.x)
+    y = [distributie.y[distributie.x .== i][1] for i in minimum(x):maximum(x)]
+    σ = [distributie.σ[distributie.x .== i][1] for i in minimum(x):maximum(x)]
+    for i in eachindex(x)
+        distributie.x[i] = x[i]
+        distributie.y[i] = y[i]
+        distributie.σ[i] = σ[i]
+    end
+    return distributie
+end
+
+function Medie_distributie(distributie, index_min, index_max)
+    Numarator = 0
+    Numitor = 0
+    for i in index_min:index_max
+        Numarator = Numarator + distributie.y[i]*distributie.x[i]
+        Numitor = Numitor + distributie.y[i]
+    end
+    return round(Numarator/Numitor, digits = 3)
+end
 # Aici se opreste partea de calcul a programului
 
 # Constructia reprezentarilor grafice
-function Grafic_scatter(distributie, titlu)
+function Grafic_scatter(distributie, titlu, axa_x, axa_y)
     plt = scatter(
         distributie.x, 
         distributie.y, 
         yerr = distributie.σ, 
         xlims = (minimum(distributie.x), maximum(distributie.x)),
         ylims = (minimum(distributie.y), maximum(distributie.y)*1.1),
-        xlabel = "X axis", 
-        ylabel = "Y axis", 
+        xlabel = "$axa_x", 
+        ylabel = "$axa_y", 
         framestyle = :box,
         legend = :false,
         title = "$titlu",
@@ -100,34 +122,58 @@ function Grafic_scatter(distributie, titlu)
     )
     return plt
 end
-
-function Grafic_adauga_linie(distributie, plt, titlu, val_medie, sigma_medie)
-    x = sort(distributie.x)
-    y = [distributie.y[distributie.x .== i][1] for i in minimum(x):maximum(x)]
-    σ = [distributie.σ[distributie.x .== i][1] for i in minimum(x):maximum(x)]
+function Grafic_unire_linie(distributie, plt)
     plot!(plt, 
-        x, 
-        y,
-        ribbon = σ
+    distributie.x, 
+    distributie.y,
+    ribbon = distributie.σ,
+    label = ""
     )
-    plt = annotate!(maximum(x)*0.925, maximum(y)*0.99, latexstring("\$<\\mathrm{Q}> =\$ $val_medie \$\\pm\$ $sigma_medie MeV"))
-    plt = vline!(x[y .== val_medie], ls = :dashdot, label = "")
+    return plt
+end
+function Grafic_textbox(x, y, plt, distributie_nume, distributie_med, distributie_med_sigma, unitate_masura)
+    annotate!(plt, 
+    x, 
+    y, 
+    latexstring("\$<\\mathrm{$distributie_nume}> =\$ $distributie_med \$\\pm\$ $distributie_med_sigma $unitate_masura")
+    )
+    return plt
+end
+function Grafic_linie_medie(plt, distributie_med)
+    vline!(plt, 
+    [distributie_med], 
+    ls = :dashdot, 
+    label = ""
+    )
+    return plt
+end
+function Grafic_afisare(plt, titlu)
     display(plt)
-    savefig(plt, "Grafice/$(titlu)_T2.png")
+    #savefig(plt, "Grafice/$(titlu)_T2.png")
 end
 
 # Apelarea functiilor definite pentru executia programului
-A = 236
-Z = 92
+A₀ = 236
+Z₀ = 92
 f = 100/sum(dy.Y)
 
-y_A = Y_A(dy, A, f)
-y_Z = Y_Z(dy, Z, f)
-y_N = Y_N(dy, A, Z, f)
+y_A = Sortare_distributie(Y_A(dy, A₀, f))
+y_Z = Sortare_distributie(Y_Z(dy, Z₀, f))
+y_N = Sortare_distributie(Y_N(dy, A₀, Z₀, f))
 
-Grafic_adauga_linie(y_A, Grafic_scatter(y_A, "Y(A)"), "Y(A)", 0, 0)
-Grafic_adauga_linie(y_Z, Grafic_scatter(y_Z, "Y(Z)"), "Y(Z)", 0, 0)
-Grafic_adauga_linie(y_N, Grafic_scatter(y_N, "Y(N)"), "Y(N)", 0, 0)
+Plot_Y_A = Grafic_scatter(y_A, "Y(A)", "A", "Y %");
+Plot_Y_A = Grafic_unire_linie(y_A, Plot_Y_A);
+mid_index = Int((length(y_A.x) + 1 )/2)
+A_L_mediu = Medie_distributie(y_A, 1, mid_index)
+A_H_mediu = Medie_distributie(y_A, mid_index, length(y_A.x))
+Plot_Y_A = Grafic_linie_medie(Plot_Y_A, A_L_mediu);
+Plot_Y_A = Grafic_linie_medie(Plot_Y_A, A_H_mediu);
+Plot_Y_A = Grafic_textbox(y_A.x[mid_index], maximum(y_A.y), Plot_Y_A, "A_H", A_H_mediu, 1e-3, "");
+Grafic_afisare(Plot_Y_A, "Y(A)")
+
+
+#Grafic_adauga_linie(y_Z, Grafic_scatter(y_Z, "Y(Z)", "Z", "Y %"), "Y(Z)", 1, 1)
+#Grafic_adauga_linie(y_N, Grafic_scatter(y_N, "Y(N)", "N", "Y %"), "Y(N)", 1, 1)
 
 #Efect Even-Odd
-(sum(y_Z.y[iseven.(y_Z.x)]) - sum(y_Z.y[isodd.(y_Z.x)]))/sum(y_Z.y)
+#(sum(y_Z.y[iseven.(y_Z.x)]) - sum(y_Z.y[isodd.(y_Z.x)]))/sum(y_Z.y)

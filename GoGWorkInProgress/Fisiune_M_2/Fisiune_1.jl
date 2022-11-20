@@ -95,18 +95,43 @@ function Grafic_scatter(Q, eticheta)
     )
     return plt
 end
-function Grafic_suprapunere(Q, plt, eticheta, Q_med, Q_med_sigma)
+function Grafic_scatter(Q, plt, eticheta)
+    scatter!(plt, 
+        Q.x_1, 
+        Q.y,  
+        yerr = Q.σ,
+        label = "$eticheta"
+    )
+    return plt
+end
+function Grafic_unire_linie(Q, plt)
     plot!(plt, 
     Q.x_1, 
     Q.y,
-    yerr = Q.σ,
     ribbon = Q.σ,
-    label = "$eticheta"
+    label = ""
     )
-    plt = annotate!(maximum(Q.x_1)*0.925, maximum(Q.y)*0.99, latexstring("\$<\\mathrm{Q}> =\$ $Q_med \$\\pm\$ $Q_med_sigma MeV"))
-    plt = hline!([Q_med], ls = :dashdot, label = "")
+    return plt
+end
+function Grafic_textbox(Q, plt, Q_med, Q_med_sigma)
+    annotate!(plt, 
+    maximum(Q.x_1)*0.925, 
+    maximum(Q.y)*0.99, 
+    latexstring("\$<\\mathrm{Q}> =\$ $Q_med \$\\pm\$ $Q_med_sigma MeV")
+    )
+    return plt
+end
+function Grafic_linie_medie(plt, Q_med)
+    hline!(plt, 
+    [Q_med], 
+    ls = :dashdot, 
+    label = ""
+    )
+    return plt
+end
+function Grafic_afisare(plt)
     display(plt)
-    savefig(plt, "Grafice/Q_value_T1.png")
+    #savefig(plt, "Grafice/Q_value_T1.png")
 end
 
 # Apelarea functiilor definite pentru executia programului
@@ -122,4 +147,21 @@ QA = Q_A(QAZ, A₀, Z₀, limInfA_H, limSupA_H)
 Q_mediu = round(sum(QA.y)/length(QA.y), digits = 3)
 σ_Q_mediu = round(1/length(QA.y) * sqrt(sum(QA.σ .^2)), digits = 3)
 
-Grafic_suprapunere(QA, Grafic_scatter(QAZ, "Q(A,Z)"), "Q(A)", Q_mediu, σ_Q_mediu)
+Grafic_afisare(
+    Grafic_linie_medie(
+        Grafic_textbox(
+            QA, 
+            Grafic_unire_linie(
+                QA, 
+                Grafic_scatter(
+                    QA, 
+                    Grafic_scatter(QAZ, "Q(A, Z)"), 
+                    "Q(A)"
+                )
+            ), 
+            Q_mediu, 
+            σ_Q_mediu
+        ), 
+        Q_mediu
+    )
+)
