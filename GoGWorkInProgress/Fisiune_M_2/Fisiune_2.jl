@@ -81,6 +81,18 @@ function Y_N(dy, A, Z, f)
     return Y
 end
 
+function Y_TKE(dy, f)
+    Y = distributie_unidym(Int[],Float64[], Float64[])
+    for i in minimum(dy.TKE):maximum(dy.TKE)
+        Suma_Y = sum(dy.Y[dy.TKE .== i]) * f
+        Suma_σ = sqrt(sum(dy.σY[dy.TKE .== i].^2)) * f
+        push!(Y.x, i)
+        push!(Y.y, Suma_Y)
+        push!(Y.σ, Suma_σ)
+    end
+    return Y
+end
+
 function Sortare_distributie(distributie)
     x = sort(distributie.x)
     y = [distributie.y[distributie.x .== i][1] for i in minimum(x):maximum(x)]
@@ -131,11 +143,19 @@ function Grafic_unire_linie(distributie, plt)
     )
     return plt
 end
-function Grafic_textbox(x, y, plt, distributie_nume, distributie_med, distributie_med_sigma, unitate_masura)
+function Grafic_textbox_medie(x, y, plt, distributie_nume, distributie_med, distributie_med_sigma, unitate_masura)
     annotate!(plt, 
     x, 
     y, 
     latexstring("\$<\\mathrm{$distributie_nume}> =\$ $distributie_med \$\\pm\$ $distributie_med_sigma $unitate_masura")
+    )
+    return plt
+end
+function Grafic_textbox(x, y, plt, distributie_nume, distributie_val, distributie_val_sigma, unitate_masura)
+    annotate!(plt, 
+    x, 
+    y, 
+    latexstring("\$\\mathrm{$distributie_nume} =\$ $distributie_val \$\\pm\$ $distributie_val_sigma $unitate_masura")
     )
     return plt
 end
@@ -160,20 +180,30 @@ f = 100/sum(dy.Y)
 y_A = Sortare_distributie(Y_A(dy, A₀, f))
 y_Z = Sortare_distributie(Y_Z(dy, Z₀, f))
 y_N = Sortare_distributie(Y_N(dy, A₀, Z₀, f))
+y_TKE = Sortare_distributie(Y_TKE(dy, f))
 
 Plot_Y_A = Grafic_scatter(y_A, "Y(A)", "A", "Y %");
 Plot_Y_A = Grafic_unire_linie(y_A, Plot_Y_A);
-mid_index = Int((length(y_A.x) + 1 )/2)
-A_L_mediu = Medie_distributie(y_A, 1, mid_index)
-A_H_mediu = Medie_distributie(y_A, mid_index, length(y_A.x))
+mid_index = Int((length(y_A.x) + 1 )/2);
+A_L_mediu = Medie_distributie(y_A, 1, mid_index);
+A_H_mediu = Medie_distributie(y_A, mid_index, length(y_A.x));
 Plot_Y_A = Grafic_linie_medie(Plot_Y_A, A_L_mediu);
 Plot_Y_A = Grafic_linie_medie(Plot_Y_A, A_H_mediu);
-Plot_Y_A = Grafic_textbox(y_A.x[mid_index], maximum(y_A.y), Plot_Y_A, "A_H", A_H_mediu, 1e-3, "");
-Grafic_afisare(Plot_Y_A, "Y(A)")
+Plot_Y_A = Grafic_textbox_medie(y_A.x[mid_index], maximum(y_A.y), Plot_Y_A, "A_H", A_H_mediu, 1e-3, "");
+Plot_Y_A = Grafic_textbox_medie(y_A.x[mid_index], maximum(y_A.y)*0.95, Plot_Y_A, "A_L", A_L_mediu, 1e-3, "");
+Grafic_afisare(Plot_Y_A, "Y(A)");
 
+Plot_Y_Z = Grafic_scatter(y_Z, "Y(Z)", "Z", "Y %");
+Plot_Y_Z = Grafic_unire_linie(y_Z, Plot_Y_Z);
+mid_index = Int((length(y_Z.x) + 1 )/2)
+δₑₒ = round((sum(y_Z.y[iseven.(y_Z.x)]) - sum(y_Z.y[isodd.(y_Z.x)]))/sum(y_Z.y), digits = 3)
+Plot_Y_Z = Grafic_textbox(y_Z.x[mid_index], maximum(y_Z.y), Plot_Y_Z, "\\delta_{eo}", δₑₒ, 1e-3, "");
+Grafic_afisare(Plot_Y_Z, "Y(Z)");
 
-#Grafic_adauga_linie(y_Z, Grafic_scatter(y_Z, "Y(Z)", "Z", "Y %"), "Y(Z)", 1, 1)
-#Grafic_adauga_linie(y_N, Grafic_scatter(y_N, "Y(N)", "N", "Y %"), "Y(N)", 1, 1)
+Plot_Y_N = Grafic_scatter(y_N, "Y(N)", "N", "Y %");
+Plot_Y_N = Grafic_unire_linie(y_N, Plot_Y_N);
+Grafic_afisare(Plot_Y_N, "Y(N)");
 
-#Efect Even-Odd
-#(sum(y_Z.y[iseven.(y_Z.x)]) - sum(y_Z.y[isodd.(y_Z.x)]))/sum(y_Z.y)
+Plot_Y_TKE = Grafic_scatter(y_TKE, "Y(TKE)", "TKE", "Y %");
+Plot_Y_TKE = Grafic_unire_linie(y_TKE, Plot_Y_TKE);
+Grafic_afisare(Plot_Y_TKE, "Y(TKE)");
