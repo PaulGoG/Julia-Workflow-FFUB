@@ -18,6 +18,13 @@ struct distributie_unidym
     σ
 end
 
+struct distributie_bidym
+    x_1
+    x_2
+    y
+    σ
+end
+
 function Y_A(dy, A)
     Y = distributie_unidym(Int[],Float64[], Float64[])
     for i in minimum(dy.A_H):maximum(dy.A_H)
@@ -114,18 +121,19 @@ function TKE_A(dy)
     for i in minimum(dy.A_H):maximum(dy.A_H)
         Numarator = 0
         Numitor = sum(dy.Y[dy.A_H .== i])
-        Suma_σ = 0
-        for j in minimum(dy.TKE):maximum(dy.TKE)
+        Suma_σ² = 0
+        for j in minimum(dy.TKE[dy.A_H .== i]):maximum(dy.TKE[dy.A_H .== i])
             Y_A_TKE = sum(dy.Y[(dy.A_H .== i) .& (dy.TKE .== j)])
             Numarator += j * Y_A_TKE
         end
-        for j in minimum(dy.TKE):maximum(dy.TKE)
+        tke_A = Numarator/Numitor
+        for j in minimum(dy.TKE[dy.A_H .== i]):maximum(dy.TKE[dy.A_H .== i])
             σY_A_TKE = sqrt(sum(dy.σY[(dy.A_H .== i) .& (dy.TKE .== j)].^2))
-            Suma_σ += (j*Numitor - Numarator)^2 * σY_A_TKE^2
+            Suma_σ² += (j - tke_A)^2 * σY_A_TKE^2
         end
         push!(TKE.x, i)
-        push!(TKE.y, Numarator/Numitor)
-        push!(TKE.σ, sqrt(Suma_σ/Numitor^4))
+        push!(TKE.y, tke_A)
+        push!(TKE.σ, sqrt(Suma_σ²)/Numitor)
     end  
     return TKE
 end
@@ -134,16 +142,16 @@ function KE_A(tke_A, A)
     KE = distributie_unidym(Int[],Float64[], Float64[])
     for i in minimum(dy.A_H):maximum(dy.A_H)
         TKE_A = tke_A.y[tke_A.x .== i][1]
-        σ_TKE_A = tke_A.σ[tke_A.x .== i][1]
+        σTKE_A = tke_A.σ[tke_A.x .== i][1]
         KE_H = TKE_A * (A - i)/A
         KE_L = TKE_A * i/A
 
         push!(KE.x, i)
         push!(KE.y, KE_H)
-        push!(KE.σ, KE_H * σ_TKE_A/TKE_A)
+        push!(KE.σ, KE_H * σTKE_A/TKE_A)
         push!(KE.x, A - i)
         push!(KE.y, KE_L)
-        push!(KE.σ, KE_L * σ_TKE_A/TKE_A)
+        push!(KE.σ, KE_L * σTKE_A/TKE_A)
     end
     if iseven(A)
         index = findfirst(x -> x == Int(A/2), KE.x)
@@ -152,6 +160,56 @@ function KE_A(tke_A, A)
         deleteat!(KE.σ, index)
     end
     return KE
+end
+
+function Q_A_Z(A, Z, df)
+    Q = distributie_bidym(Int[], Int[], Float64[], Float64[])
+
+    D = df.D[(df.A .== A) .& (df.Z .== Z)][1]
+    σ_D = df.σ[(df.A .== A) .& (df.Z .== Z)][1]
+
+    for i in minimum(df.A):maximum(df.A)
+        A_H = i
+        for j in minimum(df.Z[df.A .== i]):maximum(df.Z[df.A .== i])
+            Z_H = j
+            if isassigned(df.D[(df.A .== A_H) .& (df.Z .== Z_H)], 1) && isassigned(df.D[(df.A .== A - A_H) .& (df.Z .== Z - Z_H)], 1)
+                D_H = df.D[(df.A .== A_H) .& (df.Z .== Z_H)][1]
+                σ_D_H = df.σ[(df.A .== A_H) .& (df.Z .== Z_H)][1]
+                D_L = df.D[(df.A .== A - A_H) .& (df.Z .== Z - Z_H)][1]
+                σ_D_L = df.σ[(df.A .== A - A_H) .& (df.Z .== Z - Z_H)][1]
+
+                push!(Q.y, (D - (D_H + D_L)) *1e-3)
+                push!(Q.σ, sqrt(σ_D^2 + σ_D_H^2 + σ_D_L^2) *1e-3)
+                push!(Q.x_1, A_H)
+                push!(Q.x_2, Z_H)
+            end
+        end
+    end 
+    return Q
+end
+
+function Q_A(q_A_Z, y_Z, A, Z)
+    Q = distributie_unidym(Int[], Float64[], Float64[])
+
+    for i in minimum(q_A_Z.x_1):maximum(q_A_Z.x_1)
+        A_H = i
+        Numarator = 0
+        Numitor = 0
+        Sigma_temp² = 0
+
+        for j = minimum(q_A_Z.x_2[q_A_Z.x_1 .== A_H]):maximum(q_A_Z.x_2[q_A_Z.x_1 .== A_H])
+            Z_H = j
+            if isassigned(y_Z.x[(df.A .== A_H) .& (df.Z .== Z_H)], 1) && isassigned(df.D[(df.A .== A - A_H) .& (df.Z .== Z - Z_H)], 1)
+            Numarator = Numarator + Q.y[Q.x_1 .== A_H][j] * p_A_Z(Q.x_2[Q.x_1 .== A_H][j], Z_p)
+            Numitor = Numitor + p_A_Z(Q.x_2[Q.x_1 .== A_H][j], Z_p)
+            Sigma_temp² = Sigma_temp² + (p_A_Z(Q.x_2[Q.x_1 .== A_H][j], Z_p) * Q.σ[Q.x_1 .== A_H][j])^2
+        end
+
+        push!(Q_med.y, Numarator/Numitor)
+        push!(Q_med.σ, sqrt(Sigma_temp²)/Numitor)
+        push!(Q_med.x_1, A_H)
+    end
+    return Q_med
 end
 
 function Sortare_distributie(distributie)
@@ -169,21 +227,32 @@ end
 function Medie_distributie_Y(distributie, index_min, index_max)
     Numarator = 0
     Numitor = 0
+    Suma_σ² = 0
     for i in index_min:index_max
-        Numarator = Numarator + distributie.y[i]*distributie.x[i]
-        Numitor = Numitor + distributie.y[i]
+        Numarator += distributie.y[i]*distributie.x[i]
+        Numitor += distributie.y[i]
     end
-    return round(Numarator/Numitor, digits = 3)
+    Media_distributiei = Numarator/Numitor
+    for i in index_min:index_max
+        Suma_σ² += (distributie.x[i] - Media_distributiei)^2 * distributie.σ[i]^2
+    end    
+    return [round(Media_distributiei, digits = 3), round(sqrt(Suma_σ²)/Numitor, digits = 5)]
 end
 
 function Medie_distributie(distributie, Y, index_min, index_max)
     Numarator = 0
     Numitor = 0
+    Suma_σ² = 0
     for i in index_min:index_max
         Numarator += distributie.y[i] * Y.y[Y.x .== distributie.x[i]][1]
         Numitor += Y.y[Y.x .== distributie.x[i]][1]
     end
-    return round(Numarator/Numitor, digits = 3)
+    Media_distributiei = Numarator/Numitor
+    for i in index_min:index_max
+        Suma_σ² += Y.y[Y.x .== distributie.x[i]][1]^2 * distributie.σ[i]^2
+        Suma_σ² += (distributie.x[i] - Media_distributiei)^2 * Y.σ[Y.x .== distributie.x[i]][1]^2
+    end    
+    return [round(Media_distributiei, digits = 3), round(sqrt(Suma_σ²)/Numitor, digits = 5)]    
 end
 # Aici se opreste partea de calcul a programului
 
@@ -259,17 +328,19 @@ Plot_Y_A = Grafic_unire_linie(y_A, Plot_Y_A);
 mid_index = Int((length(y_A.x) + 1 )/2);
 A_L_mediu = Medie_distributie_Y(y_A, 1, mid_index);
 A_H_mediu = Medie_distributie_Y(y_A, mid_index, length(y_A.x));
-Plot_Y_A = Grafic_linie_medie(Plot_Y_A, A_L_mediu);
-Plot_Y_A = Grafic_linie_medie(Plot_Y_A, A_H_mediu);
-Plot_Y_A = Grafic_textbox_medie(y_A.x[mid_index], maximum(y_A.y), Plot_Y_A, "A_H", A_H_mediu, 1e-3, "");
-Plot_Y_A = Grafic_textbox_medie(y_A.x[mid_index], maximum(y_A.y)*0.95, Plot_Y_A, "A_L", A_L_mediu, 1e-3, "");
+Plot_Y_A = Grafic_linie_medie(Plot_Y_A, A_L_mediu[1]);
+Plot_Y_A = Grafic_linie_medie(Plot_Y_A, A_H_mediu[1]);
+Plot_Y_A = Grafic_textbox_medie(y_A.x[mid_index], maximum(y_A.y), Plot_Y_A, "A_H", A_H_mediu[1], A_H_mediu[2], "");
+Plot_Y_A = Grafic_textbox_medie(y_A.x[mid_index], maximum(y_A.y)*0.95, Plot_Y_A, "A_L", A_L_mediu[1], A_L_mediu[2], "");
 Grafic_afisare(Plot_Y_A, "Y(A)");
 
 Plot_Y_Z = Grafic_scatter(y_Z, "Y(Z)", "Z", "Y %", 1.1);
 Plot_Y_Z = Grafic_unire_linie(y_Z, Plot_Y_Z);
 mid_index = Int((length(y_Z.x) + 1 )/2)
-δₑₒ = round((sum(y_Z.y[iseven.(y_Z.x)]) - sum(y_Z.y[isodd.(y_Z.x)]))/sum(y_Z.y), digits = 3)
-Plot_Y_Z = Grafic_textbox(y_Z.x[mid_index], maximum(y_Z.y), Plot_Y_Z, "\\delta_{eo}", δₑₒ, 1e-3, "");
+δₑₒ = (sum(y_Z.y[iseven.(y_Z.x)]) - sum(y_Z.y[isodd.(y_Z.x)]))/sum(y_Z.y)
+σ_δₑₒ = round((1/sum(y_Z.y)) * sqrt((1 + δₑₒ)^2 * sum(y_Z.σ .^2) + 2*δₑₒ*(sum(y_Z.σ[isodd.(y_Z.x)] .^2) - sum(y_Z.σ[iseven.(y_Z.x)].^2))), digits = 5)
+δₑₒ = round(δₑₒ, digits = 3)
+Plot_Y_Z = Grafic_textbox(y_Z.x[mid_index], maximum(y_Z.y), Plot_Y_Z, "\\delta_{eo}", δₑₒ, σ_δₑₒ, "");
 Grafic_afisare(Plot_Y_Z, "Y(Z)");
 
 Plot_Y_N = Grafic_scatter(y_N, "Y(N)", "N", "Y %", 1.1);
@@ -280,16 +351,18 @@ Plot_Y_TKE = Grafic_scatter(y_TKE, "Y(TKE)", "TKE [MeV]", "Y %", 1.1);
 Plot_Y_TKE = Grafic_unire_linie(y_TKE, Plot_Y_TKE);
 TKE_mediu = Medie_distributie_Y(y_TKE, firstindex(y_TKE.x), lastindex(y_TKE.x));
 mid_index = Int((length(y_TKE.x) + 1 )/2);
-Plot_Y_TKE = Grafic_linie_medie(Plot_Y_TKE, TKE_mediu);
-Plot_Y_TKE = Grafic_textbox_medie(y_TKE.x[mid_index]*0.95, maximum(y_TKE.y), Plot_Y_TKE, "TKE", TKE_mediu, 1e-3, "");
+Plot_Y_TKE = Grafic_linie_medie(Plot_Y_TKE, TKE_mediu[1]);
+Plot_Y_TKE = Grafic_textbox_medie(y_TKE.x[mid_index]*0.94, maximum(y_TKE.y), Plot_Y_TKE, "TKE", TKE_mediu[1], TKE_mediu[2], "MeV");
 Grafic_afisare(Plot_Y_TKE, "Y(TKE)");
 
 Plot_TKE_A = Grafic_scatter(tke_A, "TKE(A)", latexstring("\$\\mathrm{A_H}\$"), "TKE [MeV]", 1.05);
 TKE_A_mediu = Medie_distributie(tke_A, y_A, firstindex(tke_A.x), lastindex(tke_A.x));
 Plot_TKE_A = Grafic_unire_linie(tke_A, Plot_TKE_A);
 mid_index = Int((length(tke_A.x) + 1 )/2);
-Grafic_textbox_medie(tke_A.x[mid_index]*1.05, maximum(tke_A.y), Plot_TKE_A, "TKE", TKE_A_mediu, 1e-3, "");
+Grafic_textbox_medie(tke_A.x[mid_index]*1.05, maximum(tke_A.y), Plot_TKE_A, "TKE", TKE_A_mediu[1], TKE_A_mediu[2], "MeV");
 Grafic_afisare(Plot_TKE_A, "TKE(A)")
 
 Plot_KE_A = Grafic_scatter(ke_A, "KE(A)", "A", "KE [MeV]", 1.05);
+Plot_KE_A = Grafic_unire_linie(ke_A, Plot_KE_A);
 Grafic_afisare(Plot_KE_A, "KE(A)")
+
