@@ -166,7 +166,7 @@ function Q_A_Z(A, Z, df)
     Q = distributie_bidym(Int[], Int[], Float64[], Float64[])
 
     D = df.D[(df.A .== A) .& (df.Z .== Z)][1]
-    σ_D = df.σ[(df.A .== A) .& (df.Z .== Z)][1]
+    σ_D = df.σD[(df.A .== A) .& (df.Z .== Z)][1]
 
     for i in minimum(df.A):maximum(df.A)
         A_H = i
@@ -174,9 +174,9 @@ function Q_A_Z(A, Z, df)
             Z_H = j
             if isassigned(df.D[(df.A .== A_H) .& (df.Z .== Z_H)], 1) && isassigned(df.D[(df.A .== A - A_H) .& (df.Z .== Z - Z_H)], 1)
                 D_H = df.D[(df.A .== A_H) .& (df.Z .== Z_H)][1]
-                σ_D_H = df.σ[(df.A .== A_H) .& (df.Z .== Z_H)][1]
+                σ_D_H = df.σD[(df.A .== A_H) .& (df.Z .== Z_H)][1]
                 D_L = df.D[(df.A .== A - A_H) .& (df.Z .== Z - Z_H)][1]
-                σ_D_L = df.σ[(df.A .== A - A_H) .& (df.Z .== Z - Z_H)][1]
+                σ_D_L = df.σD[(df.A .== A - A_H) .& (df.Z .== Z - Z_H)][1]
 
                 push!(Q.y, (D - (D_H + D_L)) *1e-3)
                 push!(Q.σ, sqrt(σ_D^2 + σ_D_H^2 + σ_D_L^2) *1e-3)
@@ -195,21 +195,27 @@ function Q_A(q_A_Z, y_Z, A, Z)
         A_H = i
         Numarator = 0
         Numitor = 0
-        Sigma_temp² = 0
-
+        Suma_σ² = 0
         for j = minimum(q_A_Z.x_2[q_A_Z.x_1 .== A_H]):maximum(q_A_Z.x_2[q_A_Z.x_1 .== A_H])
             Z_H = j
-            if isassigned(y_Z.x[(df.A .== A_H) .& (df.Z .== Z_H)], 1) && isassigned(df.D[(df.A .== A - A_H) .& (df.Z .== Z - Z_H)], 1)
-            Numarator = Numarator + Q.y[Q.x_1 .== A_H][j] * p_A_Z(Q.x_2[Q.x_1 .== A_H][j], Z_p)
-            Numitor = Numitor + p_A_Z(Q.x_2[Q.x_1 .== A_H][j], Z_p)
-            Sigma_temp² = Sigma_temp² + (p_A_Z(Q.x_2[Q.x_1 .== A_H][j], Z_p) * Q.σ[Q.x_1 .== A_H][j])^2
+            if isassigned(y_Z.y[y_Z.x .== Z_H], 1)
+                Numarator += q_A_Z.y[(q_A_Z.x_1 .== A_H) .& (q_A_Z.x_2 .== Z_H)][1] * y_Z.y[y_Z.x .== Z_H][1]
+                Numitor += y_Z.y[y_Z.x .== Z_H][1]
+                Suma_σ² += y_Z.y[y_Z.x .== Z_H][1]^2 * q_A_Z.σ[(q_A_Z.x_1 .== A_H) .& (q_A_Z.x_2 .== Z_H)][1]^2
+            end
         end
-
-        push!(Q_med.y, Numarator/Numitor)
-        push!(Q_med.σ, sqrt(Sigma_temp²)/Numitor)
-        push!(Q_med.x_1, A_H)
+        q_A = Numarator/Numitor
+        for j = minimum(q_A_Z.x_2[q_A_Z.x_1 .== A_H]):maximum(q_A_Z.x_2[q_A_Z.x_1 .== A_H])
+            Z_H = j
+            if isassigned(y_Z.y[y_Z.x .== Z_H], 1)
+                Suma_σ² += y_Z.σ[y_Z.x .== Z_H][1]^2 * (q_A_Z.y[(q_A_Z.x_1 .== A_H) .& (q_A_Z.x_2 .== Z_H)][1] - q_A)^2
+            end
+        end
+        push!(Q.y, q_A)
+        push!(Q.σ, sqrt(Suma_σ²)/Numitor)
+        push!(Q.x, A_H)
     end
-    return Q_med
+    return Q
 end
 
 function Sortare_distributie(distributie)
@@ -322,6 +328,7 @@ y_N = Sortare_distributie(Y_N(dy, A₀, Z₀))
 y_TKE = Sortare_distributie(Y_TKE(dy))
 tke_A = Sortare_distributie(TKE_A(dy))
 ke_A = Sortare_distributie(KE_A(tke_A, A₀))
+q_A = Sortare_distributie(Q_A(Q_A_Z(A₀, Z₀, df), y_Z, A₀, Z₀))
 
 Plot_Y_A = Grafic_scatter(y_A, "Y(A)", "A", "Y %", 1.1);
 Plot_Y_A = Grafic_unire_linie(y_A, Plot_Y_A);
@@ -366,3 +373,4 @@ Plot_KE_A = Grafic_scatter(ke_A, "KE(A)", "A", "KE [MeV]", 1.05);
 Plot_KE_A = Grafic_unire_linie(ke_A, Plot_KE_A);
 Grafic_afisare(Plot_KE_A, "KE(A)")
 
+Plot_Q_A = Grafic_scatter(q_A, "Q(A)", "A_H", "Q [MeV]", 1.1)
