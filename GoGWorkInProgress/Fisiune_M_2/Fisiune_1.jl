@@ -145,7 +145,7 @@ QAZ = Q_A_Z(audi95, A₀, Z₀, limInfA_H, limSupA_H)
 QA = Q_A(QAZ, A₀, Z₀, limInfA_H, limSupA_H)
 
 Q_mediu = round(sum(QA.y)/length(QA.y), digits = 3)
-σ_Q_mediu = round(1/length(QA.y) * sqrt(sum(QA.σ .^2)), digits = 3)
+σ_Q_mediu = round(1/length(QA.y) * sqrt(sum(QA.σ .^2)), digits = 5)
 
 Grafic_afisare(
     Grafic_linie_medie(
