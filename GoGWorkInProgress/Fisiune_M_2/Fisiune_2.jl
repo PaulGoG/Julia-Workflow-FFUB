@@ -379,7 +379,7 @@ Plot_TKE_A = Grafic_scatter(tke_A, "TKE(A)", latexstring("\$\\mathrm{A_H}\$"), "
 TKE_A_mediu = Medie_distributie(tke_A, y_A, firstindex(tke_A.x), lastindex(tke_A.x));
 Plot_TKE_A = Grafic_unire_linie(tke_A, Plot_TKE_A);
 mid_index = Int((length(tke_A.x) + 1 )/2);
-Grafic_textbox_medie(tke_A.x[mid_index]*1.05, maximum(tke_A.y), Plot_TKE_A, "TKE", TKE_A_mediu[1], TKE_A_mediu[2], "MeV");
+Plot_TKE_A = Grafic_textbox_medie(tke_A.x[mid_index]*1.05, maximum(tke_A.y), Plot_TKE_A, "TKE", TKE_A_mediu[1], TKE_A_mediu[2], "MeV");
 Grafic_afisare(Plot_TKE_A, "TKE(A)")
 
 Plot_KE_A = Grafic_scatter(ke_A, "KE(A)", "A", "KE [MeV]", 1.05);
@@ -389,4 +389,8 @@ Grafic_afisare(Plot_KE_A, "KE(A)")
 Plot_Q_A = Grafic_scatter(q_A, "Q(A)", "A_H", "Q [MeV]", 1.02);
 Plot_Q_A = Grafic_unire_linie(q_A, Plot_Q_A);
 Q_A_Mediu = Medie_distributie(q_A, y_A, firstindex(q_A.x), lastindex(q_A.x));
+mid_index = Int(length(q_A.x)/2);
+Plot_Q_A = Grafic_textbox_medie(q_A.x[mid_index], maximum(q_A.y), Plot_Q_A, "Q", Q_A_Mediu[1], Q_A_Mediu[2], "MeV");
 Grafic_afisare(Plot_Q_A, "Q(A)")
+
+#scatter(Q_A_Z(236,92,df).x_1, Q_A_Z(236,92,df).y, yerr = Q_A_Z(236,92,df).σ, xlims = (118, 170), ylims = (150, 200))
