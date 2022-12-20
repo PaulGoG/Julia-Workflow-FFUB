@@ -193,7 +193,7 @@ function Q_A_Z(A, Z, df)
     return Q
 end
 
-function Q_A(q_A_Z, y_Z, A, Z)
+function Q_A(q_A_Z, y_Z)
     Q = distributie_unidym(Int[], Float64[], Float64[])
     for A_H in minimum(q_A_Z.x_1):maximum(q_A_Z.x_1)
         Numarator = 0
@@ -221,6 +221,38 @@ function Q_A(q_A_Z, y_Z, A, Z)
         end
     end
     return Q
+end
+
+# Calculul energiei de separare a particulei (A_part, Z_part) din nucleul (A, Z)
+function Energie_separare(A_part, Z_part, A, Z, df)
+    # Verificarea existentei radionuclizilor folositi in libraria de date
+    if isassigned(df.D[(df.A .== A_part) .& (df.Z .== Z_part)], 1) && isassigned(df.D[(df.A .== A) .& (df.Z .== Z)], 1) && isassigned(df.D[(df.A .== A - A_part) .& (df.Z .== Z - Z_part)], 1)
+        D_part = df.D[(df.A .== A_part) .& (df.Z .== Z_part)][1]
+        σ_part = df.σD[(df.A .== A_part) .& (df.Z .== Z_part)][1]
+    
+        D = df.D[(df.A .== A - A_part) .& (df.Z .== Z - Z_part)][1]
+        σᴰ = df.σD[(df.A .== A - A_part) .& (df.Z .== Z - Z_part)][1]    
+    
+        S = (D + D_part - df.D[(df.A .== A) .& (df.Z .== Z)][1])*1e-3
+        σˢ = sqrt(σ_part^2 + σᴰ^2 + (df.σD[(df.A .== A) .& (df.Z .== Z)][1])^2)*1e-3
+
+        return [S, σˢ]
+    else 
+        return [0, 0]
+    end 
+end
+
+function TXE_A(q_A, tke_A, df, A, Z)
+    TXE = distributie_unidym(Int[],Float64[], Float64[])
+    Sₙ = Energie_separare(1, 0, A, Z, df)
+    for A_H in minimum(q_A.x):maximum(q_A.x)
+        if isassigned(tke_A.y[tke_A.x .== A_H], 1)
+            push!(TXE.x, A_H)
+            push!(TXE.y, q_A.y[q_A.x .== A_H][1] + Sₙ[1] - tke_A.y[tke_A.x .== A_H][1])
+            push!(TXE.σ, sqrt(q_A.σ[q_A.x .== A_H][1]^2 + Sₙ[2]^2 + tke_A.σ[tke_A.x .== A_H][1]^2))
+        end
+    end  
+    return TXE
 end
 
 function Sortare_distributie(distributie)
@@ -276,13 +308,13 @@ end
 # Aici se opreste partea de calcul a programului
 
 # Constructia reprezentarilor grafice
-function Grafic_scatter(distributie, titlu, axa_x, axa_y, scalare)
+function Grafic_scatter(distributie, titlu, axa_x, axa_y, scalare_inf, scalare_sup)
     plt = scatter(
         distributie.x, 
         distributie.y, 
         yerr = distributie.σ, 
         xlims = (minimum(distributie.x), maximum(distributie.x)),
-        ylims = (minimum(distributie.y), maximum(distributie.y)*scalare),
+        ylims = (minimum(distributie.y)*scalare_inf, maximum(distributie.y)*scalare_sup),
         xlabel = "$axa_x", 
         ylabel = "$axa_y", 
         framestyle = :box,
@@ -318,8 +350,16 @@ function Grafic_textbox(x, y, plt, distributie_nume, distributie_val, distributi
     )
     return plt
 end
-function Grafic_linie_medie(plt, distributie_med)
+function Grafic_linie_medie_vertical(plt, distributie_med)
     vline!(plt, 
+    [distributie_med], 
+    ls = :dashdot, 
+    label = ""
+    )
+    return plt
+end
+function Grafic_linie_medie_orizontal(plt, distributie_med)
+    hline!(plt, 
     [distributie_med], 
     ls = :dashdot, 
     label = ""
@@ -341,56 +381,64 @@ y_N = Sortare_distributie(Y_N(dy, A₀, Z₀))
 y_TKE = Sortare_distributie(Y_TKE(dy))
 tke_A = Sortare_distributie(TKE_A(dy))
 ke_A = Sortare_distributie(KE_A(tke_A, A₀))
-q_A = Sortare_distributie(Q_A(Q_A_Z(A₀, Z₀, df), y_Z, A₀, Z₀))
+q_A = Sortare_distributie(Q_A(Q_A_Z(A₀, Z₀, df), y_Z))
+txe_A = Sortare_distributie(TXE_A(q_A, tke_A, df, A₀, Z₀))
 
-Plot_Y_A = Grafic_scatter(y_A, "Y(A)", "A", "Y %", 1.1);
+Plot_Y_A = Grafic_scatter(y_A, "Y(A)", "A", "Y %", 1, 1.1);
 Plot_Y_A = Grafic_unire_linie(y_A, Plot_Y_A);
 mid_index = Int((length(y_A.x) + 1 )/2);
 A_L_mediu = Medie_distributie_Y(y_A, 1, mid_index);
 A_H_mediu = Medie_distributie_Y(y_A, mid_index, length(y_A.x));
-Plot_Y_A = Grafic_linie_medie(Plot_Y_A, A_L_mediu[1]);
-Plot_Y_A = Grafic_linie_medie(Plot_Y_A, A_H_mediu[1]);
+Plot_Y_A = Grafic_linie_medie_vertical(Plot_Y_A, A_L_mediu[1]);
+Plot_Y_A = Grafic_linie_medie_vertical(Plot_Y_A, A_H_mediu[1]);
 Plot_Y_A = Grafic_textbox_medie(y_A.x[mid_index], maximum(y_A.y), Plot_Y_A, "A_H", A_H_mediu[1], A_H_mediu[2], "");
 Plot_Y_A = Grafic_textbox_medie(y_A.x[mid_index], maximum(y_A.y)*0.95, Plot_Y_A, "A_L", A_L_mediu[1], A_L_mediu[2], "");
 Grafic_afisare(Plot_Y_A, "Y(A)");
 
-Plot_Y_Z = Grafic_scatter(y_Z, "Y(Z)", "Z", "Y %", 1.1);
+Plot_Y_Z = Grafic_scatter(y_Z, "Y(Z)", "Z", "Y %", 1, 1.1);
 Plot_Y_Z = Grafic_unire_linie(y_Z, Plot_Y_Z);
 mid_index = Int((length(y_Z.x) + 1 )/2)
 δₑₒ = (sum(y_Z.y[iseven.(y_Z.x)]) - sum(y_Z.y[isodd.(y_Z.x)]))/sum(y_Z.y)
-σ_δₑₒ = round((1/sum(y_Z.y)) * sqrt((1 + δₑₒ)^2 * sum(y_Z.σ .^2) + 2*δₑₒ*(sum(y_Z.σ[isodd.(y_Z.x)] .^2) - sum(y_Z.σ[iseven.(y_Z.x)].^2))), digits = 5)
-δₑₒ = round(δₑₒ, digits = 3)
+σ_δₑₒ = round((1/sum(y_Z.y)) * sqrt((1 + δₑₒ)^2 * sum(y_Z.σ .^2) + 2*δₑₒ*(sum(y_Z.σ[isodd.(y_Z.x)] .^2) - sum(y_Z.σ[iseven.(y_Z.x)].^2))), digits = 7)
+δₑₒ = round(δₑₒ, digits = 5)
 Plot_Y_Z = Grafic_textbox(y_Z.x[mid_index], maximum(y_Z.y), Plot_Y_Z, "\\delta_{eo}", δₑₒ, σ_δₑₒ, "");
 Grafic_afisare(Plot_Y_Z, "Y(Z)");
 
-Plot_Y_N = Grafic_scatter(y_N, "Y(N)", "N", "Y %", 1.1);
+Plot_Y_N = Grafic_scatter(y_N, "Y(N)", "N", "Y %", 1, 1.1);
 Plot_Y_N = Grafic_unire_linie(y_N, Plot_Y_N);
 Grafic_afisare(Plot_Y_N, "Y(N)");
 
-Plot_Y_TKE = Grafic_scatter(y_TKE, "Y(TKE)", "TKE [MeV]", "Y %", 1.1);
+Plot_Y_TKE = Grafic_scatter(y_TKE, "Y(TKE)", "TKE [MeV]", "Y %", 1, 1.1);
 Plot_Y_TKE = Grafic_unire_linie(y_TKE, Plot_Y_TKE);
 TKE_mediu = Medie_distributie_Y(y_TKE, firstindex(y_TKE.x), lastindex(y_TKE.x));
 mid_index = Int((length(y_TKE.x) + 1 )/2);
-Plot_Y_TKE = Grafic_linie_medie(Plot_Y_TKE, TKE_mediu[1]);
+Plot_Y_TKE = Grafic_linie_medie_vertical(Plot_Y_TKE, TKE_mediu[1]);
 Plot_Y_TKE = Grafic_textbox_medie(y_TKE.x[mid_index]*0.94, maximum(y_TKE.y), Plot_Y_TKE, "TKE", TKE_mediu[1], TKE_mediu[2], "MeV");
 Grafic_afisare(Plot_Y_TKE, "Y(TKE)");
 
-Plot_TKE_A = Grafic_scatter(tke_A, "TKE(A)", latexstring("\$\\mathrm{A_H}\$"), "TKE [MeV]", 1.05);
+Plot_TKE_A = Grafic_scatter(tke_A, "TKE(A)", latexstring("\$\\mathrm{A_H}\$"), "TKE [MeV]", 1, 1.05);
 TKE_A_mediu = Medie_distributie(tke_A, y_A, firstindex(tke_A.x), lastindex(tke_A.x));
 Plot_TKE_A = Grafic_unire_linie(tke_A, Plot_TKE_A);
 mid_index = Int((length(tke_A.x) + 1 )/2);
 Plot_TKE_A = Grafic_textbox_medie(tke_A.x[mid_index]*1.05, maximum(tke_A.y), Plot_TKE_A, "TKE", TKE_A_mediu[1], TKE_A_mediu[2], "MeV");
 Grafic_afisare(Plot_TKE_A, "TKE(A)")
 
-Plot_KE_A = Grafic_scatter(ke_A, "KE(A)", "A", "KE [MeV]", 1.05);
+Plot_KE_A = Grafic_scatter(ke_A, "KE(A)", "A", "KE [MeV]", 1, 1.05);
 Plot_KE_A = Grafic_unire_linie(ke_A, Plot_KE_A);
 Grafic_afisare(Plot_KE_A, "KE(A)")
 
-Plot_Q_A = Grafic_scatter(q_A, "Q(A)", "A_H", "Q [MeV]", 1.02);
+Plot_Q_A = Grafic_scatter(q_A, "Q(A)", latexstring("\$\\mathrm{A_H}\$"), "Q [MeV]", 0.98, 1.02);
 Plot_Q_A = Grafic_unire_linie(q_A, Plot_Q_A);
 Q_A_Mediu = Medie_distributie(q_A, y_A, firstindex(q_A.x), lastindex(q_A.x));
 mid_index = Int(length(q_A.x)/2);
 Plot_Q_A = Grafic_textbox_medie(q_A.x[mid_index], maximum(q_A.y), Plot_Q_A, "Q", Q_A_Mediu[1], Q_A_Mediu[2], "MeV");
+Plot_Q_A = Grafic_linie_medie_orizontal(Plot_Q_A, Q_A_Mediu[1]);
 Grafic_afisare(Plot_Q_A, "Q(A)")
 
-#scatter(Q_A_Z(236,92,df).x_1, Q_A_Z(236,92,df).y, yerr = Q_A_Z(236,92,df).σ, xlims = (118, 170), ylims = (150, 200))
+Plot_TXE_A = Grafic_scatter(txe_A, "TXE(A)", latexstring("\$\\mathrm{A_H}\$"), "TXE [MeV]", 0.9, 1.1);
+Plot_TXE_A = Grafic_unire_linie(txe_A, Plot_TXE_A);
+mid_index = Int((length(txe_A.x) + 1)/2);
+TXE_A_Mediu = Medie_distributie(txe_A, y_A, firstindex(txe_A.x), lastindex(txe_A.x));
+Plot_TXE_A = Grafic_textbox_medie(txe_A.x[mid_index], maximum(txe_A.y), Plot_TXE_A, "TXE", TXE_A_Mediu[1], TXE_A_Mediu[2], "MeV");
+Plot_TXE_A = Grafic_linie_medie_orizontal(Plot_TXE_A, TXE_A_Mediu[1]);
+Grafic_afisare(Plot_TXE_A, "TXE(A)")

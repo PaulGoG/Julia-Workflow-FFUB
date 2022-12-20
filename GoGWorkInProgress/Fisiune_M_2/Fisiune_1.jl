@@ -25,18 +25,18 @@ function Q_A_Z(librarie, A, Z, limInfA_H, limSupA_H)
     D = df.D[(df.A .== A) .& (df.Z .== Z)][1]
     σ_D = df.σ[(df.A .== A) .& (df.Z .== Z)][1]
 
-    for i in limInfA_H:limSupA_H
-        A_H = i
+    for A_H in limInfA_H:limSupA_H
         Z_UCD = Z*A_H/A
         Z_p = floor(Z_UCD - 0.5)
-        for j in (Z_p - 1):(Z_p + 1) # Fragmentarile 3 Z/A
-            Z_H = j
+        for Z_H in (Z_p - 1):(Z_p + 1) # Fragmentarile 3 Z/A
+            # Verificam ca exista radionuclizii in libraria de date
             if isassigned(df.D[(df.A .== A_H) .& (df.Z .== Z_H)], 1) && isassigned(df.D[(df.A .== A - A_H) .& (df.Z .== Z - Z_H)], 1)
                 D_H = df.D[(df.A .== A_H) .& (df.Z .== Z_H)][1]
                 σ_D_H = df.σ[(df.A .== A_H) .& (df.Z .== Z_H)][1]
                 D_L = df.D[(df.A .== A - A_H) .& (df.Z .== Z - Z_H)][1]
                 σ_D_L = df.σ[(df.A .== A - A_H) .& (df.Z .== Z - Z_H)][1]
 
+                # Valorile sunt calculate in MeVi
                 push!(Q.y, (D - (D_H + D_L)) *1e-3)
                 push!(Q.σ, sqrt(σ_D^2 + σ_D_H^2 + σ_D_L^2) *1e-3)
                 push!(Q.x_1, A_H)
@@ -47,12 +47,12 @@ function Q_A_Z(librarie, A, Z, limInfA_H, limSupA_H)
     return Q
 end
 
-# Distributia izobara de sarcina cu rms(A) ≈ 0.6 & ΔZₚ ≈ 0.5
+# Distributia izobara de sarcina cu  σ = rms(A) ≈ 0.6 & ΔZₚ ≈ 0.5 (Gaussiana)
 function p_A_Z(Z, Z_p)
     return 1/(sqrt(2*π) * 0.6) * exp(-(Z - Z_p)^2 /(2*0.6^2))
 end
 
-# Functia de mediere a Q(A, Z) pe distributia p(A, Z) considerand 3 Z/A
+# Functia de mediere a Q(A, Z) pe distributia p(A, Z) considerand 3 Z/A fragmente
 function Q_A(Q, A, Z, limInfA_H, limSupA_H)
     Q_med = distributie_bidym(Int[], Int[], Float64[], Float64[])
 
@@ -63,13 +63,13 @@ function Q_A(Q, A, Z, limInfA_H, limSupA_H)
         Sigma_temp² = 0
         Z_UCD = Z*A_H/A
         Z_p = Z_UCD - 0.5
-
+        # Q(A) = Σ Q(A, Z)*p(A, Z)/Σ p(A, Z)
+        # σQ(A) = sqrt[Σ σQ(A, Z)^2 *p(A, Z)^2]/Σ p(A, Z)
         for j = 1:length(Q.x_2[Q.x_1 .== A_H])
-            Numarator = Numarator + Q.y[Q.x_1 .== A_H][j] * p_A_Z(Q.x_2[Q.x_1 .== A_H][j], Z_p)
-            Numitor = Numitor + p_A_Z(Q.x_2[Q.x_1 .== A_H][j], Z_p)
-            Sigma_temp² = Sigma_temp² + (p_A_Z(Q.x_2[Q.x_1 .== A_H][j], Z_p) * Q.σ[Q.x_1 .== A_H][j])^2
+            Numarator += Q.y[Q.x_1 .== A_H][j] * p_A_Z(Q.x_2[Q.x_1 .== A_H][j], Z_p)
+            Numitor += p_A_Z(Q.x_2[Q.x_1 .== A_H][j], Z_p)
+            Sigma_temp² += (p_A_Z(Q.x_2[Q.x_1 .== A_H][j], Z_p) * Q.σ[Q.x_1 .== A_H][j])^2
         end
-
         push!(Q_med.y, Numarator/Numitor)
         push!(Q_med.σ, sqrt(Sigma_temp²)/Numitor)
         push!(Q_med.x_1, A_H)
@@ -89,7 +89,7 @@ function Grafic_scatter(Q, eticheta)
         ylabel = latexstring("\$\\mathrm{Q \\: [MeV]}\$"), 
         framestyle = :box,
         label = "$eticheta",
-        title = "Energia eliberată la fisiune",
+        title = latexstring("Energia eliberată la fisiune folosind 3 Z/A în jurul \$Z_{UCD}\$"),
         minorgrid = :true,
         size = (900, 900)
     )
