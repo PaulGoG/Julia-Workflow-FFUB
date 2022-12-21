@@ -3,7 +3,7 @@ using CSV
 using DataFrames
 using LaTeXStrings
 
-# Cod de calcul al energiei eliberate la fisiune folosind 3 Z/A in jurul Z_UCD
+# Cod de calcul al energiei eliberate la fisiune folosind 3 Z/A in jurul Zₚ(A)
 
 gr();
 cd(@__DIR__); # Adauga calea relativa la folderul de lucru
@@ -18,13 +18,11 @@ end
 # Functie de calcul pentru Q(A, Z)
 function Q_A_Z(librarie, A, Z, limInfA_H, limSupA_H)
     Q = distributie_bidym(Int[], Int[], Float64[], Float64[])
-
     # Citim fisierul de tip CSV
     # Z|A|Simbol|D(KeV)|σᴰ(KeV) -> forma tabelului
     df = CSV.File(librarie; delim=' ', ignorerepeated=true, header=["Z", "A", "Sym", "D", "σ"]) |> DataFrame
     D = df.D[(df.A .== A) .& (df.Z .== Z)][1]
     σ_D = df.σ[(df.A .== A) .& (df.Z .== Z)][1]
-
     for A_H in limInfA_H:limSupA_H
         Z_UCD = Z*A_H/A
         Z_p = floor(Z_UCD - 0.5)
@@ -63,8 +61,8 @@ function Q_A(Q, A, Z, limInfA_H, limSupA_H)
         Sigma_temp² = 0
         Z_UCD = Z*A_H/A
         Z_p = Z_UCD - 0.5
-        # Q(A) = Σ Q(A, Z)*p(A, Z)/Σ p(A, Z)
-        # σQ(A) = sqrt[Σ σQ(A, Z)^2 *p(A, Z)^2]/Σ p(A, Z)
+        # Q(A) = Σ_Z Q(A, Z)*p(A, Z)/Σ_Z p(A, Z)
+        # σQ(A) = sqrt[Σ_Z σQ(A, Z)^2 *p(A, Z)^2]/Σ_Z p(A, Z)
         for j = 1:length(Q.x_2[Q.x_1 .== A_H])
             Numarator += Q.y[Q.x_1 .== A_H][j] * p_A_Z(Q.x_2[Q.x_1 .== A_H][j], Z_p)
             Numitor += p_A_Z(Q.x_2[Q.x_1 .== A_H][j], Z_p)
@@ -84,12 +82,12 @@ function Grafic_scatter(Q, eticheta)
         Q.x_1, 
         Q.y,  
         yerr = Q.σ, 
-        xlims = (minimum(Q.x_1), maximum(Q.x_1)),
+        xlims = (minimum(Q.x_1)*0.999, maximum(Q.x_1)*1.001),
         xlabel = L"\mathrm{A_H}", 
         ylabel = latexstring("\$\\mathrm{Q \\: [MeV]}\$"), 
         framestyle = :box,
         label = "$eticheta",
-        title = latexstring("Energia eliberată la fisiune folosind 3 Z/A în jurul \$Z_{UCD}\$"),
+        title = latexstring("Energia eliberată la fisiune folosind 3 Z/A în jurul \$\\mathrm{Z_{p}(A)}\$"),
         minorgrid = :true,
         size = (900, 900)
     )
@@ -109,6 +107,7 @@ function Grafic_unire_linie(Q, plt)
     Q.x_1, 
     Q.y,
     ribbon = Q.σ,
+    fillalpha = .3,
     label = ""
     )
     return plt

@@ -28,6 +28,8 @@ end
 function Y_A(dy, A)
     Y = distributie_unidym(Int[],Float64[], Float64[])
     for i in minimum(dy.A_H):maximum(dy.A_H)
+        # Y(A) = Σ_(Z, TKE) Y(A, Z, TKE)
+        # σY(A) = sqrt[Σ_(Z, TKE) σY(A, Z, TKE)^2]
         Suma_Y = sum(dy.Y[dy.A_H .== i])
         Suma_σ = sqrt(sum(dy.σY[dy.A_H .== i].^2))
         push!(Y.x, i)
@@ -37,13 +39,14 @@ function Y_A(dy, A)
         push!(Y.y, Suma_Y)
         push!(Y.σ, Suma_σ)
     end
+    # Stergerea elementelor duplicate de la A₀/2
     if iseven(A)
         index = findfirst(x -> x == Int(A/2), Y.x)
         deleteat!(Y.x, index)
         deleteat!(Y.y, index)
         deleteat!(Y.σ, index)
     end
-
+    # Normarea distributiei
     f = 200/sum(Y.y)
     Y.y .= Y.y * f
     Y.σ .= Y.σ * f
@@ -53,6 +56,8 @@ end
 function Y_Z(dy, Z)
     Y = distributie_unidym(Int[],Float64[], Float64[])
     for i in minimum(dy.Z_H):maximum(dy.Z_H)
+        # Y(Z) = Σ_(A, TKE) Y(A, Z, TKE)
+        # σY(Z) = sqrt[Σ_(A, TKE) σY(A, Z, TKE)^2]
         Suma_Y = sum(dy.Y[dy.Z_H .== i])
         Suma_σ = sqrt(sum(dy.σY[dy.Z_H .== i].^2))
         push!(Y.x, i)
@@ -62,12 +67,13 @@ function Y_Z(dy, Z)
         push!(Y.y, Suma_Y)
         push!(Y.σ, Suma_σ)
     end
+    # Stergerea datelor duplicate
     index_true = unique(i -> Y.x[i], eachindex(Y.x))
     index_delete = setdiff(eachindex(Y.x), index_true)
     deleteat!(Y.x, index_delete)
     deleteat!(Y.y, index_delete)
     deleteat!(Y.σ, index_delete)
-
+    # Normarea distributiei
     f = 200/sum(Y.y)
     Y.y .= Y.y * f
     Y.σ .= Y.σ * f    
@@ -88,12 +94,13 @@ function Y_N(dy, A, Z)
             push!(Y.σ, Suma_σ)
         end
     end
+    # Stergerea datelor duplicate
     index_true = unique(i -> Y.x[i], eachindex(Y.x))
     index_delete = setdiff(eachindex(Y.x), index_true)
     deleteat!(Y.x, index_delete)
     deleteat!(Y.y, index_delete)
     deleteat!(Y.σ, index_delete)
-
+    # Normarea distributiei
     f = 200/sum(Y.y)
     Y.y .= Y.y * f
     Y.σ .= Y.σ * f    
@@ -103,13 +110,15 @@ end
 function Y_TKE(dy)
     Y = distributie_unidym(Int[],Float64[], Float64[])
     for i in minimum(dy.TKE):maximum(dy.TKE)
+        # Y(TKE) = Σ_(A, Z) Y(A, Z, TKE)
+        # σY(TKE) = sqrt[Σ_(A, Z) σY(A, Z, TKE)^2]
         Suma_Y = sum(dy.Y[dy.TKE .== i])
         Suma_σ = sqrt(sum(dy.σY[dy.TKE .== i].^2))
         push!(Y.x, i)
         push!(Y.y, Suma_Y)
         push!(Y.σ, Suma_σ)
     end
-
+    # Normarea distributiei
     f = 100/sum(Y.y)
     Y.y .= Y.y * f
     Y.σ .= Y.σ * f    
@@ -122,6 +131,8 @@ function TKE_A(dy)
         Numarator = 0
         Numitor = sum(dy.Y[dy.A_H .== i])
         Suma_σ² = 0
+        # TKE(A) = Σ_(TKE) TKE * Y(A, TKE)/Σ_(TKE) Y(A, TKE)
+        # σTKE(A) = [1/Σ_(TKE) Y(A, TKE)] * sqrt[Σ_(TKE) (TKE - TKE(A)) * σY(A, TKE)^2]
         for j in minimum(dy.TKE[dy.A_H .== i]):maximum(dy.TKE[dy.A_H .== i])
             Y_A_TKE = sum(dy.Y[(dy.A_H .== i) .& (dy.TKE .== j)])
             Numarator += j * Y_A_TKE
@@ -143,9 +154,10 @@ function KE_A(tke_A, A)
     for i in minimum(dy.A_H):maximum(dy.A_H)
         TKE_A = tke_A.y[tke_A.x .== i][1]
         σTKE_A = tke_A.σ[tke_A.x .== i][1]
+        # KEₗₕ(A) = Aₕₗ/A₀ * TKE(Aₕ)
+        # σKEₗₕ(A) = Aₕₗ/A₀ * σTKE(Aₕ)
         KE_H = TKE_A * (A - i)/A
         KE_L = TKE_A * i/A
-
         push!(KE.x, i)
         push!(KE.y, KE_H)
         push!(KE.σ, KE_H * σTKE_A/TKE_A)
@@ -153,6 +165,7 @@ function KE_A(tke_A, A)
         push!(KE.y, KE_L)
         push!(KE.σ, KE_L * σTKE_A/TKE_A)
     end
+    # Stergerea elementelor duplicate de la A₀/2
     if iseven(A)
         index = findfirst(x -> x == Int(A/2), KE.x)
         deleteat!(KE.x, index)
@@ -166,27 +179,19 @@ function Q_A_Z(A, Z, df)
     Q = distributie_bidym(Int[], Int[], Float64[], Float64[])
     D = df.D[(df.A .== A) .& (df.Z .== Z)][1]
     σ_D = df.σD[(df.A .== A) .& (df.Z .== Z)][1]
-    if iseven(A)
-        limInfA_H = A/2
-    else
-        limInfA_H = (A+1)/2
-    end
-    for A_H in limInfA_H:A
+    for A_H in minimum(dy.A_H):maximum(dy.A_H)
         for Z_H in minimum(df.Z[df.A .== A_H]):maximum(df.Z[df.A .== A_H])
             if isassigned(df.D[(df.A .== A_H) .& (df.Z .== Z_H)], 1) && isassigned(df.D[(df.A .== A - A_H) .& (df.Z .== Z - Z_H)], 1)
                 D_H = df.D[(df.A .== A_H) .& (df.Z .== Z_H)][1]
                 σ_D_H = df.σD[(df.A .== A_H) .& (df.Z .== Z_H)][1]
                 D_L = df.D[(df.A .== A - A_H) .& (df.Z .== Z - Z_H)][1]
                 σ_D_L = df.σD[(df.A .== A - A_H) .& (df.Z .== Z - Z_H)][1]
-
                 q = D - (D_H + D_L)
-                
-                if q > 0
+                # Energiile sunt salvate în MeV
                 push!(Q.y, q *1e-3)
                 push!(Q.σ, sqrt(σ_D^2 + σ_D_H^2 + σ_D_L^2) *1e-3)
                 push!(Q.x_1, A_H)
                 push!(Q.x_2, Z_H)
-                end
             end
         end
     end 
@@ -199,6 +204,7 @@ function Q_A(q_A_Z, y_Z)
         Numarator = 0
         Numitor = 0
         Suma_σ² = 0
+        # Q(A) = Σ_(Z) Q(A, Z) * Y(Z)/Σ_(Z) Y(Z)
         if isassigned(q_A_Z.x_2[q_A_Z.x_1 .== A_H], 1)
             for Z_H = minimum(q_A_Z.x_2[q_A_Z.x_1 .== A_H]):maximum(q_A_Z.x_2[q_A_Z.x_1 .== A_H])
                 if isassigned(y_Z.y[y_Z.x .== Z_H], 1)
@@ -207,7 +213,7 @@ function Q_A(q_A_Z, y_Z)
                     Suma_σ² += y_Z.y[y_Z.x .== Z_H][1]^2 * q_A_Z.σ[(q_A_Z.x_1 .== A_H) .& (q_A_Z.x_2 .== Z_H)][1]^2
                 end
             end
-            if Numitor != 0
+            if Numitor != 0 # Elementele (A, Z) pentru care a existat și Q(A, Z) și Y(Z)
                 q_A = Numarator/Numitor
                 for Z_H = minimum(q_A_Z.x_2[q_A_Z.x_1 .== A_H]):maximum(q_A_Z.x_2[q_A_Z.x_1 .== A_H])
                     if isassigned(y_Z.y[y_Z.x .== Z_H], 1)
@@ -238,7 +244,7 @@ function Energie_separare(A_part, Z_part, A, Z, df)
 
         return [S, σˢ]
     else 
-        return [0, 0]
+        return [NaN, NaN]
     end 
 end
 
@@ -247,6 +253,7 @@ function TXE_A(q_A, tke_A, df, A, Z)
     Sₙ = Energie_separare(1, 0, A, Z, df)
     for A_H in minimum(q_A.x):maximum(q_A.x)
         if isassigned(tke_A.y[tke_A.x .== A_H], 1)
+            # TXE(A) = Q(A) - TKE(A) + Sₙ
             push!(TXE.x, A_H)
             push!(TXE.y, q_A.y[q_A.x .== A_H][1] + Sₙ[1] - tke_A.y[tke_A.x .== A_H][1])
             push!(TXE.σ, sqrt(q_A.σ[q_A.x .== A_H][1]^2 + Sₙ[2]^2 + tke_A.σ[tke_A.x .== A_H][1]^2))
@@ -268,6 +275,7 @@ function Sortare_distributie(distributie)
 end
 
 function Medie_distributie_Y(distributie, index_min, index_max)
+    # Valoare medie & incertitudine pentru distributiile de yield
     Numarator = 0
     Numitor = 0
     Suma_σ² = 0
@@ -283,6 +291,7 @@ function Medie_distributie_Y(distributie, index_min, index_max)
 end
 
 function Medie_distributie(distributie, Y, index_min, index_max)
+    # Valoare medie & incertitudine pentru distributii mediate folosind o distributie de yield
     Numarator = 0
     Numitor = 0
     Suma_σ² = 0
@@ -292,7 +301,7 @@ function Medie_distributie(distributie, Y, index_min, index_max)
             Numitor += Y.y[Y.x .== distributie.x[i]][1]
         end
     end
-    if Numitor != 0
+    if Numitor != 0 # Elementele pentru care a existat și Xᵢ și Yᵢ la același indice
         Media_distributiei = Numarator/Numitor
         for i in index_min:index_max
             if isassigned(Y.y[Y.x .== distributie.x[i]], 1)
@@ -330,6 +339,7 @@ function Grafic_unire_linie(distributie, plt)
     distributie.x, 
     distributie.y,
     ribbon = distributie.σ,
+    fillalpha = .3,
     label = ""
     )
     return plt
@@ -430,7 +440,7 @@ Grafic_afisare(Plot_KE_A, "KE(A)")
 Plot_Q_A = Grafic_scatter(q_A, "Q(A)", latexstring("\$\\mathrm{A_H}\$"), "Q [MeV]", 0.98, 1.02);
 Plot_Q_A = Grafic_unire_linie(q_A, Plot_Q_A);
 Q_A_Mediu = Medie_distributie(q_A, y_A, firstindex(q_A.x), lastindex(q_A.x));
-mid_index = Int(length(q_A.x)/2);
+mid_index = Int((length(q_A.x) + 1)/2);
 Plot_Q_A = Grafic_textbox_medie(q_A.x[mid_index], maximum(q_A.y), Plot_Q_A, "Q", Q_A_Mediu[1], Q_A_Mediu[2], "MeV");
 Plot_Q_A = Grafic_linie_medie_orizontal(Plot_Q_A, Q_A_Mediu[1]);
 Grafic_afisare(Plot_Q_A, "Q(A)")
