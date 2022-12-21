@@ -3,7 +3,7 @@ using CSV
 using DataFrames
 using LaTeXStrings
 
-# Cod de calcul pentru distributii uzuale in fisiunea U5
+# Cod de calcul pentru distributii uzuale in fisiune
 
 gr();
 cd(@__DIR__); # Adauga calea relativa la folderul de lucru
