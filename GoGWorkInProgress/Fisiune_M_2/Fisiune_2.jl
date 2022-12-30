@@ -175,11 +175,11 @@ function KE_A(tke_A, A)
     return KE
 end
 
-function Q_A_Z(A, Z, df)
+function Q_A_Z(A, Z, df, limInfA_H, limSupA_H)
     Q = distributie_bidym(Int[], Int[], Float64[], Float64[])
     D = df.D[(df.A .== A) .& (df.Z .== Z)][1]
     σ_D = df.σD[(df.A .== A) .& (df.Z .== Z)][1]
-    for A_H in minimum(dy.A_H):maximum(dy.A_H)
+    for A_H in limInfA_H:limSupA_H
         for Z_H in minimum(df.Z[df.A .== A_H]):maximum(df.Z[df.A .== A_H])
             if isassigned(df.D[(df.A .== A_H) .& (df.Z .== Z_H)], 1) && isassigned(df.D[(df.A .== A - A_H) .& (df.Z .== Z - Z_H)], 1)
                 D_H = df.D[(df.A .== A_H) .& (df.Z .== Z_H)][1]
@@ -384,6 +384,8 @@ end
 # Apelarea functiilor definite pentru executia programului
 A₀ = 236
 Z₀ = 92
+limInfA_H = minimum(dy.A_H)
+limSupA_H = maximum(dy.A_H)
 
 y_A = Sortare_distributie(Y_A(dy, A₀))
 y_Z = Sortare_distributie(Y_Z(dy, Z₀))
@@ -391,7 +393,7 @@ y_N = Sortare_distributie(Y_N(dy, A₀, Z₀))
 y_TKE = Sortare_distributie(Y_TKE(dy))
 tke_A = Sortare_distributie(TKE_A(dy))
 ke_A = Sortare_distributie(KE_A(tke_A, A₀))
-q_A = Sortare_distributie(Q_A(Q_A_Z(A₀, Z₀, df), y_Z))
+q_A = Sortare_distributie(Q_A(Q_A_Z(A₀, Z₀, df, limInfA_H, limSupA_H), y_Z))
 txe_A = Sortare_distributie(TXE_A(q_A, tke_A, df, A₀, Z₀))
 
 Plot_Y_A = Grafic_scatter(y_A, "Y(A)", "A", "Y %", 1, 1.1);
