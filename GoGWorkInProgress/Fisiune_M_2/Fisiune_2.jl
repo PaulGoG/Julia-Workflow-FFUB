@@ -35,16 +35,11 @@ function Y_A(dy, A)
         push!(Y.x, i)
         push!(Y.y, Suma_Y)
         push!(Y.σ, Suma_σ)
-        push!(Y.x, A - i)
-        push!(Y.y, Suma_Y)
-        push!(Y.σ, Suma_σ)
-    end
-    # Stergerea elementelor duplicate de la A₀/2
-    if iseven(A)
-        index = findfirst(x -> x == Int(A/2), Y.x)
-        deleteat!(Y.x, index)
-        deleteat!(Y.y, index)
-        deleteat!(Y.σ, index)
+        if A - i != i
+            push!(Y.x, A - i)
+            push!(Y.y, Suma_Y)
+            push!(Y.σ, Suma_σ)
+        end
     end
     # Normarea distributiei
     f = 200/sum(Y.y)
@@ -161,16 +156,11 @@ function KE_A(tke_A, A)
         push!(KE.x, i)
         push!(KE.y, KE_H)
         push!(KE.σ, KE_H * σTKE_A/TKE_A)
-        push!(KE.x, A - i)
-        push!(KE.y, KE_L)
-        push!(KE.σ, KE_L * σTKE_A/TKE_A)
-    end
-    # Stergerea elementelor duplicate de la A₀/2
-    if iseven(A)
-        index = findfirst(x -> x == Int(A/2), KE.x)
-        deleteat!(KE.x, index)
-        deleteat!(KE.y, index)
-        deleteat!(KE.σ, index)
+        if A - i != i
+            push!(KE.x, A - i)
+            push!(KE.y, KE_L)
+            push!(KE.σ, KE_L * σTKE_A/TKE_A)
+        end
     end
     return KE
 end

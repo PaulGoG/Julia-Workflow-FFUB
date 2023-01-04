@@ -11,6 +11,7 @@ cd(@__DIR__); # Adauga calea relativa la folderul de lucru
 # Citire fisiere de date
 df = CSV.File("Data_files/AUDI95.csv"; delim=' ', ignorerepeated=true, header=["Z", "A", "Sym", "D", "σD"]) |> DataFrame
 dy = CSV.File("Data_files/U5YAZTKE.csv"; delim=' ', ignorerepeated=true, header=["A_H", "Z_H", "TKE", "Y", "σY"]) |> DataFrame
+dβ₀ = CSV.File("Data_files/B2MOLLER.csv"; delim=' ', ignorerepeated=true, header=["Z", "A", "β"]) |> DataFrame
 
 struct distributie_unidym
     x
@@ -35,16 +36,11 @@ function Y_A(dy, A)
         push!(Y.x, i)
         push!(Y.y, Suma_Y)
         push!(Y.σ, Suma_σ)
-        push!(Y.x, A - i)
-        push!(Y.y, Suma_Y)
-        push!(Y.σ, Suma_σ)
-    end
-    # Stergerea elementelor duplicate de la A₀/2
-    if iseven(A)
-        index = findfirst(x -> x == Int(A/2), Y.x)
-        deleteat!(Y.x, index)
-        deleteat!(Y.y, index)
-        deleteat!(Y.σ, index)
+        if A - i != i
+            push!(Y.x, A - i)
+            push!(Y.y, Suma_Y)
+            push!(Y.σ, Suma_σ)
+        end
     end
     # Normarea distributiei
     f = 200/sum(Y.y)
@@ -113,19 +109,19 @@ function Sn_A_Z(A, Z, df, limInfA_H, limSupA_H)
     for A_H in limInfA_H:limSupA_H
         if isassigned(df.Z[df.A .== A_H], 1)
             for Z_H in minimum(df.Z[df.A .== A_H]):maximum(df.Z[df.A .== A_H])
-                S = Energie_separare(1, 0, A_H, Z_H, df)
-                if !isnan(S[1])
-                    push!(sn.y, S[1])
-                    push!(sn.σ, S[2])
+                S_H = Energie_separare(1, 0, A_H, Z_H, df)
+                S_L = Energie_separare(1, 0, A - A_H, Z - Z_H, df)
+                if !isnan(S_H[1]) && !isnan(S_L[1])
+                    push!(sn.y, S_H[1])
+                    push!(sn.σ, S_H[2])
                     push!(sn.x_1, A_H)
                     push!(sn.x_2, Z_H)
-                end
-                S = Energie_separare(1, 0, A - A_H, Z - Z_H, df)
-                if !isnan(S[1])
-                    push!(sn.y, S[1])
-                    push!(sn.σ, S[2])
-                    push!(sn.x_1, A - A_H)
-                    push!(sn.x_2, Z - Z_H)
+                    if A - A_H != A_H
+                        push!(sn.y, S_L[1])
+                        push!(sn.σ, S_L[2])
+                        push!(sn.x_1, A - A_H)
+                        push!(sn.x_2, Z - Z_H)
+                    end
                 end
             end
         end
@@ -134,9 +130,9 @@ function Sn_A_Z(A, Z, df, limInfA_H, limSupA_H)
 end
 
 # Functia de mediere a Sn(A, Z) pe distributia p(A, Z) considerand toate fragmentele
-function Sn_A(Sn, A, Z)
+function Sn_A(Sn, A, Z, limInfA_H, limSupA_H)
     sn = distributie_unidym(Int[], Float64[], Float64[])
-    for A_H in minimum(Sn.x_1):maximum(Sn.x_1)
+    for A_H in limInfA_H:limSupA_H
         Numarator = 0
         Numitor = 0
         Sigma_temp² = 0
@@ -154,6 +150,31 @@ function Sn_A(Sn, A, Z)
             push!(sn.y, Numarator/Numitor)
             push!(sn.σ, sqrt(Sigma_temp²)/Numitor)
             push!(sn.x, A_H)
+        end
+    end
+    limInfA_L = A - limSupA_H
+    limSupA_L = A - limInfA_H
+    if limSupA_L == A/2
+        limSupA_L -= 1
+    end
+    for A_L in limInfA_L:limSupA_L
+        Numarator = 0
+        Numitor = 0
+        Sigma_temp² = 0
+        Z_UCD = Z*A_L/A
+        Z_p = Z_UCD + 0.5
+        # Sn(A) = Σ_Z Sn(A, Z)*p(A, Z)/Σ_Z p(A, Z)
+        # σSn(A) = sqrt[Σ_Z σSn(A, Z)^2 *p(A, Z)^2]/Σ_Z p(A, Z)
+        for j = 1:length(Sn.x_2[Sn.x_1 .== A_L])
+            P_A_Z = p_A_Z(Sn.x_2[Sn.x_1 .== A_L][j], Z_p)
+            Numarator += Sn.y[Sn.x_1 .== A_L][j] * P_A_Z
+            Numitor += P_A_Z
+            Sigma_temp² += (P_A_Z * Sn.σ[Sn.x_1 .== A_L][j])^2
+        end
+        if Numitor != 0
+            push!(sn.y, Numarator/Numitor)
+            push!(sn.σ, sqrt(Sigma_temp²)/Numitor)
+            push!(sn.x, A_L)
         end
     end
     return sn
@@ -254,6 +275,46 @@ function Medie_distributie(distributie, Y, index_min, index_max)
     end
 end
 
+function Functie_liniara(x, a, b)
+    return a*x + b
+end
+
+function Beta_sciziune()
+    β_sciz = distributie_unidym(Int[], Float64[], Float64[])
+    a = 0.58/13
+    b = -28*a
+    for Z in 28:41
+        push!(β_sciz.x, Z)
+        push!(β_sciz.y, Functie_liniara(Z, a, b))
+    end
+    for Z in 42:44
+        push!(β_sciz.x, Z)
+        push!(β_sciz.y, 0.58)
+    end
+    a = -0.58/6
+    b = -50*a
+    for Z in 45:50
+        push!(β_sciz.x, Z)
+        push!(β_sciz.y, Functie_liniara(Z, a, b))
+    end
+    a = 0.6/15
+    b = -50*a
+    for Z in 51:65
+        push!(β_sciz.x, Z)
+        push!(β_sciz.y, Functie_liniara(Z, a, b))
+    end
+    return β_sciz
+end
+
+function E_LDM(β, A, Z)
+    η = (A - 2*Z)/A
+    χ = 1 - 1.7826 * η^2
+    α² = (5 * β^2)/(4*π)
+    X_νs = -χ*(15.4941*A - 17.9439*A^(2/3) * (1 + 0.4*α²))
+    X_e = Z^2 * (0.7053 * (1 - 0.2*α²)/(A^(1/3)) - 1.1529/A)
+    return X_νs + X_e
+end
+
 # Apelarea functiilor definite pentru executia programului
 A₀ = 236
 Z₀ = 92
@@ -264,8 +325,9 @@ limSupA_H = 170
 y_A = Sortare_distributie(Y_A(dy, A₀))
 tke_A = Sortare_distributie(TKE_A(dy))
 q_A = Sortare_distributie(Q_A(Q_A_Z(A₀, Z₀, df, limInfA_H, limSupA_H), A₀, Z₀))
-sn_A = Sortare_distributie(Sn_A(Sn_A_Z(A₀, Z₀, df, limInfA_H, limSupA_H), A₀, Z₀))
+sn_A = Sortare_distributie(Sn_A(Sn_A_Z(A₀, Z₀, df, limInfA_H, limSupA_H), A₀, Z₀, limInfA_H, limSupA_H))
 txe_A = Sortare_distributie(TXE_A(q_A, tke_A, df, A₀, Z₀, εₙ))
+β_sciz = Beta_sciziune()
 
 Q_med = Medie_distributie(q_A, y_A, firstindex(q_A.x), lastindex(q_A.x))
 mid_index_sn_A = Int((length(sn_A.x) + 1 )/2);

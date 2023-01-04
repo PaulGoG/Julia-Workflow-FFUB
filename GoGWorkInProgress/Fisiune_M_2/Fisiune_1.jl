@@ -53,7 +53,6 @@ end
 # Functia de mediere a Q(A, Z) pe distributia p(A, Z) considerand 3 Z/A fragmente
 function Q_A(Q, A, Z, limInfA_H, limSupA_H)
     Q_med = distributie_bidym(Int[], Int[], Float64[], Float64[])
-
     for i in limInfA_H:limSupA_H
         A_H = i
         Numarator = 0
