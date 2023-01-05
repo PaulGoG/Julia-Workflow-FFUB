@@ -315,6 +315,82 @@ function E_LDM(β, A, Z)
     return X_νs + X_e
 end
 
+function ΔE_deformare_A_Z(A, Z, dβ₀, β_sciz, limInfA_H, limSupA_H)
+    ΔE = distributie_bidym(Int[], Int[], Float64[], Float64[])
+    for A_H in limInfA_H:limSupA_H
+        if isassigned(dβ₀.Z[dβ₀.A .== A_H], 1)
+            for Z_H in minimum(dβ₀.Z[dβ₀.A .== A_H]):maximum(dβ₀.Z[dβ₀.A .== A_H])
+                if isassigned(β_sciz.y[β_sciz.x .== Z_H], 1) && isassigned(β_sciz.y[β_sciz.x .== Z - Z_H], 1)
+                    if isassigned(dβ₀.β[(dβ₀.A .== A - A_H) .& (dβ₀.Z .== Z - Z_H)], 1)
+                        E_LDM_H_0 = E_LDM(0, A_H, Z_H)
+                        E_LDM_L_0 = E_LDM(0, A - A_H, Z - Z_H)
+                        E_def_sciz_H = E_LDM(β_sciz.y[β_sciz.x .== Z_H][1], A_H, Z_H) - E_LDM_H_0
+                        E_def_sciz_L = E_LDM(β_sciz.y[β_sciz.x .== Z - Z_H][1], A - A_H, Z - Z_H) - E_LDM_L_0
+                        E_def_at_H = E_LDM(dβ₀.β[(dβ₀.A .== A_H) .& (dβ₀.Z .== Z_H)][1], A_H, Z_H) - E_LDM_H_0
+                        E_def_at_L = E_LDM(dβ₀.β[(dβ₀.A .== A - A_H) .& (dβ₀.Z .== Z - Z_H)][1], A - A_H, Z - Z_H) - E_LDM_L_0
+
+                        push!(ΔE.x_1, A_H)
+                        push!(ΔE.x_2, Z_H)
+                        push!(ΔE.y, abs(E_def_sciz_H - E_def_at_H))
+                        push!(ΔE.σ, 0.0)
+                        if A - A_H != A_H
+                            push!(ΔE.x_1, A - A_H)
+                            push!(ΔE.x_2, Z - Z_H)
+                            push!(ΔE.y, abs(E_def_sciz_L - E_def_at_L))
+                            push!(ΔE.σ, 0.0)
+                        end
+                    end
+                end
+            end
+        end
+    end
+    return ΔE
+end
+
+function ΔE_deformare_A(ΔE_def_A_Z, A, Z, limInfA_H, limSupA_H)
+    ΔE = distributie_unidym(Int[], Float64[], Float64[])
+    for A_H in limInfA_H:limSupA_H
+        Numarator = 0
+        Numitor = 0
+        Z_UCD = Z*A_H/A
+        Z_p = Z_UCD - 0.5
+        # ΔE_def(A) = Σ_Z ΔE_def(A, Z)*p(A, Z)/Σ_Z p(A, Z)
+        for j = 1:length(ΔE_def_A_Z.x_2[ΔE_def_A_Z.x_1 .== A_H])
+            P_A_Z = p_A_Z(ΔE_def_A_Z.x_2[ΔE_def_A_Z.x_1 .== A_H][j], Z_p)
+            Numarator += ΔE_def_A_Z.y[ΔE_def_A_Z.x_1 .== A_H][j] * P_A_Z
+            Numitor += P_A_Z
+        end
+        if Numitor != 0
+            push!(ΔE.y, Numarator/Numitor)
+            push!(ΔE.x, A_H)
+            push!(ΔE.σ, 0.0)
+        end
+    end
+    limInfA_L = A - limSupA_H
+    limSupA_L = A - limInfA_H
+    if limSupA_L == A/2
+        limSupA_L -= 1
+    end
+    for A_L in limInfA_L:limSupA_L
+        Numarator = 0
+        Numitor = 0
+        Z_UCD = Z*A_L/A
+        Z_p = Z_UCD + 0.5
+        # ΔE(A) = Σ_Z ΔE(A, Z)*p(A, Z)/Σ_Z p(A, Z)
+        for j = 1:length(ΔE_def_A_Z.x_2[ΔE_def_A_Z.x_1 .== A_L])
+            P_A_Z = p_A_Z(ΔE_def_A_Z.x_2[ΔE_def_A_Z.x_1 .== A_L][j], Z_p)
+            Numarator += ΔE_def_A_Z.y[ΔE_def_A_Z.x_1 .== A_L][j] * P_A_Z
+            Numitor += P_A_Z
+        end
+        if Numitor != 0
+            push!(ΔE.y, Numarator/Numitor)
+            push!(ΔE.x, A_L)
+            push!(ΔE.σ, 0.0)
+        end
+    end
+    return ΔE
+end
+
 # Apelarea functiilor definite pentru executia programului
 A₀ = 236
 Z₀ = 92
@@ -328,6 +404,7 @@ q_A = Sortare_distributie(Q_A(Q_A_Z(A₀, Z₀, df, limInfA_H, limSupA_H), A₀,
 sn_A = Sortare_distributie(Sn_A(Sn_A_Z(A₀, Z₀, df, limInfA_H, limSupA_H), A₀, Z₀, limInfA_H, limSupA_H))
 txe_A = Sortare_distributie(TXE_A(q_A, tke_A, df, A₀, Z₀, εₙ))
 β_sciz = Beta_sciziune()
+ΔE_def_A = Sortare_distributie(ΔE_deformare_A(ΔE_deformare_A_Z(A₀, Z₀, dβ₀, β_sciz, limInfA_H, limSupA_H), A₀, Z₀,limInfA_H, limSupA_H))
 
 Q_med = Medie_distributie(q_A, y_A, firstindex(q_A.x), lastindex(q_A.x))
 mid_index_sn_A = Int((length(sn_A.x) + 1 )/2);
