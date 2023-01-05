@@ -25,14 +25,16 @@ function Q_A_Z(librarie, A, Z, limInfA_H, limSupA_H)
     σ_D = df.σ[(df.A .== A) .& (df.Z .== Z)][1]
     for A_H in limInfA_H:limSupA_H
         Z_UCD = Z*A_H/A
-        Z_p = floor(Z_UCD - 0.5)
+        Z_p = round(Z_UCD - 0.5)
         for Z_H in (Z_p - 1):(Z_p + 1) # Fragmentarile 3 Z/A
             # Verificam ca exista radionuclizii in libraria de date
-            if isassigned(df.D[(df.A .== A_H) .& (df.Z .== Z_H)], 1) && isassigned(df.D[(df.A .== A - A_H) .& (df.Z .== Z - Z_H)], 1)
+            A_L = A - A_H
+            Z_L = Z - Z_H
+            if isassigned(df.D[(df.A .== A_H) .& (df.Z .== Z_H)], 1) && isassigned(df.D[(df.A .== A_L) .& (df.Z .== Z_L)], 1)
                 D_H = df.D[(df.A .== A_H) .& (df.Z .== Z_H)][1]
                 σ_D_H = df.σ[(df.A .== A_H) .& (df.Z .== Z_H)][1]
-                D_L = df.D[(df.A .== A - A_H) .& (df.Z .== Z - Z_H)][1]
-                σ_D_L = df.σ[(df.A .== A - A_H) .& (df.Z .== Z - Z_H)][1]
+                D_L = df.D[(df.A .== A_L) .& (df.Z .== Z_L)][1]
+                σ_D_L = df.σ[(df.A .== A_L) .& (df.Z .== Z_L)][1]
 
                 # Valorile sunt calculate in MeVi
                 push!(Q.y, (D - (D_H + D_L)) *1e-3)
@@ -51,27 +53,26 @@ function p_A_Z(Z, Z_p)
 end
 
 # Functia de mediere a Q(A, Z) pe distributia p(A, Z) considerand 3 Z/A fragmente
-function Q_A(Q, A, Z, limInfA_H, limSupA_H)
-    Q_med = distributie_bidym(Int[], Int[], Float64[], Float64[])
-    for i in limInfA_H:limSupA_H
-        A_H = i
+function Q_A(q_A_Z, A, Z)
+    q_A = distributie_bidym(Int[], Int[], Float64[], Float64[])
+    for A_H in minimum(q_A_Z.x_1):maximum(q_A_Z.x_1)
         Numarator = 0
         Numitor = 0
         Sigma_temp² = 0
         Z_UCD = Z*A_H/A
-        Z_p = Z_UCD - 0.5
+        Z_p = round(Z_UCD - 0.5)
         # Q(A) = Σ_Z Q(A, Z)*p(A, Z)/Σ_Z p(A, Z)
         # σQ(A) = sqrt[Σ_Z σQ(A, Z)^2 *p(A, Z)^2]/Σ_Z p(A, Z)
-        for j = 1:length(Q.x_2[Q.x_1 .== A_H])
-            Numarator += Q.y[Q.x_1 .== A_H][j] * p_A_Z(Q.x_2[Q.x_1 .== A_H][j], Z_p)
-            Numitor += p_A_Z(Q.x_2[Q.x_1 .== A_H][j], Z_p)
-            Sigma_temp² += (p_A_Z(Q.x_2[Q.x_1 .== A_H][j], Z_p) * Q.σ[Q.x_1 .== A_H][j])^2
+        for j = 1:length(q_A_Z.x_2[q_A_Z.x_1 .== A_H])
+            Numarator += q_A_Z.y[q_A_Z.x_1 .== A_H][j] * p_A_Z(q_A_Z.x_2[q_A_Z.x_1 .== A_H][j], Z_p)
+            Numitor += p_A_Z(q_A_Z.x_2[q_A_Z.x_1 .== A_H][j], Z_p)
+            Sigma_temp² += (p_A_Z(q_A_Z.x_2[q_A_Z.x_1 .== A_H][j], Z_p) * q_A_Z.σ[q_A_Z.x_1 .== A_H][j])^2
         end
-        push!(Q_med.y, Numarator/Numitor)
-        push!(Q_med.σ, sqrt(Sigma_temp²)/Numitor)
-        push!(Q_med.x_1, A_H)
+        push!(q_A.y, Numarator/Numitor)
+        push!(q_A.σ, sqrt(Sigma_temp²)/Numitor)
+        push!(q_A.x_1, A_H)
     end
-    return Q_med
+    return q_A
 end
 # Aici se opreste partea de calcul a programului
 
@@ -139,21 +140,21 @@ Z₀ = 92
 limInfA_H = 118
 limSupA_H = 160
 
-QAZ = Q_A_Z(audi95, A₀, Z₀, limInfA_H, limSupA_H)
-QA = Q_A(QAZ, A₀, Z₀, limInfA_H, limSupA_H)
+q_A_Z = Q_A_Z(audi95, A₀, Z₀, limInfA_H, limSupA_H)
+q_A = Q_A(q_A_Z, A₀, Z₀)
 
-Q_mediu = round(sum(QA.y)/length(QA.y), digits = 3)
-σ_Q_mediu = round(1/length(QA.y) * sqrt(sum(QA.σ .^2)), digits = 5)
+Q_mediu = round(sum(q_A.y)/length(q_A.y), digits = 3)
+σ_Q_mediu = round(1/length(q_A.y) * sqrt(sum(q_A.σ .^2)), digits = 5)
 
 Grafic_afisare(
     Grafic_linie_medie(
         Grafic_textbox(
-            QA, 
+            q_A, 
             Grafic_unire_linie(
-                QA, 
+                q_A, 
                 Grafic_scatter(
-                    QA, 
-                    Grafic_scatter(QAZ, "Q(A, Z)"), 
+                    q_A, 
+                    Grafic_scatter(q_A_Z, "Q(A, Z)"), 
                     "Q(A)"
                 )
             ), 

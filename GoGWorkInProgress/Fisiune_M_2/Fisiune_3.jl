@@ -12,6 +12,7 @@ cd(@__DIR__); # Adauga calea relativa la folderul de lucru
 df = CSV.File("Data_files/AUDI95.csv"; delim=' ', ignorerepeated=true, header=["Z", "A", "Sym", "D", "σD"]) |> DataFrame
 dy = CSV.File("Data_files/U5YAZTKE.csv"; delim=' ', ignorerepeated=true, header=["A_H", "Z_H", "TKE", "Y", "σY"]) |> DataFrame
 dβ₀ = CSV.File("Data_files/B2MOLLER.csv"; delim=' ', ignorerepeated=true, header=["Z", "A", "β"]) |> DataFrame
+dGC = CSV.File("Data_files/SZSN.csv"; delim=' ', ignorerepeated=true, header=["n", "S_N", "S_Z"]) |> DataFrame
 
 struct distributie_unidym
     x
@@ -389,6 +390,19 @@ function ΔE_deformare_A(ΔE_def_A_Z, A, Z, limInfA_H, limSupA_H)
         end
     end
     return ΔE
+end
+
+function E_sciziune(txe_A, ΔE_def, dGC, A)
+    E_sciz = distributie_unidym(Int[],Float64[], Float64[])
+    for A_H in minimum(txe_A.x):maximum(txe_A.x)
+        if isassigned(ΔE_def.y[ΔE_def.x .== A_H], 1) && isassigned(ΔE_def.y[ΔE_def.x .== A - A_H], 1)
+            # TXE(A) = Q(A) - TKE(A) + Sₙ + εₙ
+            push!(TXE.x, A_H)
+            push!(TXE.y, q_A.y[q_A.x .== A_H][1] + Sₙ[1] + εₙ - tke_A.y[tke_A.x .== A_H][1])
+            push!(TXE.σ, sqrt(q_A.σ[q_A.x .== A_H][1]^2 + Sₙ[2]^2 + tke_A.σ[tke_A.x .== A_H][1]^2))
+        end
+    end  
+    return TXE
 end
 
 # Apelarea functiilor definite pentru executia programului

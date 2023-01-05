@@ -27,16 +27,16 @@ end
 
 function Y_A(dy, A)
     Y = distributie_unidym(Int[],Float64[], Float64[])
-    for i in minimum(dy.A_H):maximum(dy.A_H)
+    for A_H in minimum(dy.A_H):maximum(dy.A_H)
         # Y(A) = Σ_(Z, TKE) Y(A, Z, TKE)
         # σY(A) = sqrt[Σ_(Z, TKE) σY(A, Z, TKE)^2]
-        Suma_Y = sum(dy.Y[dy.A_H .== i])
-        Suma_σ = sqrt(sum(dy.σY[dy.A_H .== i].^2))
-        push!(Y.x, i)
+        Suma_Y = sum(dy.Y[dy.A_H .== A_H])
+        Suma_σ = sqrt(sum(dy.σY[dy.A_H .== A_H].^2))
+        push!(Y.x, A_H)
         push!(Y.y, Suma_Y)
         push!(Y.σ, Suma_σ)
-        if A - i != i
-            push!(Y.x, A - i)
+        if A - A_H != A_H
+            push!(Y.x, A - A_H)
             push!(Y.y, Suma_Y)
             push!(Y.σ, Suma_σ)
         end
@@ -50,15 +50,15 @@ end
 
 function Y_Z(dy, Z)
     Y = distributie_unidym(Int[],Float64[], Float64[])
-    for i in minimum(dy.Z_H):maximum(dy.Z_H)
+    for A_H in minimum(dy.Z_H):maximum(dy.Z_H)
         # Y(Z) = Σ_(A, TKE) Y(A, Z, TKE)
         # σY(Z) = sqrt[Σ_(A, TKE) σY(A, Z, TKE)^2]
-        Suma_Y = sum(dy.Y[dy.Z_H .== i])
-        Suma_σ = sqrt(sum(dy.σY[dy.Z_H .== i].^2))
-        push!(Y.x, i)
+        Suma_Y = sum(dy.Y[dy.Z_H .== A_H])
+        Suma_σ = sqrt(sum(dy.σY[dy.Z_H .== A_H].^2))
+        push!(Y.x, A_H)
         push!(Y.y, Suma_Y)
         push!(Y.σ, Suma_σ)
-        push!(Y.x, Z - i)
+        push!(Y.x, Z - A_H)
         push!(Y.y, Suma_Y)
         push!(Y.σ, Suma_σ)
     end
@@ -77,14 +77,14 @@ end
 
 function Y_N(dy, A, Z)
     Y = distributie_unidym(Int[],Float64[], Float64[])
-    for i in minimum(dy.A_H):maximum(dy.A_H)
-        for j in minimum(dy.Z_H[dy.A_H .== i]):maximum(dy.Z_H[dy.A_H .== i])
-            Suma_Y = sum(dy.Y[dy.A_H .- dy.Z_H .== i - j])
-            Suma_σ = sqrt(sum(dy.σY[dy.A_H .- dy.Z_H .== i - j].^2))
-            push!(Y.x, i - j)
+    for A_H in minimum(dy.A_H):maximum(dy.A_H)
+        for Z_H in minimum(dy.Z_H[dy.A_H .== A_H]):maximum(dy.Z_H[dy.A_H .== A_H])
+            Suma_Y = sum(dy.Y[dy.A_H .- dy.Z_H .== A_H - Z_H])
+            Suma_σ = sqrt(sum(dy.σY[dy.A_H .- dy.Z_H .== A_H - Z_H].^2))
+            push!(Y.x, A_H - Z_H)
             push!(Y.y, Suma_Y)
             push!(Y.σ, Suma_σ)
-            push!(Y.x, A - Z - i + j)
+            push!(Y.x, A - Z - A_H + Z_H)
             push!(Y.y, Suma_Y)
             push!(Y.σ, Suma_σ)
         end
@@ -104,12 +104,12 @@ end
 
 function Y_TKE(dy)
     Y = distributie_unidym(Int[],Float64[], Float64[])
-    for i in minimum(dy.TKE):maximum(dy.TKE)
+    for TKE in minimum(dy.TKE):maximum(dy.TKE)
         # Y(TKE) = Σ_(A, Z) Y(A, Z, TKE)
         # σY(TKE) = sqrt[Σ_(A, Z) σY(A, Z, TKE)^2]
-        Suma_Y = sum(dy.Y[dy.TKE .== i])
-        Suma_σ = sqrt(sum(dy.σY[dy.TKE .== i].^2))
-        push!(Y.x, i)
+        Suma_Y = sum(dy.Y[dy.TKE .== TKE])
+        Suma_σ = sqrt(sum(dy.σY[dy.TKE .== TKE].^2))
+        push!(Y.x, TKE)
         push!(Y.y, Suma_Y)
         push!(Y.σ, Suma_σ)
     end
@@ -121,43 +121,43 @@ function Y_TKE(dy)
 end
 
 function TKE_A(dy)
-    TKE = distributie_unidym(Int[],Float64[], Float64[])
-    for i in minimum(dy.A_H):maximum(dy.A_H)
+    tke = distributie_unidym(Int[],Float64[], Float64[])
+    for A_H in minimum(dy.A_H):maximum(dy.A_H)
         Numarator = 0
-        Numitor = sum(dy.Y[dy.A_H .== i])
+        Numitor = sum(dy.Y[dy.A_H .== A_H])
         Suma_σ² = 0
         # TKE(A) = Σ_(TKE) TKE * Y(A, TKE)/Σ_(TKE) Y(A, TKE)
         # σTKE(A) = [1/Σ_(TKE) Y(A, TKE)] * sqrt[Σ_(TKE) (TKE - TKE(A)) * σY(A, TKE)^2]
-        for j in minimum(dy.TKE[dy.A_H .== i]):maximum(dy.TKE[dy.A_H .== i])
-            Y_A_TKE = sum(dy.Y[(dy.A_H .== i) .& (dy.TKE .== j)])
-            Numarator += j * Y_A_TKE
+        for TKE in minimum(dy.TKE[dy.A_H .== A_H]):maximum(dy.TKE[dy.A_H .== A_H])
+            Y_A_TKE = sum(dy.Y[(dy.A_H .== A_H) .& (dy.TKE .== TKE)])
+            Numarator += TKE * Y_A_TKE
         end
         tke_A = Numarator/Numitor
-        for j in minimum(dy.TKE[dy.A_H .== i]):maximum(dy.TKE[dy.A_H .== i])
-            σY_A_TKE = sqrt(sum(dy.σY[(dy.A_H .== i) .& (dy.TKE .== j)].^2))
-            Suma_σ² += (j - tke_A)^2 * σY_A_TKE^2
+        for TKE in minimum(dy.TKE[dy.A_H .== A_H]):maximum(dy.TKE[dy.A_H .== A_H])
+            σY_A_TKE = sqrt(sum(dy.σY[(dy.A_H .== A_H) .& (dy.TKE .== TKE)].^2))
+            Suma_σ² += (TKE - tke_A)^2 * σY_A_TKE^2
         end
-        push!(TKE.x, i)
-        push!(TKE.y, tke_A)
-        push!(TKE.σ, sqrt(Suma_σ²)/Numitor)
+        push!(tke.x, A_H)
+        push!(tke.y, tke_A)
+        push!(tke.σ, sqrt(Suma_σ²)/Numitor)
     end  
-    return TKE
+    return tke
 end
 
 function KE_A(tke_A, A)
     KE = distributie_unidym(Int[],Float64[], Float64[])
-    for i in minimum(dy.A_H):maximum(dy.A_H)
-        TKE_A = tke_A.y[tke_A.x .== i][1]
-        σTKE_A = tke_A.σ[tke_A.x .== i][1]
+    for A_H in minimum(dy.A_H):maximum(dy.A_H)
+        TKE_A = tke_A.y[tke_A.x .== A_H][1]
+        σTKE_A = tke_A.σ[tke_A.x .== A_H][1]
         # KEₗₕ(A) = Aₕₗ/A₀ * TKE(Aₕ)
         # σKEₗₕ(A) = Aₕₗ/A₀ * σTKE(Aₕ)
-        KE_H = TKE_A * (A - i)/A
-        KE_L = TKE_A * i/A
-        push!(KE.x, i)
+        KE_H = TKE_A * (A - A_H)/A
+        KE_L = TKE_A * A_H/A
+        push!(KE.x, A_H)
         push!(KE.y, KE_H)
         push!(KE.σ, KE_H * σTKE_A/TKE_A)
-        if A - i != i
-            push!(KE.x, A - i)
+        if A - A_H != A_H
+            push!(KE.x, A - A_H)
             push!(KE.y, KE_L)
             push!(KE.σ, KE_L * σTKE_A/TKE_A)
         end
