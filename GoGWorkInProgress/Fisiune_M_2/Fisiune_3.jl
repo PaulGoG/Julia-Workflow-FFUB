@@ -336,18 +336,15 @@ function ΔE_deformare_A_Z(A, Z, dβ₀, β_sciz, limInfA_H, limSupA_H)
     end
     return ΔE
 end
-# Calculul punctual al TXE(A, Z)
-# TXE(A, Z) = (TXE(A) - (Sₙ + εₙ)) * p(A, Z) + Sₙ + εₙ
+# TXE(A, Z)
 function TXE_A_Z(q_A_Z, tke_A, A, Z, εₙ)
     txe_A_Z = distributie_bidym(Int[], Int[], Float64[], Float64[])
     Sₙ = Energie_separare(1, 0, A, Z, df)
     for A_H in minimum(q_A_Z.x_1):maximum(q_A_Z.x_1)
-        Z_UCD = Z*A_H/A
-        Z_p = Z_UCD - 0.5
         for Z_H in minimum(q_A_Z.x_2[q_A_Z.x_1 .== A_H]):maximum(q_A_Z.x_2[q_A_Z.x_1 .== A_H])
             if isassigned(tke_A.y[tke_A.x .== A_H], 1)
                 Q = q_A_Z.y[(q_A_Z.x_1 .== A_H) .& (q_A_Z.x_2 .== Z_H)][1]
-                TKE = tke_A.y[tke_A.x .== A_H][1] * p_A_Z(Z_H, Z_p)
+                TKE = tke_A.y[tke_A.x .== A_H][1]
                 TXE = Q - TKE + Sₙ[1] + εₙ
                 if TXE > 0
                     push!(txe_A_Z.x_1, A_H)
