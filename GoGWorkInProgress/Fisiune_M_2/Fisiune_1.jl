@@ -15,6 +15,7 @@ struct distributie_bidym
     σ
 end
 
+#####
 # Functie de calcul pentru Q(A, Z)
 function Q_A_Z(librarie, A, Z, limInfA_H, limSupA_H)
     Q = distributie_bidym(Int[], Int[], Float64[], Float64[])
@@ -25,8 +26,9 @@ function Q_A_Z(librarie, A, Z, limInfA_H, limSupA_H)
     σ_D = df.σ[(df.A .== A) .& (df.Z .== Z)][1]
     for A_H in limInfA_H:limSupA_H
         Z_UCD = Z*A_H/A
-        Z_p = round(Z_UCD - 0.5)
-        for Z_H in (Z_p - 1):(Z_p + 1) # Fragmentarile 3 Z/A
+        Z_p = Z_UCD - 0.5
+        Z_mid = round(Z_p)
+        for Z_H in (Z_mid - 1):(Z_mid + 1) # Fragmentarile 3 Z/A
             # Verificam ca exista radionuclizii in libraria de date
             A_L = A - A_H
             Z_L = Z - Z_H
@@ -35,7 +37,6 @@ function Q_A_Z(librarie, A, Z, limInfA_H, limSupA_H)
                 σ_D_H = df.σ[(df.A .== A_H) .& (df.Z .== Z_H)][1]
                 D_L = df.D[(df.A .== A_L) .& (df.Z .== Z_L)][1]
                 σ_D_L = df.σ[(df.A .== A_L) .& (df.Z .== Z_L)][1]
-
                 # Valorile sunt calculate in MeVi
                 push!(Q.y, (D - (D_H + D_L)) *1e-3)
                 push!(Q.σ, sqrt(σ_D^2 + σ_D_H^2 + σ_D_L^2) *1e-3)
@@ -46,12 +47,10 @@ function Q_A_Z(librarie, A, Z, limInfA_H, limSupA_H)
     end 
     return Q
 end
-
 # Distributia izobara de sarcina cu  σ = rms(A) ≈ 0.6 & ΔZₚ ≈ 0.5 (Gaussiana)
 function p_A_Z(Z, Z_p)
     return 1/(sqrt(2*π) * 0.6) * exp(-(Z - Z_p)^2 /(2*0.6^2))
 end
-
 # Functia de mediere a Q(A, Z) pe distributia p(A, Z) considerand 3 Z/A fragmente
 function Q_A(q_A_Z, A, Z)
     q_A = distributie_bidym(Int[], Int[], Float64[], Float64[])
@@ -60,13 +59,13 @@ function Q_A(q_A_Z, A, Z)
         Numitor = 0
         Sigma_temp² = 0
         Z_UCD = Z*A_H/A
-        Z_p = round(Z_UCD - 0.5)
+        Z_p = Z_UCD - 0.5
         # Q(A) = Σ_Z Q(A, Z)*p(A, Z)/Σ_Z p(A, Z)
         # σQ(A) = sqrt[Σ_Z σQ(A, Z)^2 *p(A, Z)^2]/Σ_Z p(A, Z)
-        for j = 1:length(q_A_Z.x_2[q_A_Z.x_1 .== A_H])
-            Numarator += q_A_Z.y[q_A_Z.x_1 .== A_H][j] * p_A_Z(q_A_Z.x_2[q_A_Z.x_1 .== A_H][j], Z_p)
-            Numitor += p_A_Z(q_A_Z.x_2[q_A_Z.x_1 .== A_H][j], Z_p)
-            Sigma_temp² += (p_A_Z(q_A_Z.x_2[q_A_Z.x_1 .== A_H][j], Z_p) * q_A_Z.σ[q_A_Z.x_1 .== A_H][j])^2
+        for Z_H = 1:length(q_A_Z.x_2[q_A_Z.x_1 .== A_H])
+            Numarator += q_A_Z.y[q_A_Z.x_1 .== A_H][Z_H] * p_A_Z(q_A_Z.x_2[q_A_Z.x_1 .== A_H][Z_H], Z_p)
+            Numitor += p_A_Z(q_A_Z.x_2[q_A_Z.x_1 .== A_H][Z_H], Z_p)
+            Sigma_temp² += (p_A_Z(q_A_Z.x_2[q_A_Z.x_1 .== A_H][Z_H], Z_p) * q_A_Z.σ[q_A_Z.x_1 .== A_H][Z_H])^2
         end
         push!(q_A.y, Numarator/Numitor)
         push!(q_A.σ, sqrt(Sigma_temp²)/Numitor)
@@ -75,7 +74,7 @@ function Q_A(q_A_Z, A, Z)
     return q_A
 end
 # Aici se opreste partea de calcul a programului
-
+#####
 # Constructia reprezentarilor grafice
 function Grafic_scatter(Q, eticheta)
     plt = scatter(
@@ -132,19 +131,19 @@ function Grafic_afisare(plt)
     display(plt)
     #savefig(plt, "Grafice/Q_value_T1.png")
 end
-
+#####
 # Apelarea functiilor definite pentru executia programului
 audi95 = "Data_files/AUDI95.csv"
-A₀ = 236
-Z₀ = 92
-limInfA_H = 118
-limSupA_H = 160
+A₀ = 236;
+Z₀ = 92;
+limInfA_H = 118;
+limSupA_H = 160;
 
-q_A_Z = Q_A_Z(audi95, A₀, Z₀, limInfA_H, limSupA_H)
-q_A = Q_A(q_A_Z, A₀, Z₀)
+q_A_Z = Q_A_Z(audi95, A₀, Z₀, limInfA_H, limSupA_H);
+q_A = Q_A(q_A_Z, A₀, Z₀);
 
-Q_mediu = round(sum(q_A.y)/length(q_A.y), digits = 3)
-σ_Q_mediu = round(1/length(q_A.y) * sqrt(sum(q_A.σ .^2)), digits = 5)
+Q_mediu = round(sum(q_A.y)/length(q_A.y), digits = 3);
+σ_Q_mediu = round(1/length(q_A.y) * sqrt(sum(q_A.σ .^2)), digits = 5);
 
 Grafic_afisare(
     Grafic_linie_medie(
