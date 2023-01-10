@@ -13,6 +13,10 @@ df = CSV.File("Data_files/AUDI95.csv"; delim=' ', ignorerepeated=true, header=["
 dy = CSV.File("Data_files/U5YAZTKE.csv"; delim=' ', ignorerepeated=true, header=["A_H", "Z_H", "TKE", "Y", "σY"]) |> DataFrame
 dβ₀ = CSV.File("Data_files/B2MOLLER.csv"; delim=' ', ignorerepeated=true, header=["Z", "A", "β"]) |> DataFrame
 dGC = CSV.File("Data_files/SZSN.csv"; delim=' ', ignorerepeated=true, header=["n", "S_N", "S_Z"]) |> DataFrame
+dν_Gook = CSV.File("Data_files/U5NUAGOOK.csv"; delim=' ', ignorerepeated=true, header=["A", "ν", "σν"]) |> DataFrame
+dν_Maslin = CSV.File("Data_files/U5NUAMASLIN.csv"; delim=' ', ignorerepeated=true, header=["A", "ν", "σν"]) |> DataFrame
+dν_Nishio = CSV.File("Data_files/U5NUANISHIO.csv"; delim=' ', ignorerepeated=true, header=["A", "ν", "σν"]) |> DataFrame
+dν_Vorobyev = CSV.File("Data_files/U5NUAVORO.csv"; delim=' ', ignorerepeated=true, header=["A", "ν", "σν"]) |> DataFrame
 
 struct distributie_unidym
     x
@@ -28,7 +32,7 @@ end
 #####
 # Y(A)
 function Y_A(dy, A)
-    Y = distributie_unidym(Int[],Float64[], Float64[])
+    Y = distributie_unidym(Int[], Float64[], Float64[])
     for A_H in minimum(dy.A_H):maximum(dy.A_H)
         # Y(A) = Σ_(Z, TKE) Y(A, Z, TKE)
         # σY(A) = sqrt[Σ_(Z, TKE) σY(A, Z, TKE)^2]
@@ -51,7 +55,7 @@ function Y_A(dy, A)
 end
 # TKE(A)
 function TKE_A(dy)
-    tke = distributie_unidym(Int[],Float64[], Float64[])
+    tke = distributie_unidym(Int[], Float64[], Float64[])
     for A_H in minimum(dy.A_H):maximum(dy.A_H)
         Numarator = 0
         Numitor = sum(dy.Y[dy.A_H .== A_H])
@@ -72,23 +76,6 @@ function TKE_A(dy)
         push!(tke.σ, sqrt(Suma_σ²)/Numitor)
     end  
     return tke
-end
-# Sortarea crescatoare dupa ordonata a structurilor de tip obiect unidimensional
-function Sortare_distributie(distributie)
-    index_true = unique(i -> distributie.x[i], eachindex(distributie.x))
-    index_delete = setdiff(eachindex(distributie.x), index_true)
-    deleteat!(distributie.x, index_delete)
-    deleteat!(distributie.y, index_delete)
-    deleteat!(distributie.σ, index_delete)
-    x = sort(distributie.x)
-    y = [distributie.y[distributie.x .== i][1] for i in minimum(x):maximum(x)]
-    σ = [distributie.σ[distributie.x .== i][1] for i in minimum(x):maximum(x)]
-    for i in eachindex(x)
-        distributie.x[i] = x[i]
-        distributie.y[i] = y[i]
-        distributie.σ[i] = σ[i]
-    end
-    return distributie
 end
 # Calculul energiei de separare a particulei (A_part, Z_part) din nucleul (A, Z)
 function Energie_separare(A_part, Z_part, A, Z, df)
@@ -128,51 +115,6 @@ function Sn_A_Z(A, Z, df, limInfA_H, limSupA_H)
     end
     return sn
 end
-# Functia de mediere a unei distributii_bidym(A, Z) pe distributia p(A, Z) considerand toate fragmentele
-function Mediere_distributie_L_H(distributie_A_Z, A, Z, limInfA_H, limSupA_H)
-    distributie_A = distributie_unidym(Int[], Float64[], Float64[])
-    # Baleiaj interval fragmente H
-    for A_H in limInfA_H:limSupA_H
-        Numarator = 0
-        Numitor = 0
-        Sigma_temp² = 0
-        Z_UCD = Z*A_H/A
-        Z_p = Z_UCD - 0.5
-        for j = 1:length(distributie_A_Z.x_2[distributie_A_Z.x_1 .== A_H])
-            P_A_Z = p_A_Z(distributie_A_Z.x_2[distributie_A_Z.x_1 .== A_H][j], Z_p)
-            Numarator += distributie_A_Z.y[distributie_A_Z.x_1 .== A_H][j] * P_A_Z
-            Numitor += P_A_Z
-            Sigma_temp² += (P_A_Z * distributie_A_Z.σ[distributie_A_Z.x_1 .== A_H][j])^2
-        end
-        if Numitor != 0
-            push!(distributie_A.y, Numarator/Numitor)
-            push!(distributie_A.σ, sqrt(Sigma_temp²)/Numitor)
-            push!(distributie_A.x, A_H)
-        end
-    end
-    # Baleiaj interval fragmente L
-    limInfA_L = A - limSupA_H
-    limSupA_L = A - limInfA_H
-    for A_L in limInfA_L:limSupA_L
-        Numarator = 0
-        Numitor = 0
-        Sigma_temp² = 0
-        Z_UCD = Z*A_L/A
-        Z_p = Z_UCD + 0.5
-        for j = 1:length(distributie_A_Z.x_2[distributie_A_Z.x_1 .== A_L])
-            P_A_Z = p_A_Z(distributie_A_Z.x_2[distributie_A_Z.x_1 .== A_L][j], Z_p)
-            Numarator += distributie_A_Z.y[distributie_A_Z.x_1 .== A_L][j] * P_A_Z
-            Numitor += P_A_Z
-            Sigma_temp² += (P_A_Z * distributie_A_Z.σ[distributie_A_Z.x_1 .== A_L][j])^2
-        end
-        if Numitor != 0
-            push!(distributie_A.y, Numarator/Numitor)
-            push!(distributie_A.σ, sqrt(Sigma_temp²)/Numitor)
-            push!(distributie_A.x, A_L)
-        end
-    end
-    return distributie_A
-end
 # Distributia izobara de sarcina cu  σ = rms(A) ≈ 0.6 & ΔZₚ ≈ 0.5 (Gaussiana)
 function p_A_Z(Z, Z_p)
     return 1/(sqrt(2*π) * 0.6) * exp(-(Z - Z_p)^2 /(2*0.6^2))
@@ -202,65 +144,26 @@ function Q_A_Z(A, Z, df, limInfA_H, limSupA_H)
     end 
     return Q
 end
-# Functia de mediere a unei distributii_bidym(A, Z) pe distributia p(A, Z) considerand fragmentele H
-function Mediere_distributie_H(distributie_A_Z, A, Z, limInfA_H, limSupA_H)
-    distributie_A = distributie_unidym(Int[], Float64[], Float64[])
-    for A_H in limInfA_H:limSupA_H
-        Numarator = 0
-        Numitor = 0
-        Sigma_temp² = 0
-        Z_UCD = Z*A_H/A
-        Z_p = Z_UCD - 0.5
-        for j = 1:length(distributie_A_Z.x_2[distributie_A_Z.x_1 .== A_H])
-            P_A_Z = p_A_Z(distributie_A_Z.x_2[distributie_A_Z.x_1 .== A_H][j], Z_p)
-            Numarator += distributie_A_Z.y[distributie_A_Z.x_1 .== A_H][j] * P_A_Z
-            Numitor += P_A_Z
-            Sigma_temp² += (P_A_Z * distributie_A_Z.σ[distributie_A_Z.x_1 .== A_H][j])^2
-        end
-        if Numitor != 0
-            push!(distributie_A.y, Numarator/Numitor)
-            push!(distributie_A.σ, sqrt(Sigma_temp²)/Numitor)
-            push!(distributie_A.x, A_H)
-        end
-    end
-    return distributie_A
-end
-# TXE(A) = Q(A) - TKE(A) + Sₙ + εₙ
-function TXE_A(q_A, tke_A, df, A, Z, εₙ)
-    TXE = distributie_unidym(Int[],Float64[], Float64[])
+# TXE(A, Z)
+function TXE_A_Z(q_A_Z, tke_A, df, A, Z, εₙ)
+    txe_A_Z = distributie_bidym(Int[], Int[], Float64[], Float64[])
     Sₙ = Energie_separare(1, 0, A, Z, df)
-    for A_H in minimum(q_A.x):maximum(q_A.x)
-        if isassigned(tke_A.y[tke_A.x .== A_H], 1) && !isnan(Sₙ[1])
-            push!(TXE.x, A_H)
-            push!(TXE.y, q_A.y[q_A.x .== A_H][1] + Sₙ[1] + εₙ - tke_A.y[tke_A.x .== A_H][1])
-            push!(TXE.σ, sqrt(q_A.σ[q_A.x .== A_H][1]^2 + Sₙ[2]^2 + tke_A.σ[tke_A.x .== A_H][1]^2))
-        end
-    end  
-    return TXE
-end
-# Valoare medie & incertitudine pentru distributii mediate folosind o distributie de yield
-function Medie_distributie(distributie, Y, index_min, index_max)
-    Numarator = 0
-    Numitor = 0
-    Suma_σ² = 0
-    for i in index_min:index_max
-        if isassigned(Y.y[Y.x .== distributie.x[i]], 1)
-            Numarator += distributie.y[i] * Y.y[Y.x .== distributie.x[i]][1]
-            Numitor += Y.y[Y.x .== distributie.x[i]][1]
-        end
-    end
-    if Numitor != 0 # Elementele pentru care a existat și Xᵢ și Yᵢ la același indice
-        Media_distributiei = Numarator/Numitor
-        for i in index_min:index_max
-            if isassigned(Y.y[Y.x .== distributie.x[i]], 1)
-                Suma_σ² += Y.y[Y.x .== distributie.x[i]][1]^2 * distributie.σ[i]^2
-                Suma_σ² += (distributie.x[i] - Media_distributiei)^2 * Y.σ[Y.x .== distributie.x[i]][1]^2
+    for A_H in minimum(q_A_Z.x_1):maximum(q_A_Z.x_1)
+        for Z_H in minimum(q_A_Z.x_2[q_A_Z.x_1 .== A_H]):maximum(q_A_Z.x_2[q_A_Z.x_1 .== A_H])
+            if isassigned(tke_A.y[tke_A.x .== A_H], 1)
+                Q = q_A_Z.y[(q_A_Z.x_1 .== A_H) .& (q_A_Z.x_2 .== Z_H)][1]
+                TKE = tke_A.y[tke_A.x .== A_H][1]
+                TXE = Q - TKE + Sₙ[1] + εₙ
+                if TXE > 0
+                    push!(txe_A_Z.x_1, A_H)
+                    push!(txe_A_Z.x_2, Z_H)
+                    push!(txe_A_Z.y, TXE)
+                    push!(txe_A_Z.σ, 0.0)
+                end
             end
-        end    
-        return [round(Media_distributiei, digits = 3), round(sqrt(Suma_σ²)/Numitor, digits = 5)]    
-    else 
-        return [NaN, NaN]
+        end
     end
+    return txe_A_Z
 end
 function Functie_liniara(x, a, b)
     return a*x + b
@@ -273,22 +176,26 @@ function Beta_sciziune()
     for Z in 28:41
         push!(β_sciz.x, Z)
         push!(β_sciz.y, Functie_liniara(Z, a, b))
+        push!(β_sciz.σ, 0.0)
     end
     for Z in 42:44
         push!(β_sciz.x, Z)
         push!(β_sciz.y, 0.58)
+        push!(β_sciz.σ, 0.0)
     end
     a = -0.58/6
     b = -50*a
     for Z in 45:50
         push!(β_sciz.x, Z)
         push!(β_sciz.y, Functie_liniara(Z, a, b))
+        push!(β_sciz.σ, 0.0)
     end
     a = 0.6/15
     b = -50*a
     for Z in 51:65
         push!(β_sciz.x, Z)
         push!(β_sciz.y, Functie_liniara(Z, a, b))
+        push!(β_sciz.σ, 0.0)
     end
     return β_sciz
 end
@@ -336,27 +243,6 @@ function ΔE_deformare_A_Z(A, Z, dβ₀, β_sciz, limInfA_H, limSupA_H)
     end
     return ΔE
 end
-# TXE(A, Z)
-function TXE_A_Z(q_A_Z, tke_A, A, Z, εₙ)
-    txe_A_Z = distributie_bidym(Int[], Int[], Float64[], Float64[])
-    Sₙ = Energie_separare(1, 0, A, Z, df)
-    for A_H in minimum(q_A_Z.x_1):maximum(q_A_Z.x_1)
-        for Z_H in minimum(q_A_Z.x_2[q_A_Z.x_1 .== A_H]):maximum(q_A_Z.x_2[q_A_Z.x_1 .== A_H])
-            if isassigned(tke_A.y[tke_A.x .== A_H], 1)
-                Q = q_A_Z.y[(q_A_Z.x_1 .== A_H) .& (q_A_Z.x_2 .== Z_H)][1]
-                TKE = tke_A.y[tke_A.x .== A_H][1]
-                TXE = Q - TKE + Sₙ[1] + εₙ
-                if TXE > 0
-                    push!(txe_A_Z.x_1, A_H)
-                    push!(txe_A_Z.x_2, Z_H)
-                    push!(txe_A_Z.y, TXE)
-                    push!(txe_A_Z.σ, 0.0)
-                end
-            end
-        end
-    end
-    return txe_A_Z
-end
 # Calculul parametrului densitatilor de nivele, sistematica Gilbert-Cameron
 function a_Gilbert_Cameron(dGC, A, Z, limInfA_H, limSupA_H)
     a = distributie_bidym(Int[], Int[], Float64[], Float64[])
@@ -370,15 +256,17 @@ function a_Gilbert_Cameron(dGC, A, Z, limInfA_H, limSupA_H)
                 if isassigned(dGC.S_Z[dGC.n .== Z_L], 1) && isassigned(dGC.S_N[dGC.n .== N_L], 1)
                     a_H = A_H * (0.00917*(dGC.S_Z[dGC.n .== Z_H][1] + dGC.S_N[dGC.n .== N_H][1]) + 0.142)
                     a_L = A_L * (0.00917*(dGC.S_Z[dGC.n .== Z_L][1] + dGC.S_N[dGC.n .== N_L][1]) + 0.142)
-                    push!(a.x_1, A_H)
-                    push!(a.x_2, Z_H)
-                    push!(a.y, a_H)
-                    push!(a.σ, 0.0)
-                    if A_L != A_H
-                        push!(a.x_1, A_L)
-                        push!(a.x_2, Z_L)
-                        push!(a.y, a_L)
+                    if a_H > 0 && a_L > 0
+                        push!(a.x_1, A_H)
+                        push!(a.x_2, Z_H)
+                        push!(a.y, a_H)
                         push!(a.σ, 0.0)
+                        if A_L != A_H
+                            push!(a.x_1, A_L)
+                            push!(a.x_2, Z_L)
+                            push!(a.y, a_L)
+                            push!(a.σ, 0.0)
+                        end
                     end
                 end
             end
@@ -406,16 +294,18 @@ function E_sciziune(txe, ΔE_def, a, A, Z, limInfA_H, limSupA_H)
                         a_L = a.y[(a.x_1 .== A_L) .& (a.x_2 .== Z_L)][1]
                         a_H = a.y[(a.x_1 .== A_H) .& (a.x_2 .== Z_H)][1]
                         r = a_L/a_H
-                        push!(E_sciz.x_1, A_H)
-                        push!(E_sciz.x_2, Z_H)
-                        push!(E_sciz.y, ε_sciz/(1 + r))
-                        push!(E_sciz.σ, 0.0)
-                        if A_L != A_H
-                            push!(E_sciz.x_1, A_L)
-                            push!(E_sciz.x_2, Z_L)
-                            push!(E_sciz.y, ε_sciz * r/(1 + r))
+                        if ε_sciz > 0
+                            push!(E_sciz.x_1, A_H)
+                            push!(E_sciz.x_2, Z_H)
+                            push!(E_sciz.y, ε_sciz/(1 + r))
                             push!(E_sciz.σ, 0.0)
-                        end     
+                            if A_L != A_H
+                                push!(E_sciz.x_1, A_L)
+                                push!(E_sciz.x_2, Z_L)
+                                push!(E_sciz.y, ε_sciz * r/(1 + r))
+                                push!(E_sciz.σ, 0.0)
+                            end     
+                        end
                     end
                 end
             end
@@ -423,47 +313,100 @@ function E_sciziune(txe, ΔE_def, a, A, Z, limInfA_H, limSupA_H)
     end  
     return E_sciz
 end
-#Calculul energiei de excitatie a fragmentelor total accelerate
-function E_excitatie_at(ΔE_def, E_sciz, A, Z)
+# Calculul energiei de excitatie a fragmentelor total accelerate
+function E_excitatie_at(ΔE_def, E_sciz, A, Z, limInfA_H, limSupA_H)
     E_excitatie = distributie_bidym(Int[], Int[], Float64[], Float64[])
-    for A_H in minimum(E_sciz.x_1):maximum(E_sciz.x_1)
+    for A_H in limInfA_H:limSupA_H
         A_L = A - A_H
-        for Z_H in minimum(E_sciz.x_2[E_sciz.x_1 .== A_H]):maximum(E_sciz.x_2[E_sciz.x_1 .== A_H])
-            Z_L = Z - Z_H
-            ΔE_def_L = ΔE_def.y[(ΔE_def.x_1 .== A_L) .& (ΔE_def.x_2 .== Z_L)][1]
-            ΔE_def_H = ΔE_def.y[(ΔE_def.x_1 .== A_H) .& (ΔE_def.x_2 .== Z_H)][1]
-            E_sciz_L = E_sciz.y[(E_sciz.x_1 .== A_L) .& (E_sciz.x_2 .== Z_L)][1]
-            E_sciz_H = E_sciz.y[(E_sciz.x_1 .== A_H) .& (E_sciz.x_2 .== Z_H)][1]
-            E_excitatie_L = ΔE_def_L + E_sciz_L
-            E_excitatie_H = ΔE_def_H + E_sciz_H
-            push!(E_excitatie.x_1, A_H)
-            push!(E_excitatie.x_2, Z_H)
-            push!(E_excitatie.y, E_excitatie_L)
-            push!(E_excitatie.σ, 0.0)
-            if A_L != A_H
-                push!(E_excitatie.x_1, A_L)
-                push!(E_excitatie.x_2, Z_L)
+        if isassigned(E_sciz.x_2[E_sciz.x_1 .== A_H], 1)
+            for Z_H in minimum(E_sciz.x_2[E_sciz.x_1 .== A_H]):maximum(E_sciz.x_2[E_sciz.x_1 .== A_H])
+                Z_L = Z - Z_H
+                ΔE_def_L = ΔE_def.y[(ΔE_def.x_1 .== A_L) .& (ΔE_def.x_2 .== Z_L)][1]
+                ΔE_def_H = ΔE_def.y[(ΔE_def.x_1 .== A_H) .& (ΔE_def.x_2 .== Z_H)][1]
+                E_sciz_L = E_sciz.y[(E_sciz.x_1 .== A_L) .& (E_sciz.x_2 .== Z_L)][1]
+                E_sciz_H = E_sciz.y[(E_sciz.x_1 .== A_H) .& (E_sciz.x_2 .== Z_H)][1]
+                E_excitatie_L = ΔE_def_L + E_sciz_L
+                E_excitatie_H = ΔE_def_H + E_sciz_H
+                push!(E_excitatie.x_1, A_H)
+                push!(E_excitatie.x_2, Z_H)
                 push!(E_excitatie.y, E_excitatie_H)
                 push!(E_excitatie.σ, 0.0)
+                if A_L != A_H
+                    push!(E_excitatie.x_1, A_L)
+                    push!(E_excitatie.x_2, Z_L)
+                    push!(E_excitatie.y, E_excitatie_L)
+                    push!(E_excitatie.σ, 0.0)
+                end
             end
         end
     end
     return E_excitatie
 end
-#Calculul raportului final de partitionare R
+# Calculul raportului final de partitionare R
 function R_partitionare(E_excitatie, txe)
     R = distributie_bidym(Int[], Int[], Float64[], Float64[])
     for A_H in minimum(txe.x_1):maximum(txe.x_1)
         for Z_H in minimum(txe.x_2[txe.x_1 .== A_H]):maximum(txe.x_2[txe.x_1 .== A_H])
-            TXE = txe.y[(txe.x_1 .== A_H) .& (txe.x_2 .== Z_H)][1]
-            E_excitatie_H = E_excitatie.y[(E_excitatie.x_1 .== A_H) .& (E_excitatie.x_2 .== Z_H)][1]
-            push!(R.x_1, A_H)
-            push!(R.x_2, Z_H)
-            push!(R.y, E_excitatie_H/TXE)
-            push!(R.σ, 0.0)
+            if isassigned(E_excitatie.y[(E_excitatie.x_1 .== A_H) .& (E_excitatie.x_2 .== Z_H)], 1)
+                TXE = txe.y[(txe.x_1 .== A_H) .& (txe.x_2 .== Z_H)][1]
+                E_excitatie_H = E_excitatie.y[(E_excitatie.x_1 .== A_H) .& (E_excitatie.x_2 .== Z_H)][1]
+                push!(R.x_1, A_H)
+                push!(R.x_2, Z_H)
+                push!(R.y, E_excitatie_H/TXE)
+                push!(R.σ, 0.0)
+            end
         end
     end
     return R
+end
+# Calculul multiplicitatii neutronice prompte a perechilor de fragmente
+function ν_pereche(txe, sn, a, A, Z)
+    ν = distributie_bidym(Int[], Int[], Float64[], Float64[])
+    p = 6.71 - Z^2 * 0.156/A
+    q = 0.75 + Z^2 * 0.088/A
+    for A_H in minimum(txe.x_1):maximum(txe.x_1)
+        A_L = A - A_H
+        for Z_H in minimum(txe.x_2[txe.x_1 .== A_H]):maximum(txe.x_2[txe.x_1 .== A_H])
+            Z_L = Z - Z_H
+            a_L = a.y[(a.x_1 .== A_L) .& (a.x_2 .== Z_L)][1]
+            a_H = a.y[(a.x_1 .== A_H) .& (a.x_2 .== Z_H)][1]
+            a_med = a_L + a_H
+            TXE = txe.y[(txe.x_1 .== A_H) .& (txe.x_2 .== Z_H)][1]
+            Tₘ = sqrt(TXE/a_med)
+            ε_med = 4*Tₘ/3
+            sn_L = sn.y[(sn.x_1 .== A_L) .& (sn.x_2 .== Z_L)][1]
+            sn_H = sn.y[(sn.x_1 .== A_H) .& (sn.x_2 .== Z_H)][1]
+            Sₙ_med = 0.5*(sn_L + sn_H)
+            push!(ν.x_1, A_H)
+            push!(ν.x_2, Z_H)
+            push!(ν.y, (TXE - q)/(ε_med + Sₙ_med + p))
+            push!(ν.σ, 0.0)
+        end
+    end
+    return ν
+end
+# Calculul multiplicitatii neutronice prompte partitionata pe fiecare fragmentarilor
+function ν_partitionat(ν_pereche, R, A, Z)
+    ν = distributie_bidym(Int[], Int[], Float64[], Float64[])
+    for A_H in minimum(R.x_1):maximum(R.x_1)
+        A_L = A - A_H
+        for Z_H in minimum(R.x_2[R.x_1 .== A_H]):maximum(R.x_2[R.x_1 .== A_H])
+            Z_L = Z - Z_H
+            mu_pereche = ν_pereche.y[(ν_pereche.x_1 .== A_H) .& (ν_pereche.x_2 .== Z_H)][1]
+            R_pereche = R.y[(R.x_1 .== A_H) .& (R.x_2 .== Z_H)][1]
+            push!(ν.x_1, A_H)
+            push!(ν.x_2, Z_H)
+            push!(ν.y, R_pereche * mu_pereche)
+            push!(ν.σ, 0.0)
+            if A_L != A_H
+                push!(ν.x_1, A_L)
+                push!(ν.x_2, Z_L)
+                push!(ν.y, (1 - R_pereche) * mu_pereche)
+                push!(ν.σ, 0.0)
+            end
+        end
+    end
+    return ν
 end
 # Indicele de mijloc al abscisei unei distributii unidym returnat ca Int
 function Indice_mijloc(distributie)
@@ -474,14 +417,123 @@ function Indice_mijloc(distributie)
         return Int((L+1)/2)
     end
 end
+# Sortarea crescatoare dupa ordonata a structurilor de tip obiect unidimensional
+function Sortare_distributie(distributie)
+    index_true = unique(i -> distributie.x[i], eachindex(distributie.x))
+    index_delete = setdiff(eachindex(distributie.x), index_true)
+    deleteat!(distributie.x, index_delete)
+    deleteat!(distributie.y, index_delete)
+    deleteat!(distributie.σ, index_delete)
+    x = sort(distributie.x)
+    y = [distributie.y[distributie.x .== i][1] for i in minimum(x):maximum(x)]
+    σ = [distributie.σ[distributie.x .== i][1] for i in minimum(x):maximum(x)]
+    for i in eachindex(x)
+        distributie.x[i] = x[i]
+        distributie.y[i] = y[i]
+        distributie.σ[i] = σ[i]
+    end
+    return distributie
+end
+# Valoare medie & incertitudine pentru distributii mediate folosind o distributie de yield
+function Medie_distributie(distributie, Y, index_min, index_max)
+    Numarator = 0
+    Numitor = 0
+    Suma_σ² = 0
+    for i in index_min:index_max
+        if isassigned(Y.y[Y.x .== distributie.x[i]], 1)
+            Numarator += distributie.y[i] * Y.y[Y.x .== distributie.x[i]][1]
+            Numitor += Y.y[Y.x .== distributie.x[i]][1]
+        end
+    end
+    if Numitor != 0 # Elementele pentru care a existat și Xᵢ și Yᵢ la același indice
+        Media_distributiei = Numarator/Numitor
+        for i in index_min:index_max
+            if isassigned(Y.y[Y.x .== distributie.x[i]], 1)
+                Suma_σ² += Y.y[Y.x .== distributie.x[i]][1]^2 * distributie.σ[i]^2
+                Suma_σ² += (distributie.x[i] - Media_distributiei)^2 * Y.σ[Y.x .== distributie.x[i]][1]^2
+            end
+        end    
+        return [round(Media_distributiei, digits = 3), round(sqrt(Suma_σ²)/Numitor, digits = 5)]    
+    else 
+        return [NaN, NaN]
+    end
+end
+# Functia de mediere a unei distributii_bidym(A, Z) pe distributia p(A, Z) considerand fragmentele H
+function Mediere_distributie_H(distributie_A_Z, A, Z, limInfA_H, limSupA_H)
+    distributie_A = distributie_unidym(Int[], Float64[], Float64[])
+    for A_H in limInfA_H:limSupA_H
+        Numarator = 0
+        Numitor = 0
+        Sigma_temp² = 0
+        Z_UCD = Z*A_H/A
+        Z_p = Z_UCD - 0.5
+        for j = 1:length(distributie_A_Z.x_2[distributie_A_Z.x_1 .== A_H])
+            P_A_Z = p_A_Z(distributie_A_Z.x_2[distributie_A_Z.x_1 .== A_H][j], Z_p)
+            Numarator += distributie_A_Z.y[distributie_A_Z.x_1 .== A_H][j] * P_A_Z
+            Numitor += P_A_Z
+            Sigma_temp² += (P_A_Z * distributie_A_Z.σ[distributie_A_Z.x_1 .== A_H][j])^2
+        end
+        if Numitor != 0
+            push!(distributie_A.y, Numarator/Numitor)
+            push!(distributie_A.σ, sqrt(Sigma_temp²)/Numitor)
+            push!(distributie_A.x, A_H)
+        end
+    end
+    return distributie_A
+end
+# Functia de mediere a unei distributii_bidym(A, Z) pe distributia p(A, Z) considerand toate fragmentele
+function Mediere_distributie_L_H(distributie_A_Z, A, Z, limInfA_H, limSupA_H)
+    distributie_A = distributie_unidym(Int[], Float64[], Float64[])
+    # Baleiaj interval fragmente H
+    for A_H in limInfA_H:limSupA_H
+        Numarator = 0
+        Numitor = 0
+        Sigma_temp² = 0
+        Z_UCD = Z*A_H/A
+        Z_p = Z_UCD - 0.5
+        for j = 1:length(distributie_A_Z.x_2[distributie_A_Z.x_1 .== A_H])
+            P_A_Z = p_A_Z(distributie_A_Z.x_2[distributie_A_Z.x_1 .== A_H][j], Z_p)
+            Numarator += distributie_A_Z.y[distributie_A_Z.x_1 .== A_H][j] * P_A_Z
+            Numitor += P_A_Z
+            Sigma_temp² += (P_A_Z * distributie_A_Z.σ[distributie_A_Z.x_1 .== A_H][j])^2
+        end
+        if Numitor != 0
+            push!(distributie_A.y, Numarator/Numitor)
+            push!(distributie_A.σ, sqrt(Sigma_temp²)/Numitor)
+            push!(distributie_A.x, A_H)
+        end
+    end
+    # Baleiaj interval fragmente L
+    limInfA_L = A - limSupA_H
+    limSupA_L = A - limInfA_H
+    for A_L in limInfA_L:limSupA_L
+        Numarator = 0
+        Numitor = 0
+        Sigma_temp² = 0
+        Z_UCD = Z*A_L/A
+        Z_p = Z_UCD + 0.5
+        for j = 1:length(distributie_A_Z.x_2[distributie_A_Z.x_1 .== A_L])
+            P_A_Z = p_A_Z(distributie_A_Z.x_2[distributie_A_Z.x_1 .== A_L][j], Z_p)
+            Numarator += distributie_A_Z.y[distributie_A_Z.x_1 .== A_L][j] * P_A_Z
+            Numitor += P_A_Z
+            Sigma_temp² += (P_A_Z * distributie_A_Z.σ[distributie_A_Z.x_1 .== A_L][j])^2
+        end
+        if Numitor != 0
+            push!(distributie_A.y, Numarator/Numitor)
+            push!(distributie_A.σ, sqrt(Sigma_temp²)/Numitor)
+            push!(distributie_A.x, A_L)
+        end
+    end
+    return distributie_A
+end
 # Aici se opreste partea de calcul a programului
 #####
+# Constructia reprezentarilor grafice
 function Grafic_scatter(distributie, titlu, eticheta, axa_x, axa_y, scalare_inf, scalare_sup)
     plt = scatter(
         distributie.x, 
         distributie.y, 
         yerr = distributie.σ, 
-        xlims = (minimum(distributie.x), maximum(distributie.x)),
         ylims = (minimum(distributie.y)*scalare_inf, maximum(distributie.y)*scalare_sup),
         xlabel = "$axa_x", 
         ylabel = "$axa_y", 
@@ -498,6 +550,15 @@ function Grafic_scatter(distributie, plt, eticheta)
         distributie.x_1, 
         distributie.y,  
         yerr = distributie.σ,
+        label = "$eticheta"
+    )
+    return plt
+end
+function Grafic_scatter(plt, eticheta, dν)
+    scatter!(plt, 
+        dν.A, 
+        dν.ν,  
+        yerr = dν.σν,
         label = "$eticheta"
     )
     return plt
@@ -554,30 +615,59 @@ A₀ = 236;
 Z₀ = 92;
 εₙ = 0;
 limInfA_H = 118;
-limSupA_H = 165;
+limSupA_H = 160;
 
-y_A = Sortare_distributie(Y_A(dy, A₀))
-tke_A = Sortare_distributie(TKE_A(dy))
-q_A_Z = Q_A_Z(A₀, Z₀, df, limInfA_H, limSupA_H)
-q_A = Sortare_distributie(Mediere_distributie_H(q_A_Z, A₀, Z₀, limInfA_H, limSupA_H))
-sn_A_Z = Sn_A_Z(A₀, Z₀, df, limInfA_H, limSupA_H)
-sn_A = Sortare_distributie(Mediere_distributie_L_H(sn_A_Z, A₀, Z₀, limInfA_H, limSupA_H))
-txe_A_Z = TXE_A_Z(q_A_Z, tke_A, A₀, Z₀, εₙ)
-txe_A = Sortare_distributie(TXE_A(q_A, tke_A, df, A₀, Z₀, εₙ))
-β_sciz = Beta_sciziune()
-ΔE_def_A_Z = ΔE_deformare_A_Z(A₀, Z₀, dβ₀, β_sciz, limInfA_H, limSupA_H)
-ΔE_def_A = Sortare_distributie(Mediere_distributie_L_H(ΔE_def_A_Z, A₀, Z₀, limInfA_H, limSupA_H))
-a_A_Z = a_Gilbert_Cameron(dGC, A₀, Z₀, limInfA_H, limSupA_H)
-a_A = Sortare_distributie(Mediere_distributie_L_H(a_A_Z, A₀, Z₀, limInfA_H, limSupA_H))
-E_sciz_A_Z = E_sciziune(txe_A_Z, ΔE_def_A_Z, a_A_Z, A₀, Z₀, limInfA_H, limSupA_H)
-E_sciz_A = Sortare_distributie(Mediere_distributie_L_H(E_sciz_A_Z, A₀, Z₀, limInfA_H, limSupA_H))
-E_excitatie_A_Z = E_excitatie_at(ΔE_def_A_Z, E_sciz_A_Z, A₀, Z₀)
-E_excitatie_A = Sortare_distributie(Mediere_distributie_L_H(E_excitatie_A_Z, A₀, Z₀, limInfA_H, limSupA_H))
-R_A_Z = R_partitionare(E_excitatie_A_Z, txe_A_Z)
-R_A = Sortare_distributie(Mediere_distributie_H(R_A_Z, A₀, Z₀, limInfA_H, limSupA_H))
+y_A = Sortare_distributie(Y_A(dy, A₀));
+tke_A = Sortare_distributie(TKE_A(dy));
+q_A_Z = Q_A_Z(A₀, Z₀, df, limInfA_H, limSupA_H);
+q_A = Sortare_distributie(Mediere_distributie_H(q_A_Z, A₀, Z₀, limInfA_H, limSupA_H));
+sn_A_Z = Sn_A_Z(A₀, Z₀, df, limInfA_H, limSupA_H);
+sn_A = Sortare_distributie(Mediere_distributie_L_H(sn_A_Z, A₀, Z₀, limInfA_H, limSupA_H));
+txe_A_Z = TXE_A_Z(q_A_Z, tke_A, df, A₀, Z₀, εₙ);
+txe_A = Sortare_distributie(Mediere_distributie_L_H(txe_A_Z, A₀, Z₀, limInfA_H, limSupA_H));
+β_sciz = Beta_sciziune();
+ΔE_def_A_Z = ΔE_deformare_A_Z(A₀, Z₀, dβ₀, β_sciz, limInfA_H, limSupA_H);
+ΔE_def_A = Sortare_distributie(Mediere_distributie_L_H(ΔE_def_A_Z, A₀, Z₀, limInfA_H, limSupA_H));
+a_A_Z = a_Gilbert_Cameron(dGC, A₀, Z₀, limInfA_H, limSupA_H);
+a_A = Sortare_distributie(Mediere_distributie_L_H(a_A_Z, A₀, Z₀, limInfA_H, limSupA_H));
+E_sciz_A_Z = E_sciziune(txe_A_Z, ΔE_def_A_Z, a_A_Z, A₀, Z₀, limInfA_H, limSupA_H);
+E_sciz_A = Sortare_distributie(Mediere_distributie_L_H(E_sciz_A_Z, A₀, Z₀, limInfA_H, limSupA_H));
+E_excitatie_A_Z = E_excitatie_at(ΔE_def_A_Z, E_sciz_A_Z, A₀, Z₀, limInfA_H, limSupA_H);
+E_excitatie_A = Sortare_distributie(Mediere_distributie_L_H(E_excitatie_A_Z, A₀, Z₀, limInfA_H, limSupA_H));
+R_A_Z = R_partitionare(E_excitatie_A_Z, txe_A_Z);
+R_A = Sortare_distributie(Mediere_distributie_H(R_A_Z, A₀, Z₀, limInfA_H, limSupA_H));
+ν_pereche_A_Z = ν_pereche(txe_A_Z, sn_A_Z, a_A_Z, A₀, Z₀);
+ν_pereche_A = Sortare_distributie(Mediere_distributie_L_H(ν_pereche_A_Z, A₀, Z₀, limInfA_H, limSupA_H));
+ν_A_Z = ν_partitionat(ν_pereche_A_Z, R_A_Z, A₀, Z₀);
+ν_A = Sortare_distributie(Mediere_distributie_L_H(ν_A_Z, A₀, Z₀, limInfA_H, limSupA_H));
 
-Q_med = Medie_distributie(q_A, y_A, firstindex(q_A.x), lastindex(q_A.x))
-mid_index_sn_A = Int((length(sn_A.x) + 1 )/2);
-Sn_H_med = Medie_distributie(sn_A, y_A, firstindex(sn_A.x), mid_index_sn_A)
-Sn_L_med = Medie_distributie(sn_A, y_A, mid_index_sn_A, lastindex(sn_A.x))
-TXE_med = Medie_distributie(txe_A, y_A, firstindex(txe_A.x), lastindex(txe_A.x))
+Q_med = Medie_distributie(q_A, y_A, firstindex(q_A.x), lastindex(q_A.x));
+Plot_Q_A = Grafic_scatter(q_A, "Q", "Q(A)", "A_H", "Q [MeV]", 0.8, 1.05);
+Plot_Q_A = Grafic_scatter(q_A_Z, Plot_Q_A, "Q(A, Z)");
+Plot_Q_A = Grafic_unire_linie(q_A ,Plot_Q_A);
+Plot_Q_A = Grafic_textbox_medie(q_A.x[Indice_mijloc(q_A)], maximum(q_A.y)*0.75, Plot_Q_A, "Q", Q_med[1], Q_med[2], "MeV");
+Grafic_afisare(Plot_Q_A, "Q(A)")
+
+TXE_med = Medie_distributie(txe_A, y_A, firstindex(txe_A.x), lastindex(txe_A.x));
+Plot_TXE_A = Grafic_scatter(txe_A, "TXE", "TXE(A)", "A_H", "TXE [MeV]", 1e-3, 1.1);
+Plot_TXE_A = Grafic_scatter(txe_A_Z, Plot_TXE_A, "TXE(A, Z)");
+Plot_TXE_A = Grafic_unire_linie(txe_A, Plot_TXE_A);
+Plot_TXE_A = Grafic_textbox_medie(txe_A.x[Indice_mijloc(txe_A)], maximum(txe_A.y)*0.9, Plot_TXE_A, "TXE", TXE_med[1], TXE_med[2], "MeV");
+Grafic_afisare(Plot_TXE_A, "TXE(A)")
+
+Sn_H_med = Medie_distributie(sn_A, y_A, firstindex(sn_A.x), Indice_mijloc(sn_A));
+Sn_L_med = Medie_distributie(sn_A, y_A, Indice_mijloc(sn_A), lastindex(sn_A.x));
+Plot_Sn_A = Grafic_scatter(sn_A, "Sn", "Sn(A)", "A", "Sn [MeV]", 0.1, 1.9);
+Plot_Sn_A = Grafic_scatter(sn_A_Z, Plot_Sn_A, "Sn(A, Z)");
+Plot_Sn_A = Grafic_unire_linie(sn_A, Plot_Sn_A);
+#Plot_Sn_A = Grafic_textbox_medie(sn_A.x[Indice_mijloc(sn_A)]*0.8, maximum(sn_A.y)*0.98, Plot_Sn_A, "Sn_H", Sn_H_med[1], Sn_H_med[2], "MeV");
+#Plot_Sn_A = Grafic_textbox_medie(sn_A.x[Indice_mijloc(sn_A)]*0.8, maximum(sn_A.y)*0.96, Plot_Sn_A, "Sn_L", Sn_L_med[1], Sn_L_med[2], "MeV");
+Plot_Sn_A = Grafic_linie_medie_vertical(Plot_Sn_A, sn_A.x[Indice_mijloc(sn_A)]);
+Grafic_afisare(Plot_Sn_A, "Sn(A)")
+
+Plot_E_def_A = Grafic_scatter(ΔE_def_A, "E_def", "E_def(A)", "A", "E_def [MeV]", 1e-2, 2.5);
+#Plot_E_def_A = Grafic_scatter(ΔE_def_A_Z, Plot_E_def_A, "E_def(A, Z)");
+#Plot_E_def_A = Grafic_unire_linie(ΔE_def_A ,Plot_E_def_A);
+Plot_E_def_A = scatter!(E_sciz_A.x, E_sciz_A.y, label = "E_sciz(A)");
+Plot_E_def_A = scatter!(E_excitatie_A.x, E_excitatie_A.y, label = "E_exc(A)");
+Grafic_afisare(Plot_E_def_A, "E_def(A)")

@@ -27,7 +27,7 @@ end
 #####
 # Y(A)
 function Y_A(dy, A)
-    Y = distributie_unidym(Int[],Float64[], Float64[])
+    Y = distributie_unidym(Int[], Float64[], Float64[])
     for A_H in minimum(dy.A_H):maximum(dy.A_H)
         # Y(A) = Σ_(Z, TKE) Y(A, Z, TKE)
         # σY(A) = sqrt[Σ_(Z, TKE) σY(A, Z, TKE)^2]
@@ -50,7 +50,7 @@ function Y_A(dy, A)
 end
 # Y(Z)
 function Y_Z(dy, Z)
-    Y = distributie_unidym(Int[],Float64[], Float64[])
+    Y = distributie_unidym(Int[], Float64[], Float64[])
     for Z_H in minimum(dy.Z_H):maximum(dy.Z_H)
         # Y(Z) = Σ_(A, TKE) Y(A, Z, TKE)
         # σY(Z) = sqrt[Σ_(A, TKE) σY(A, Z, TKE)^2]
@@ -77,7 +77,7 @@ function Y_Z(dy, Z)
 end
 # Y(N)
 function Y_N(dy, A, Z)
-    Y = distributie_unidym(Int[],Float64[], Float64[])
+    Y = distributie_unidym(Int[], Float64[], Float64[])
     for A_H in minimum(dy.A_H):maximum(dy.A_H)
         for Z_H in minimum(dy.Z_H[dy.A_H .== A_H]):maximum(dy.Z_H[dy.A_H .== A_H])
             y_N = sum(dy.Y[dy.A_H .- dy.Z_H .== A_H - Z_H])
@@ -104,7 +104,7 @@ function Y_N(dy, A, Z)
 end
 # Y(TKE)
 function Y_TKE(dy)
-    Y = distributie_unidym(Int[],Float64[], Float64[])
+    Y = distributie_unidym(Int[], Float64[], Float64[])
     for TKE in minimum(dy.TKE):maximum(dy.TKE)
         # Y(TKE) = Σ_(A, Z) Y(A, Z, TKE)
         # σY(TKE) = sqrt[Σ_(A, Z) σY(A, Z, TKE)^2]
@@ -122,7 +122,7 @@ function Y_TKE(dy)
 end
 # TKE(A)
 function TKE_A(dy)
-    tke = distributie_unidym(Int[],Float64[], Float64[])
+    tke = distributie_unidym(Int[], Float64[], Float64[])
     for A_H in minimum(dy.A_H):maximum(dy.A_H)
         Numarator = 0
         Numitor = sum(dy.Y[dy.A_H .== A_H])
@@ -146,7 +146,7 @@ function TKE_A(dy)
 end
 # KE(A)
 function KE_A(tke_A, A)
-    KE = distributie_unidym(Int[],Float64[], Float64[])
+    KE = distributie_unidym(Int[], Float64[], Float64[])
     for A_H in minimum(dy.A_H):maximum(dy.A_H)
         TKE_A = tke_A.y[tke_A.x .== A_H][1]
         σTKE_A = tke_A.σ[tke_A.x .== A_H][1]
@@ -240,7 +240,7 @@ function Energie_separare(A_part, Z_part, A, Z, df)
 end
 # TXE(A) = Q(A) - TKE(A) + Sₙ
 function TXE_A(q_A, tke_A, df, A, Z)
-    TXE = distributie_unidym(Int[],Float64[], Float64[])
+    TXE = distributie_unidym(Int[], Float64[], Float64[])
     Sₙ = Energie_separare(1, 0, A, Z, df)
     for A_H in minimum(q_A.x):maximum(q_A.x)
         if isassigned(tke_A.y[tke_A.x .== A_H], 1)
@@ -319,7 +319,6 @@ function Grafic_scatter(distributie, titlu, axa_x, axa_y, scalare_inf, scalare_s
         distributie.x, 
         distributie.y, 
         yerr = distributie.σ, 
-        xlims = (minimum(distributie.x), maximum(distributie.x)),
         ylims = (minimum(distributie.y)*scalare_inf, maximum(distributie.y)*scalare_sup),
         xlabel = "$axa_x", 
         ylabel = "$axa_y", 

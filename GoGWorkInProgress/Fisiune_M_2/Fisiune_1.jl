@@ -81,7 +81,6 @@ function Grafic_scatter(Q, eticheta)
         Q.x_1, 
         Q.y,  
         yerr = Q.σ, 
-        xlims = (minimum(Q.x_1)*0.999, maximum(Q.x_1)*1.001),
         xlabel = L"\mathrm{A_H}", 
         ylabel = latexstring("\$\\mathrm{Q \\: [MeV]}\$"), 
         framestyle = :box,
