@@ -152,7 +152,7 @@ Grafic_afisare(
                 q_A, 
                 Grafic_scatter(
                     q_A, 
-                    Grafic_scatter(q_A_Z, "Q(A, Z)"), 
+                    Grafic_scatter(q_A_Z, "Q(A,Z)"), 
                     "Q(A)"
                 )
             ), 

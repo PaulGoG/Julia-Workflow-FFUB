@@ -152,13 +152,16 @@ function TXE_A_Z(q_A_Z, tke_A, df, A, Z, εₙ)
         for Z_H in minimum(q_A_Z.x_2[q_A_Z.x_1 .== A_H]):maximum(q_A_Z.x_2[q_A_Z.x_1 .== A_H])
             if isassigned(tke_A.y[tke_A.x .== A_H], 1)
                 Q = q_A_Z.y[(q_A_Z.x_1 .== A_H) .& (q_A_Z.x_2 .== Z_H)][1]
+                σ_Q = q_A_Z.σ[(q_A_Z.x_1 .== A_H) .& (q_A_Z.x_2 .== Z_H)][1]
                 TKE = tke_A.y[tke_A.x .== A_H][1]
+                σ_TKE = tke_A.σ[tke_A.x .== A_H][1]
                 TXE = Q - TKE + Sₙ[1] + εₙ
+                σ_TXE = sqrt(σ_Q^2 + Sₙ[2]^2 + σ_TKE^2)
                 if TXE > 0
                     push!(txe_A_Z.x_1, A_H)
                     push!(txe_A_Z.x_2, Z_H)
                     push!(txe_A_Z.y, TXE)
-                    push!(txe_A_Z.σ, 0.0)
+                    push!(txe_A_Z.σ, σ_TXE)
                 end
             end
         end
@@ -554,7 +557,16 @@ function Grafic_scatter(distributie, plt, eticheta)
     )
     return plt
 end
-function Grafic_scatter(plt, eticheta, dν)
+function Grafic_scatter_over(plt, distributie, eticheta)
+    scatter!(plt, 
+        distributie.x, 
+        distributie.y,  
+        yerr = distributie.σ,
+        label = "$eticheta"
+    )
+    return plt
+end
+function Grafic_scatter_dataframe(plt, eticheta, dν)
     scatter!(plt, 
         dν.A, 
         dν.ν,  
@@ -607,7 +619,7 @@ function Grafic_linie_medie_orizontal(plt, distributie_med)
 end
 function Grafic_afisare(plt, titlu)
     display(plt)
-    #savefig(plt, "Grafice/$(titlu)_T2.png")
+    savefig(plt, "Grafice/$(titlu)_T3.png")
 end
 #####
 # Apelarea functiilor definite pentru executia programului
@@ -641,33 +653,63 @@ R_A = Sortare_distributie(Mediere_distributie_H(R_A_Z, A₀, Z₀, limInfA_H, li
 ν_A_Z = ν_partitionat(ν_pereche_A_Z, R_A_Z, A₀, Z₀);
 ν_A = Sortare_distributie(Mediere_distributie_L_H(ν_A_Z, A₀, Z₀, limInfA_H, limSupA_H));
 
-Q_med = Medie_distributie(q_A, y_A, firstindex(q_A.x), lastindex(q_A.x));
-Plot_Q_A = Grafic_scatter(q_A, "Q", "Q(A)", "A_H", "Q [MeV]", 0.8, 1.05);
-Plot_Q_A = Grafic_scatter(q_A_Z, Plot_Q_A, "Q(A, Z)");
+Plot_Q_A = Grafic_scatter(q_A, "Q(A) obtinut prin medierea Q(A,Z) pe distributia izobara de sarcina p(A,Z)", "Q(A)", L"\mathrm{A_H}", "Q [MeV]", 0.9, 1.02);
+Plot_Q_A = Grafic_scatter(q_A_Z, Plot_Q_A, "Q(A,Z)");
 Plot_Q_A = Grafic_unire_linie(q_A ,Plot_Q_A);
-Plot_Q_A = Grafic_textbox_medie(q_A.x[Indice_mijloc(q_A)], maximum(q_A.y)*0.75, Plot_Q_A, "Q", Q_med[1], Q_med[2], "MeV");
-Grafic_afisare(Plot_Q_A, "Q(A)")
+Grafic_afisare(Plot_Q_A, "Q_A_Q_A_Z");
 
-TXE_med = Medie_distributie(txe_A, y_A, firstindex(txe_A.x), lastindex(txe_A.x));
-Plot_TXE_A = Grafic_scatter(txe_A, "TXE", "TXE(A)", "A_H", "TXE [MeV]", 1e-3, 1.1);
-Plot_TXE_A = Grafic_scatter(txe_A_Z, Plot_TXE_A, "TXE(A, Z)");
-Plot_TXE_A = Grafic_unire_linie(txe_A, Plot_TXE_A);
-Plot_TXE_A = Grafic_textbox_medie(txe_A.x[Indice_mijloc(txe_A)], maximum(txe_A.y)*0.9, Plot_TXE_A, "TXE", TXE_med[1], TXE_med[2], "MeV");
-Grafic_afisare(Plot_TXE_A, "TXE(A)")
+Q_med = Medie_distributie(q_A, y_A, firstindex(q_A.x), lastindex(q_A.x));
+Plot_Q_A = Grafic_scatter(q_A, "Q(A) obtinut prin medierea Q(A,Z) pe distributia izobara de sarcina p(A,Z)", "", L"\mathrm{A_H}", "Q [MeV]", 0.98, 1.02);
+Plot_Q_A = Grafic_textbox_medie(q_A.x[Indice_mijloc(q_A)]*1.05, maximum(q_A.y)*1, Plot_Q_A, "Q", Q_med[1], Q_med[2], "MeV");
+Grafic_afisare(Plot_Q_A, "Q_A");
+
+Plot_Sn_A = Grafic_scatter(sn_A, "Energia de separare a neutronului din fragmentele de fisiune", L"\mathrm{S_n(A)}", "A", L"\mathrm{S_n \: [MeV]}", 0.4, 1.6);
+Plot_Sn_A = Grafic_scatter(sn_A_Z, Plot_Sn_A, L"\mathrm{S_n(A,Z)}");
+Plot_Sn_A = Grafic_unire_linie(sn_A, Plot_Sn_A);
+Grafic_afisare(Plot_Sn_A, "Sn_A_Sn_A_Z");
 
 Sn_H_med = Medie_distributie(sn_A, y_A, firstindex(sn_A.x), Indice_mijloc(sn_A));
 Sn_L_med = Medie_distributie(sn_A, y_A, Indice_mijloc(sn_A), lastindex(sn_A.x));
-Plot_Sn_A = Grafic_scatter(sn_A, "Sn", "Sn(A)", "A", "Sn [MeV]", 0.1, 1.9);
-Plot_Sn_A = Grafic_scatter(sn_A_Z, Plot_Sn_A, "Sn(A, Z)");
-Plot_Sn_A = Grafic_unire_linie(sn_A, Plot_Sn_A);
-#Plot_Sn_A = Grafic_textbox_medie(sn_A.x[Indice_mijloc(sn_A)]*0.8, maximum(sn_A.y)*0.98, Plot_Sn_A, "Sn_H", Sn_H_med[1], Sn_H_med[2], "MeV");
-#Plot_Sn_A = Grafic_textbox_medie(sn_A.x[Indice_mijloc(sn_A)]*0.8, maximum(sn_A.y)*0.96, Plot_Sn_A, "Sn_L", Sn_L_med[1], Sn_L_med[2], "MeV");
-Plot_Sn_A = Grafic_linie_medie_vertical(Plot_Sn_A, sn_A.x[Indice_mijloc(sn_A)]);
-Grafic_afisare(Plot_Sn_A, "Sn(A)")
+Plot_Sn_A = Grafic_scatter(sn_A, "Energia de separare a neutronului din fragmentele de fisiune", "", "A", L"\mathrm{S_n \: [MeV]}", 0.95, 1.05);
+Plot_Sn_A = Grafic_textbox_medie(sn_A.x[Indice_mijloc(sn_A)]*0.9, maximum(sn_A.y)*1.02, Plot_Sn_A, "\\mathrm{S_n^H}", Sn_H_med[1], Sn_H_med[2], "MeV");
+Plot_Sn_A = Grafic_textbox_medie(sn_A.x[Indice_mijloc(sn_A)]*0.9, maximum(sn_A.y)*0.99, Plot_Sn_A, "\\mathrm{S_n^L}", Sn_L_med[1], Sn_L_med[2], "MeV");
+Grafic_afisare(Plot_Sn_A, "Sn_A");
 
-Plot_E_def_A = Grafic_scatter(ΔE_def_A, "E_def", "E_def(A)", "A", "E_def [MeV]", 1e-2, 2.5);
-#Plot_E_def_A = Grafic_scatter(ΔE_def_A_Z, Plot_E_def_A, "E_def(A, Z)");
-#Plot_E_def_A = Grafic_unire_linie(ΔE_def_A ,Plot_E_def_A);
-Plot_E_def_A = scatter!(E_sciz_A.x, E_sciz_A.y, label = "E_sciz(A)");
-Plot_E_def_A = scatter!(E_excitatie_A.x, E_excitatie_A.y, label = "E_exc(A)");
-Grafic_afisare(Plot_E_def_A, "E_def(A)")
+Plot_TXE_A = Grafic_scatter(txe_A, "TXE al tuturor fragmentarilor", "TXE(A)", L"\mathrm{A_H}", "TXE [MeV]", 1e-3, 1.1);
+Plot_TXE_A = Grafic_scatter(txe_A_Z, Plot_TXE_A, "TXE(A,Z)");
+Plot_TXE_A = Grafic_unire_linie(txe_A, Plot_TXE_A);
+Grafic_afisare(Plot_TXE_A, "TXE_A_TXE_A_Z");
+
+TXE_med = Medie_distributie(txe_A, y_A, firstindex(txe_A.x), lastindex(txe_A.x));
+Plot_TXE_A = Grafic_scatter(txe_A, "TXE al tuturor fragmentarilor", "", L"\mathrm{A_H}", "TXE [MeV]", 0.95, 1.05);
+Plot_TXE_A = Grafic_textbox_medie(txe_A.x[Indice_mijloc(txe_A)], maximum(txe_A.y)*0.95, Plot_TXE_A, "TXE", TXE_med[1], TXE_med[2], "MeV");
+Plot_TXE_A = Grafic_linie_medie_orizontal(Plot_TXE_A, TXE_med[1]);
+Grafic_afisare(Plot_TXE_A, "TXE_A");
+
+# !!! DE ADAUGAT PLOT a(A, Z) !!!
+a_H_med = Medie_distributie(a_A, y_A, firstindex(a_A.x), Indice_mijloc(a_A));
+a_L_med = Medie_distributie(a_A, y_A, Indice_mijloc(a_A), lastindex(a_A.x));
+Plot_a_A = Grafic_scatter(a_A, "Parametrul densitatii de nivele energetice, sistematica Gilbert-Cameron", "", "A", L"\mathrm{a \: [MeV^{-1}]}", 0.95, 1.05);
+Plot_a_A = Grafic_textbox_medie(a_A.x[Indice_mijloc(a_A)]*0.9, maximum(a_A.y)*1.02, Plot_a_A, "\\mathrm{a_H}", a_H_med[1], 0, L"\mathrm{MeV^{-1}}");
+Plot_a_A = Grafic_textbox_medie(a_A.x[Indice_mijloc(a_A)]*0.9, maximum(a_A.y)*0.99, Plot_a_A, "\\mathrm{a_L}", a_L_med[1], 0, L"\mathrm{MeV^{-1}}");
+Grafic_afisare(Plot_a_A, "a_A");
+
+Plot_E_A = Grafic_scatter(ΔE_def_A, "Energia fragmentelor de fisiune", L"\mathrm{\Delta{}E_{def}}", "A", "E [MeV]", 0, 2.5);
+Plot_E_A = Grafic_scatter_over(Plot_E_A, E_sciz_A, L"\mathrm{E_{sciziune}}");
+Plot_E_A = Grafic_scatter_over(Plot_E_A, E_excitatie_A, L"E^*");
+Grafic_afisare(Plot_E_A, "Energii_A");
+
+Plot_R_A = Grafic_scatter(R_A, "", "R(A)", "A", "R", 0.8, 1.2);
+Plot_R_A = Grafic_scatter(R_A_Z, Plot_R_A, "R(A,Z)");
+Plot_R_A = Grafic_unire_linie(R_A, Plot_R_A);
+Grafic_afisare(Plot_R_A, "R_A");
+
+Plot_ν_pereche_A = Grafic_scatter(ν_pereche_A, "Multiplicitatea neutronica a perechilor de fragmente in emisia prompta", "", L"\mathrm{A_H}", L"\nu_{\mathrm{pereche}}", 0.95, 1.05);
+Grafic_afisare(Plot_ν_pereche_A, "Multiplicitati_pereche");
+
+Plot_ν_A = Grafic_scatter(ν_A, "Multiplicitatea neutronica a fragmentelor de fisiune in emisia prompta", "Modelare", "A", L"\nu", 0.8, 1.2);
+Plot_ν_A = Grafic_scatter_dataframe(Plot_ν_A, "Gook", dν_Gook);
+Plot_ν_A = Grafic_scatter_dataframe(Plot_ν_A, "Maslin", dν_Maslin);
+Plot_ν_A = Grafic_scatter_dataframe(Plot_ν_A, "Nishio", dν_Nishio);
+Plot_ν_A = Grafic_scatter_dataframe(Plot_ν_A, "Vorobyev", dν_Vorobyev);
+Grafic_afisare(Plot_ν_A, "Multiplicitati_fragmente");
