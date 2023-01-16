@@ -180,11 +180,13 @@ function Q_A_Z(A, Z, df, limInfA_H, limSupA_H)
                 D_L = df.D[(df.A .== A_L) .& (df.Z .== Z_L)][1]
                 σ_D_L = df.σD[(df.A .== A_L) .& (df.Z .== Z_L)][1]
                 q = D - (D_H + D_L)
-                # Energiile sunt salvate în MeV
-                push!(Q.y, q *1e-3)
-                push!(Q.σ, sqrt(σ_D^2 + σ_D_H^2 + σ_D_L^2) *1e-3)
-                push!(Q.x_1, A_H)
-                push!(Q.x_2, Z_H)
+                if q > 0
+                    # Energiile sunt salvate în MeV
+                    push!(Q.y, q *1e-3)
+                    push!(Q.σ, sqrt(σ_D^2 + σ_D_H^2 + σ_D_L^2) *1e-3)
+                    push!(Q.x_1, A_H)
+                    push!(Q.x_2, Z_H)
+                end
             end
         end
     end 
