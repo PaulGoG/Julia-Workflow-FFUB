@@ -96,30 +96,30 @@ end
 function Sn_A_Z(A, Z, df, limInfA_H, limSupA_H)
     sn = distributie_bidym(Int[], Int[], Float64[], Float64[])
     for A_H in limInfA_H:limSupA_H
-            for Z_H in minimum(df.Z[df.A .== A_H]):maximum(df.Z[df.A .== A_H])
-                S_H = Energie_separare(1, 0, A_H, Z_H, df)
-                S_L = Energie_separare(1, 0, A - A_H, Z - Z_H, df)
-                if !isnan(S_H[1]) && !isnan(S_L[1])
-                    push!(sn.y, S_H[1])
-                    push!(sn.σ, S_H[2])
-                    push!(sn.x_1, A_H)
-                    push!(sn.x_2, Z_H)
-                    if A - A_H != A_H
-                        push!(sn.y, S_L[1])
-                        push!(sn.σ, S_L[2])
-                        push!(sn.x_1, A - A_H)
-                        push!(sn.x_2, Z - Z_H)
-                    end
+        for Z_H in minimum(df.Z[df.A .== A_H]):maximum(df.Z[df.A .== A_H])
+            S_H = Energie_separare(1, 0, A_H, Z_H, df)
+            S_L = Energie_separare(1, 0, A - A_H, Z - Z_H, df)
+            if !isnan(S_H[1]) && !isnan(S_L[1])
+                push!(sn.y, S_H[1])
+                push!(sn.σ, S_H[2])
+                push!(sn.x_1, A_H)
+                push!(sn.x_2, Z_H)
+                if A - A_H != A_H
+                    push!(sn.y, S_L[1])
+                    push!(sn.σ, S_L[2])
+                    push!(sn.x_1, A - A_H)
+                    push!(sn.x_2, Z - Z_H)
                 end
             end
+        end
     end
     return sn
 end
-# Distributia izobara de sarcina cu  σ = rms(A) ≈ 0.6 & ΔZₚ ≈ 0.5 (Gaussiana)
+# Distributia izobara de sarcina cu σ = rms(A) ≈ 0.6 & ΔZₚ ≈ 0.5 (Gaussiana)
 function p_A_Z(Z, Z_p)
     return 1/(sqrt(2*π) * 0.6) * exp(-(Z - Z_p)^2 /(2*0.6^2))
 end
-# Q(A, Z)
+# Q(A,Z)
 function Q_A_Z(A, Z, df, limInfA_H, limSupA_H)
     Q = distributie_bidym(Int[], Int[], Float64[], Float64[])
     D = df.D[(df.A .== A) .& (df.Z .== Z)][1]
