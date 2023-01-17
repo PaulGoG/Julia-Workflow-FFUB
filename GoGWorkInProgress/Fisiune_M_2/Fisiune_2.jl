@@ -165,7 +165,7 @@ function KE_A(tke_A, A)
     end
     return KE
 end
-# Q(A, Z)
+# Q(A,Z)
 function Q_A_Z(A, Z, df, limInfA_H, limSupA_H)
     Q = distributie_bidym(Int[], Int[], Float64[], Float64[])
     D = df.D[(df.A .== A) .& (df.Z .== Z)][1]
@@ -192,7 +192,7 @@ function Q_A_Z(A, Z, df, limInfA_H, limSupA_H)
     end 
     return Q
 end
-# Q(A) obtinut prin medierea Q(A, Z) pe distributia Y(Z)
+# Q(A) obtinut prin medierea Q(A,Z) pe distributia Y(Z)
 function Q_A(q_A_Z, y_Z)
     Q = distributie_unidym(Int[], Float64[], Float64[])
     for A_H in minimum(q_A_Z.x_1):maximum(q_A_Z.x_1)
@@ -246,9 +246,12 @@ function TXE_A(q_A, tke_A, df, A, Z)
     Sₙ = Energie_separare(1, 0, A, Z, df)
     for A_H in minimum(q_A.x):maximum(q_A.x)
         if isassigned(tke_A.y[tke_A.x .== A_H], 1)
-            push!(TXE.x, A_H)
-            push!(TXE.y, q_A.y[q_A.x .== A_H][1] + Sₙ[1] - tke_A.y[tke_A.x .== A_H][1])
-            push!(TXE.σ, sqrt(q_A.σ[q_A.x .== A_H][1]^2 + Sₙ[2]^2 + tke_A.σ[tke_A.x .== A_H][1]^2))
+            txe = q_A.y[q_A.x .== A_H][1] + Sₙ[1] - tke_A.y[tke_A.x .== A_H][1]
+            if txe > 0
+                push!(TXE.x, A_H)
+                push!(TXE.y, txe)
+                push!(TXE.σ, sqrt(q_A.σ[q_A.x .== A_H][1]^2 + Sₙ[2]^2 + tke_A.σ[tke_A.x .== A_H][1]^2))
+            end
         end
     end  
     return TXE

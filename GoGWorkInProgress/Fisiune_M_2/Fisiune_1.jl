@@ -3,7 +3,7 @@ using CSV
 using DataFrames
 using LaTeXStrings
 
-# Cod de calcul al energiei eliberate la fisiune folosind 3 Z/A in jurul Zₚ(A)
+# Cod de calcul pentru energia eliberata la fisiune folosind 3 Z/A fragmente in jurul Zₚ(A)
 
 gr();
 cd(@__DIR__); # Adauga calea relativa la folderul de lucru
