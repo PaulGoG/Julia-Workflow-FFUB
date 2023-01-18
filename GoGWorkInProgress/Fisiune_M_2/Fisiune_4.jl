@@ -219,94 +219,26 @@ end
 # Aici se opreste partea de calcul a programului
 #####
 # Constructia reprezentarilor grafice
-function Grafic_scatter(distributie, titlu, eticheta, axa_x, axa_y, scalare_inf, scalare_sup)
-    plt = scatter(
+function Grafic_plot(distributie, titlu, eticheta, axa_x, axa_y, scalare_inf, scalare_sup, scala_y, x_maxim)
+    plt = plot(
         distributie.x, 
         distributie.y, 
-        yerr = distributie.σ, 
+        xlims = (minimum(distributie.x), x_maxim),
         ylims = (minimum(distributie.y)*scalare_inf, maximum(distributie.y)*scalare_sup),
         xlabel = "$axa_x", 
         ylabel = "$axa_y", 
         framestyle = :box,
         label = "$eticheta",
         title = "$titlu",
+        yscale = scala_y,
         minorgrid = :true,
         size = (900, 900)
     )
     return plt
 end
-function Grafic_scatter(distributie, plt, eticheta)
-    scatter!(plt, 
-        distributie.x_1, 
-        distributie.y,  
-        yerr = distributie.σ,
-        label = "$eticheta"
-    )
-    return plt
-end
-function Grafic_scatter_over(plt, distributie, eticheta)
-    scatter!(plt, 
-        distributie.x, 
-        distributie.y,  
-        yerr = distributie.σ,
-        label = "$eticheta"
-    )
-    return plt
-end
-function Grafic_scatter_dataframe(plt, eticheta, dν)
-    scatter!(plt, 
-        dν.A, 
-        dν.ν,  
-        yerr = dν.σν,
-        label = "$eticheta"
-    )
-    return plt
-end
-function Grafic_unire_linie(distributie, plt)
-    plot!(plt, 
-    distributie.x, 
-    distributie.y,
-    ribbon = distributie.σ,
-    fillalpha = .3,
-    label = ""
-    )
-    return plt
-end
-function Grafic_textbox_medie(x, y, plt, distributie_nume, distributie_med, distributie_med_sigma, unitate_masura)
-    annotate!(plt, 
-    x, 
-    y, 
-    latexstring("\$<\\mathrm{$distributie_nume}> =\$ $distributie_med \$\\pm\$ $distributie_med_sigma $unitate_masura")
-    )
-    return plt
-end
-function Grafic_textbox(x, y, plt, distributie_nume, distributie_val, distributie_val_sigma, unitate_masura)
-    annotate!(plt, 
-    x, 
-    y, 
-    latexstring("\$\\mathrm{$distributie_nume} =\$ $distributie_val \$\\pm\$ $distributie_val_sigma $unitate_masura")
-    )
-    return plt
-end
-function Grafic_linie_medie_vertical(plt, distributie_med)
-    vline!(plt, 
-    [distributie_med], 
-    ls = :dashdot, 
-    label = ""
-    )
-    return plt
-end
-function Grafic_linie_medie_orizontal(plt, distributie_med)
-    hline!(plt, 
-    [distributie_med], 
-    ls = :dashdot, 
-    label = ""
-    )
-    return plt
-end
 function Grafic_afisare(plt, titlu)
     display(plt)
-    savefig(plt, "Grafice/$(titlu)_T3.png")
+    #savefig(plt, "Grafice/$(titlu)_T4.png")
 end
 #####
 # Apelarea functiilor definite pentru executia programului
@@ -327,4 +259,12 @@ n_E = N_E(A₀, Z₀, E_min, h_E, E_max, limInfA_H, limSupA_H, txe_A_Z, tke_A, y
 T_M = 1.4;
 n_E_Maxwell = Normare_Maxwell(n_E, T_M);
 
-#plot!(n_E_Maxwell.x, n_E_Maxwell.y, xlims = (1e-1,10), xscale = :log10, ylims = (0.2, 1.4))
+Plot_n_E_liniar = Grafic_plot(n_E, "Spectrul neutronilor prompti in scala liniara", "", "E [MeV]", "N(E)", 1, 1.1, :identity, maximum(n_E.x));
+Grafic_afisare(Plot_n_E_liniar, "Plot_n_E_liniar");
+
+Plot_n_E_logaritmic = Grafic_plot(n_E, "Spectrul neutronilor prompti in scala logaritmica", "", "E [MeV]", "N(E)", 1, 10, :log10, maximum(n_E.x));
+Grafic_afisare(Plot_n_E_logaritmic, "Plot_n_E_logaritmic");
+
+Plot_n_E_Maxwell = Grafic_plot(n_E_Maxwell, "Spectrul neutronilor prompti normat la un spectru Maxwell", L"\mathrm{T_M} = 1.4 MeV", "E [MeV]", "Raportul spectrului la spectrul Maxwell", 1, 1.1, :identity, 10);
+hline!(Plot_n_E_Maxwell, [1.0], ls = :dashdot, label = "")
+Grafic_afisare(Plot_n_E_Maxwell, "Plot_n_E_Maxwell");

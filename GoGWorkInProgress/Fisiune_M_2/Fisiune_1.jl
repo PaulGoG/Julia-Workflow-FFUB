@@ -14,9 +14,8 @@ struct distributie_bidym
     y
     σ
 end
-
 #####
-# Functie de calcul pentru Q(A, Z)
+# Functie de calcul pentru Q(A,Z)
 function Q_A_Z(librarie, A, Z, limInfA_H, limSupA_H)
     Q = distributie_bidym(Int[], Int[], Float64[], Float64[])
     # Citim fisierul de tip CSV
@@ -28,7 +27,7 @@ function Q_A_Z(librarie, A, Z, limInfA_H, limSupA_H)
         Z_UCD = Z*A_H/A
         Z_p = Z_UCD - 0.5
         Z_mid = round(Z_p)
-        for Z_H in (Z_mid - 1):(Z_mid + 1) # Fragmentarile 3 Z/A
+        for Z_H in (Z_mid - 3):(Z_mid + 3) # Fragmentarile 3 Z/A
             # Verificam ca exista radionuclizii in libraria de date
             A_L = A - A_H
             Z_L = Z - Z_H
@@ -49,9 +48,9 @@ function Q_A_Z(librarie, A, Z, limInfA_H, limSupA_H)
 end
 # Distributia izobara de sarcina cu  σ = rms(A) ≈ 0.6 & ΔZₚ ≈ 0.5 (Gaussiana)
 function p_A_Z(Z, Z_p)
-    return 1/(sqrt(2*π) * 0.6) * exp(-(Z - Z_p)^2 /(2*0.6^2))
+    return 1/(sqrt(2*π) * 0.6) * exp(-(Z - Z_p)^2 /(2* 0.6^2))
 end
-# Functia de mediere a Q(A, Z) pe distributia p(A, Z) considerand 3 Z/A fragmente
+# Functia de mediere a Q(A,Z) pe distributia p(A,Z) considerand 3 Z/A fragmente
 function Q_A(q_A_Z, A, Z)
     q_A = distributie_bidym(Int[], Int[], Float64[], Float64[])
     for A_H in minimum(q_A_Z.x_1):maximum(q_A_Z.x_1)
@@ -62,14 +61,18 @@ function Q_A(q_A_Z, A, Z)
         Z_p = Z_UCD - 0.5
         # Q(A) = Σ_Z Q(A, Z)*p(A, Z)/Σ_Z p(A, Z)
         # σQ(A) = sqrt[Σ_Z σQ(A, Z)^2 *p(A, Z)^2]/Σ_Z p(A, Z)
-        for Z_H = 1:length(q_A_Z.x_2[q_A_Z.x_1 .== A_H])
-            Numarator += q_A_Z.y[q_A_Z.x_1 .== A_H][Z_H] * p_A_Z(q_A_Z.x_2[q_A_Z.x_1 .== A_H][Z_H], Z_p)
-            Numitor += p_A_Z(q_A_Z.x_2[q_A_Z.x_1 .== A_H][Z_H], Z_p)
-            Sigma_temp² += (p_A_Z(q_A_Z.x_2[q_A_Z.x_1 .== A_H][Z_H], Z_p) * q_A_Z.σ[q_A_Z.x_1 .== A_H][Z_H])^2
+        for i = 1:length(q_A_Z.x_2[q_A_Z.x_1 .== A_H])
+            P_A_Z = p_A_Z(q_A_Z.x_2[q_A_Z.x_1 .== A_H][i], Z_p)
+            Numarator += q_A_Z.y[q_A_Z.x_1 .== A_H][i] * P_A_Z
+            Numitor += P_A_Z
+            Sigma_temp² += (P_A_Z * q_A_Z.σ[q_A_Z.x_1 .== A_H][i])^2
         end
-        push!(q_A.y, Numarator/Numitor)
-        push!(q_A.σ, sqrt(Sigma_temp²)/Numitor)
-        push!(q_A.x_1, A_H)
+        if Numitor != 0
+            push!(q_A.y, Numarator/Numitor)
+            push!(q_A.σ, sqrt(Sigma_temp²)/Numitor)
+            push!(q_A.x_1, A_H)
+    
+        end
     end
     return q_A
 end
@@ -87,7 +90,7 @@ function Grafic_scatter(Q, eticheta)
         label = "$eticheta",
         title = latexstring("Energia eliberată la fisiune folosind 3 Z/A în jurul \$\\mathrm{Z_{p}(A)}\$"),
         minorgrid = :true,
-        size = (900, 900)
+        size = (1600, 900)
     )
     return plt
 end
@@ -132,13 +135,13 @@ function Grafic_afisare(plt)
 end
 #####
 # Apelarea functiilor definite pentru executia programului
-audi95 = "Data_files/AUDI95.csv"
+librarie = "Data_files/AUDI2021.csv"
 A₀ = 236;
 Z₀ = 92;
 limInfA_H = 118;
 limSupA_H = 160;
 
-q_A_Z = Q_A_Z(audi95, A₀, Z₀, limInfA_H, limSupA_H);
+q_A_Z = Q_A_Z(librarie, A₀, Z₀, limInfA_H, limSupA_H);
 q_A = Q_A(q_A_Z, A₀, Z₀);
 
 Q_mediu = round(sum(q_A.y)/length(q_A.y), digits = 3);

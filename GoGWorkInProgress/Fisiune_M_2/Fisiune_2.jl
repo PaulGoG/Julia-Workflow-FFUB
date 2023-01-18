@@ -3,13 +3,13 @@ using CSV
 using DataFrames
 using LaTeXStrings
 
-# Cod de calcul pentru distributii uzuale in fisiune
+# Cod de calcul pentru distributii uzuale folosite in studiul fisiunii
 
 gr();
 cd(@__DIR__); # Adauga calea relativa la folderul de lucru
 
 # Citire fisiere de date
-df = CSV.File("Data_files/AUDI95.csv"; delim=' ', ignorerepeated=true, header=["Z", "A", "Sym", "D", "σD"]) |> DataFrame
+df = CSV.File("Data_files/AUDI2021.csv"; delim=' ', ignorerepeated=true, header=["Z", "A", "Sym", "D", "σD"]) |> DataFrame
 dy = CSV.File("Data_files/U5YAZTKE.csv"; delim=' ', ignorerepeated=true, header=["A_H", "Z_H", "TKE", "Y", "σY"]) |> DataFrame
 
 struct distributie_unidym
@@ -23,7 +23,6 @@ struct distributie_bidym
     y
     σ
 end
-
 #####
 # Y(A)
 function Y_A(dy, A)
@@ -207,14 +206,14 @@ function Q_A(q_A_Z, y_Z)
                 if isassigned(y_Z.y[y_Z.x .== Z_H], 1)
                     Numarator += q_A_Z.y[(q_A_Z.x_1 .== A_H) .& (q_A_Z.x_2 .== Z_H)][1] * y_Z.y[y_Z.x .== Z_H][1]
                     Numitor += y_Z.y[y_Z.x .== Z_H][1]
-                    Suma_σ² += y_Z.y[y_Z.x .== Z_H][1]^2 * q_A_Z.σ[(q_A_Z.x_1 .== A_H) .& (q_A_Z.x_2 .== Z_H)][1]^2
+                    Suma_σ² += (y_Z.y[y_Z.x .== Z_H][1] * q_A_Z.σ[(q_A_Z.x_1 .== A_H) .& (q_A_Z.x_2 .== Z_H)][1])^2
                 end
             end
-            if Numitor != 0 # Elementele (A, Z) pentru care a existat și Q(A, Z) și Y(Z)
+            if Numitor != 0 # Elementele (A, Z) pentru care a existat și Q(A,Z) și Y(Z)
                 q_A = Numarator/Numitor
                 for Z_H = minimum(q_A_Z.x_2[q_A_Z.x_1 .== A_H]):maximum(q_A_Z.x_2[q_A_Z.x_1 .== A_H])
                     if isassigned(y_Z.y[y_Z.x .== Z_H], 1)
-                        Suma_σ² += y_Z.σ[y_Z.x .== Z_H][1]^2 * (q_A_Z.y[(q_A_Z.x_1 .== A_H) .& (q_A_Z.x_2 .== Z_H)][1] - q_A)^2
+                        Suma_σ² += (y_Z.σ[y_Z.x .== Z_H][1] * (q_A_Z.y[(q_A_Z.x_1 .== A_H) .& (q_A_Z.x_2 .== Z_H)][1] - q_A))^2
                     end
                 end
                 push!(Q.y, q_A)
@@ -225,7 +224,7 @@ function Q_A(q_A_Z, y_Z)
     end
     return Q
 end
-# Calculul energiei de separare a particulei (A_part, Z_part) din nucleul (A, Z)
+# Calculul energiei de separare a particulei (A_part,Z_part) din nucleul (A,Z)
 function Energie_separare(A_part, Z_part, A, Z, df)
     # Verificarea existentei radionuclizilor folositi in libraria de date
     if isassigned(df.D[(df.A .== A_part) .& (df.Z .== Z_part)], 1) && isassigned(df.D[(df.A .== A) .& (df.Z .== Z)], 1) && isassigned(df.D[(df.A .== A - A_part) .& (df.Z .== Z - Z_part)], 1)
@@ -299,7 +298,7 @@ function Medie_distributie(distributie, Y, index_min, index_max)
         for i in index_min:index_max
             if isassigned(Y.y[Y.x .== distributie.x[i]], 1)
                 Suma_σ² += Y.y[Y.x .== distributie.x[i]][1]^2 * distributie.σ[i]^2
-                Suma_σ² += (distributie.x[i] - Media_distributiei)^2 * Y.σ[Y.x .== distributie.x[i]][1]^2
+                Suma_σ² += (distributie.y[i] - Media_distributiei)^2 * Y.σ[Y.x .== distributie.x[i]][1]^2
             end
         end    
         return [round(Media_distributiei, digits = 3), round(sqrt(Suma_σ²)/Numitor, digits = 5)]    
@@ -394,7 +393,8 @@ y_N = Sortare_distributie(Y_N(dy, A₀, Z₀));
 y_TKE = Sortare_distributie(Y_TKE(dy));
 tke_A = Sortare_distributie(TKE_A(dy));
 ke_A = Sortare_distributie(KE_A(tke_A, A₀));
-q_A = Sortare_distributie(Q_A(Q_A_Z(A₀, Z₀, df, limInfA_H, limSupA_H), y_Z));
+q_A_Z = Q_A_Z(A₀, Z₀, df, limInfA_H, limSupA_H);
+q_A = Sortare_distributie(Q_A(q_A_Z, y_Z));
 txe_A = Sortare_distributie(TXE_A(q_A, tke_A, df, A₀, Z₀));
 
 Plot_Y_A = Grafic_scatter(y_A, "Y(A)", "A", "Y %", 1, 1.1);
