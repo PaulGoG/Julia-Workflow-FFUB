@@ -27,3 +27,10 @@ function TKE_A_Z(dy)
     end  
     return tke
 end
+
+# Stergerea datelor duplicate
+index_true = unique(i -> Y.x[i], eachindex(Y.x))
+index_delete = setdiff(eachindex(Y.x), index_true)
+deleteat!(Y.x, index_delete)
+deleteat!(Y.y, index_delete)
+deleteat!(Y.σ, index_delete)

@@ -39,6 +39,9 @@ function Y_A(dy, A)
             push!(Y.x, A - A_H)
             push!(Y.y, y_A)
             push!(Y.σ, σ_y_A)
+        else
+            Y.y[Y.x .== A_H] .+= y_A
+            Y.σ[Y.x .== A_H] .+= σ_y_A
         end
     end
     # Normarea distributiei
@@ -55,19 +58,25 @@ function Y_Z(dy, Z)
         # σY(Z) = sqrt[Σ_(A, TKE) σY(A, Z, TKE)^2]
         y_Z = sum(dy.Y[dy.Z_H .== Z_H])
         σ_y_Z = sqrt(sum(dy.σY[dy.Z_H .== Z_H].^2))
-        push!(Y.x, Z_H)
-        push!(Y.y, y_Z)
-        push!(Y.σ, σ_y_Z)
-        push!(Y.x, Z - Z_H)
-        push!(Y.y, y_Z)
-        push!(Y.σ, σ_y_Z)
+        if isassigned(Y.x[Y.x .== Z_H], 1)
+            Y.y[Y.x .== Z_H] .+= y_Z
+            Y.y[Y.x .== Z - Z_H] .+= y_Z
+            Y.σ[Y.x .== Z_H] .+= σ_y_Z
+            Y.σ[Y.x .== Z - Z_H] .+= σ_y_Z
+        else
+            push!(Y.x, Z_H)
+            push!(Y.y, y_Z)
+            push!(Y.σ, σ_y_Z)
+            if Z_H != Z - Z_H
+                push!(Y.x, Z - Z_H)
+                push!(Y.y, y_Z)
+                push!(Y.σ, σ_y_Z)
+            else
+                Y.y[Y.x .== Z_H] .+= y_Z
+                Y.σ[Y.x .== Z_H] .+= σ_y_Z
+            end
+        end
     end
-    # Stergerea datelor duplicate
-    index_true = unique(i -> Y.x[i], eachindex(Y.x))
-    index_delete = setdiff(eachindex(Y.x), index_true)
-    deleteat!(Y.x, index_delete)
-    deleteat!(Y.y, index_delete)
-    deleteat!(Y.σ, index_delete)
     # Normarea distributiei
     f = 200/sum(Y.y)
     Y.y .= Y.y * f
@@ -77,24 +86,32 @@ end
 # Y(N)
 function Y_N(dy, A, Z)
     Y = distributie_unidym(Int[], Float64[], Float64[])
+    N = A - Z
     for A_H in minimum(dy.A_H):maximum(dy.A_H)
         for Z_H in minimum(dy.Z_H[dy.A_H .== A_H]):maximum(dy.Z_H[dy.A_H .== A_H])
             y_N = sum(dy.Y[dy.A_H .- dy.Z_H .== A_H - Z_H])
             σ_y_N = sqrt(sum(dy.σY[dy.A_H .- dy.Z_H .== A_H - Z_H].^2))
-            push!(Y.x, A_H - Z_H)
-            push!(Y.y, y_N)
-            push!(Y.σ, σ_y_N)
-            push!(Y.x, A - Z - A_H + Z_H)
-            push!(Y.y, y_N)
-            push!(Y.σ, σ_y_N)
+            N_H = A_H - Z_H
+            if isassigned(Y.x[Y.x .== N_H], 1)
+                Y.y[Y.x .== N_H] .+= y_N
+                Y.y[Y.x .== N - N_H] .+= y_N
+                Y.σ[Y.x .== N_H] .+= σ_y_N
+                Y.σ[Y.x .== N - N_H] .+= σ_y_N
+            else
+                push!(Y.x, N_H)
+                push!(Y.y, y_N)
+                push!(Y.σ, σ_y_N)
+                if N_H != N - N_H
+                    push!(Y.x, N - N_H)
+                    push!(Y.y, y_N)
+                    push!(Y.σ, σ_y_N)
+                else
+                    Y.y[Y.x .== N_H] .+= y_N
+                    Y.σ[Y.x .== N_H] .+= σ_y_N
+                end
+            end
         end
     end
-    # Stergerea datelor duplicate
-    index_true = unique(i -> Y.x[i], eachindex(Y.x))
-    index_delete = setdiff(eachindex(Y.x), index_true)
-    deleteat!(Y.x, index_delete)
-    deleteat!(Y.y, index_delete)
-    deleteat!(Y.σ, index_delete)
     # Normarea distributiei
     f = 200/sum(Y.y)
     Y.y .= Y.y * f
@@ -191,29 +208,31 @@ function Q_A_Z(A, Z, df, limInfA_H, limSupA_H)
     end 
     return Q
 end
-# Q(A) obtinut prin medierea Q(A,Z) pe distributia Y(Z)
-function Q_A(q_A_Z, y_Z)
+# Q(A) obtinut prin medierea Q(A,Z) pe distributia Y(A,Z)
+function Q_A(q_A_Z, dy)
     Q = distributie_unidym(Int[], Float64[], Float64[])
     for A_H in minimum(q_A_Z.x_1):maximum(q_A_Z.x_1)
         Numarator = 0
         Numitor = 0
         Suma_σ² = 0
-        # Q(A) = Σ_(Z) Q(A, Z) * Y(Z)/Σ_(Z) Y(Z)
-        # Intervalul este baleiat dupa valorile existente in Q(A, Z)
+        # Q(A) = Σ_(Z) Q(A,Z) * Y(A,Z)/Σ_(Z) Y(A,Z)
+        # Intervalul este baleiat dupa valorile existente in Q(A,Z)
         if isassigned(q_A_Z.x_2[q_A_Z.x_1 .== A_H], 1)
             for Z_H = minimum(q_A_Z.x_2[q_A_Z.x_1 .== A_H]):maximum(q_A_Z.x_2[q_A_Z.x_1 .== A_H])
-                # Se verifica existenta lui Y(Z) corespunzator Z-ului contorizat dupa valorile lui Q
-                if isassigned(y_Z.y[y_Z.x .== Z_H], 1)
-                    Numarator += q_A_Z.y[(q_A_Z.x_1 .== A_H) .& (q_A_Z.x_2 .== Z_H)][1] * y_Z.y[y_Z.x .== Z_H][1]
-                    Numitor += y_Z.y[y_Z.x .== Z_H][1]
-                    Suma_σ² += (y_Z.y[y_Z.x .== Z_H][1] * q_A_Z.σ[(q_A_Z.x_1 .== A_H) .& (q_A_Z.x_2 .== Z_H)][1])^2
+                # Se verifica existenta lui Y(A,Z) corespunzator 
+                if isassigned(dy.Y[(dy.A_H .== A_H) .& (dy.Z_H .== Z_H)], 1)
+                    Y_A_Z = sum(dy.Y[(dy.A_H .== A_H) .& (dy.Z_H .== Z_H)])
+                    Numarator += q_A_Z.y[(q_A_Z.x_1 .== A_H) .& (q_A_Z.x_2 .== Z_H)][1] * Y_A_Z
+                    Numitor += Y_A_Z
+                    Suma_σ² += (Y_A_Z * q_A_Z.σ[(q_A_Z.x_1 .== A_H) .& (q_A_Z.x_2 .== Z_H)][1])^2
                 end
             end
-            if Numitor != 0 # Elementele (A, Z) pentru care a existat și Q(A,Z) și Y(Z)
+            if Numitor != 0 # Elementele (A,Z) pentru care a existat și Q(A,Z) și Y(A,Z)
                 q_A = Numarator/Numitor
                 for Z_H = minimum(q_A_Z.x_2[q_A_Z.x_1 .== A_H]):maximum(q_A_Z.x_2[q_A_Z.x_1 .== A_H])
-                    if isassigned(y_Z.y[y_Z.x .== Z_H], 1)
-                        Suma_σ² += (y_Z.σ[y_Z.x .== Z_H][1] * (q_A_Z.y[(q_A_Z.x_1 .== A_H) .& (q_A_Z.x_2 .== Z_H)][1] - q_A))^2
+                    if isassigned(dy.σY[(dy.A_H .== A_H) .& (dy.Z_H .== Z_H)], 1)
+                        σ_Y_A_Z = sqrt(sum(dy.σY[(dy.A_H .== A_H) .& (dy.Z_H .== Z_H)].^2))
+                        Suma_σ² += (σ_Y_A_Z * (q_A_Z.y[(q_A_Z.x_1 .== A_H) .& (q_A_Z.x_2 .== Z_H)][1] - q_A))^2
                     end
                 end
                 push!(Q.y, q_A)
@@ -394,7 +413,7 @@ y_TKE = Sortare_distributie(Y_TKE(dy));
 tke_A = Sortare_distributie(TKE_A(dy));
 ke_A = Sortare_distributie(KE_A(tke_A, A₀));
 q_A_Z = Q_A_Z(A₀, Z₀, df, limInfA_H, limSupA_H);
-q_A = Sortare_distributie(Q_A(q_A_Z, y_Z));
+q_A = Sortare_distributie(Q_A(q_A_Z, dy));
 txe_A = Sortare_distributie(TXE_A(q_A, tke_A, df, A₀, Z₀));
 
 Plot_Y_A = Grafic_scatter(y_A, "Y(A)", "A", "Y %", 1, 1.1);
@@ -440,7 +459,7 @@ Plot_KE_A = Grafic_scatter(ke_A, "KE(A)", "A", "KE [MeV]", 1, 1.05);
 Plot_KE_A = Grafic_unire_linie(ke_A, Plot_KE_A);
 Grafic_afisare(Plot_KE_A, "KE_A");
 
-Plot_Q_A = Grafic_scatter(q_A, "Q(A) obtinut prin medierea Q(A,Z) pe Y(Z)", latexstring("\$\\mathrm{A_H}\$"), "Q [MeV]", 0.98, 1.02);
+Plot_Q_A = Grafic_scatter(q_A, "Q(A) obtinut prin medierea Q(A,Z) pe Y(A, Z)", latexstring("\$\\mathrm{A_H}\$"), "Q [MeV]", 0.98, 1.02);
 Plot_Q_A = Grafic_unire_linie(q_A, Plot_Q_A);
 Q_A_Mediu = Medie_distributie(q_A, y_A, firstindex(q_A.x), lastindex(q_A.x));
 mid_index = Indice_mijloc(q_A);
