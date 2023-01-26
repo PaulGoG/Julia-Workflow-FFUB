@@ -36,8 +36,8 @@ function Grafic(x, y, titlu, eticheta, culoare, axa_x, axa_y)
         label = eticheta,
         color = culoare
     )
-    indice_min = findfirst(i -> minimum(y) >= abs(maximum(y)/2 - i), y)
-    indice_max = findlast(i -> minimum(y) >= abs(maximum(y)/2 - i), y)
+    indice_min = findfirst(i -> minimum(y)*0.05 >= abs(maximum(y)/2 - i), y)
+    indice_max = findlast(i -> minimum(y)*0.05 >= abs(maximum(y)/2 - i), y)
     x = [x[indice_min], x[indice_max]]
     y = [y[indice_min], y[indice_max]]
     plot!(
@@ -58,8 +58,8 @@ function Grafic(x, y, eticheta, culoare, plt)
         label = eticheta,
         color = culoare
     )
-    indice_min = findfirst(i -> minimum(y) >= abs(maximum(y)/2 - i), y)
-    indice_max = findlast(i -> minimum(y) >= abs(maximum(y)/2 - i), y)
+    indice_min = findfirst(i -> minimum(y)*0.05 >= abs(maximum(y)/2 - i), y)
+    indice_max = findlast(i -> minimum(y)*0.05 >= abs(maximum(y)/2 - i), y)
     x = [x[indice_min], x[indice_max]]
     y = [y[indice_min], y[indice_max]]
     plot!(
