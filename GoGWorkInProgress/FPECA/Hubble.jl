@@ -82,7 +82,7 @@ z_3 = [z(λ_3[i], λ₀[i], σ_λ)[1] for i in eachindex(λ₀)]; #adimensional
 z_mediu_3 = z_med(z_3, σ_z_3)[1];
 σ_z_mediu_3 = z_med(z_3, σ_z_3)[2];
 
-v = [0.0, z_mediu_1, z_mediu_2, z_mediu_3] .* c .* 1e-3; #Km/s
+v = [0.0, z_mediu_1, z_mediu_2, z_mediu_3] .* c .* 1e-3; #km/s
 d = [0.0, d_1, d_2, d_3]; 
 σ_v = [0.0, σ_z_mediu_1, σ_z_mediu_2, σ_z_mediu_3] .* c .* 1e-3;
 σ_d = [0.0, σ_d_1, σ_d_2, σ_d_3];
@@ -94,14 +94,15 @@ plt = scatter(
     v,
     xerr = σ_d, 
     yerr = σ_v,
-    size = (1200, 1200),
+    size = (1000, 950),
+    dpi = 600,
     minorgrid = true,
     framestyle = :box,
     ylims = (0.0, last(v)+3*last(σ_v)),
     xlims = (0.0, last(d)+1.1*last(σ_d)),
-    xlabel = "Distanta galaxiei [MPsc]",
-    ylabel = "Viteza galaxiei [Km/s]",
-    title = "Determinarea parametrului Hubble",
+    xlabel = "Distanța galaxiei față de observator [MPsc]",
+    ylabel = "Viteza galaxiei față de observator [km/s]",
+    title = latexstring("Determinarea parametrului Hubble \$\\mathrm{H}_0\$"),
     legend = false,
     color = :black
 );
@@ -115,7 +116,7 @@ plot!(
 );
 annotate!(
     plt,
-    d[2],
+    d[2]*1.05,
     v[2] - 5*σ_v[2],
     "NGC 3627"
 );
@@ -135,7 +136,7 @@ annotate!(
     plt,
     d[2],
     H_0[1]*maximum(x)/2,
-    latexstring("\$\\mathrm{H}_0\$  = $(round(H_0[1], digits = 2)) \$\\pm\$ $(round(H_0[2], digits = 2))  Km/s*MPsc")
+    latexstring("\$\\mathrm{H}_0\$  = $(round(H_0[1], digits = 3)) \$\\pm\$ $(round(H_0[2], digits = 5))  km/s*MPsc")
 );
 display(plt);
 #savefig("Hubble.png");
