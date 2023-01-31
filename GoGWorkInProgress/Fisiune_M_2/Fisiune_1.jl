@@ -20,7 +20,7 @@ function Q_A_Z(librarie, A, Z, limInfA_H, limSupA_H)
     Q = distributie_bidym(Int[], Int[], Float64[], Float64[])
     # Citim fisierul de tip CSV
     # Z|A|Simbol|D(KeV)|σᴰ(KeV) -> forma tabelului
-    df = CSV.File(librarie; delim=' ', ignorerepeated=true, header=["Z", "A", "Sym", "D", "σ"]) |> DataFrame
+    df = CSV.read(librarie, DataFrame; delim=' ', ignorerepeated=true, header=["Z", "A", "Sym", "D", "σ"])
     D = df.D[(df.A .== A) .& (df.Z .== Z)][1]
     σ_D = df.σ[(df.A .== A) .& (df.Z .== Z)][1]
     for A_H in limInfA_H:limSupA_H
@@ -85,12 +85,12 @@ function Grafic_scatter(Q, eticheta)
         Q.y,  
         yerr = Q.σ, 
         xlabel = L"\mathrm{A_H}", 
-        ylabel = latexstring("\$\\mathrm{Q \\: [MeV]}\$"), 
+        ylabel = latexstring("\$\\mathrm{Q}\$ [MeV]"), 
         framestyle = :box,
         label = "$eticheta",
         title = latexstring("Energia eliberată la fisiune folosind 3 Z/A în jurul \$\\mathrm{Z_{p}(A)}\$"),
         minorgrid = :true,
-        size = (1600, 900)
+        size = (1000, 950)
     )
     return plt
 end
@@ -135,7 +135,7 @@ function Grafic_afisare(plt)
 end
 #####
 # Apelarea functiilor definite pentru executia programului
-librarie = "Data_files/AUDI2021.csv"
+librarie = "Data_files/Defecte_masa/AUDI2021.csv"
 A₀ = 236;
 Z₀ = 92;
 limInfA_H = 118;

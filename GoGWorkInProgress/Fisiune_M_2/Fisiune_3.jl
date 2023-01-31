@@ -9,14 +9,14 @@ gr();
 cd(@__DIR__); # Adauga calea relativa la folderul de lucru
 
 # Citire fisiere de date
-df = CSV.File("Data_files/AUDI2021.csv"; delim=' ', ignorerepeated=true, header=["Z", "A", "Sym", "D", "σD"]) |> DataFrame
-dy = CSV.File("Data_files/U5YAZTKE.csv"; delim=' ', ignorerepeated=true, header=["A_H", "Z_H", "TKE", "Y", "σY"]) |> DataFrame
-dβ₀ = CSV.File("Data_files/B2MOLLER.csv"; delim=' ', ignorerepeated=true, header=["Z", "A", "β"]) |> DataFrame
-dGC = CSV.File("Data_files/SZSN.csv"; delim=' ', ignorerepeated=true, header=["n", "S_N", "S_Z"]) |> DataFrame
-dν_Gook = CSV.File("Data_files/U5NUAGOOK.csv"; delim=' ', ignorerepeated=true, header=["A", "ν", "σν"]) |> DataFrame
-dν_Maslin = CSV.File("Data_files/U5NUAMASLIN.csv"; delim=' ', ignorerepeated=true, header=["A", "ν", "σν"]) |> DataFrame
-dν_Nishio = CSV.File("Data_files/U5NUANISHIO.csv"; delim=' ', ignorerepeated=true, header=["A", "ν", "σν"]) |> DataFrame
-dν_Vorobyev = CSV.File("Data_files/U5NUAVORO.csv"; delim=' ', ignorerepeated=true, header=["A", "ν", "σν"]) |> DataFrame
+df = CSV.read("Data_files/Defecte_masa/AUDI2021.csv", DataFrame; delim=' ', ignorerepeated=true, header=["Z", "A", "Sym", "D", "σD"]);
+dy = CSV.read("Data_files/Yield/U5YAZTKE.STR", DataFrame; delim=' ', ignorerepeated=true, header=["A_H", "Z_H", "TKE", "Y", "σY"], skipto = 2);
+dβ₀ = CSV.read("Data_files/Parametrizari_auxiliare/B2MOLLER.ANA", DataFrame; delim=' ', ignorerepeated=true, header=["Z", "A", "β"], skipto = 2);
+dGC = CSV.read("Data_files/Parametrizari_auxiliare/SZSN.GC", DataFrame; delim=' ', ignorerepeated=true, header=["n", "S_N", "S_Z"], skipto = 2);
+dν_Gook = CSV.read("Data_files/Date_experimentale/Multiplicitate_n/U5NUAGOOK.DAT", DataFrame; delim=' ', ignorerepeated=true, header=["A", "ν", "σν"], skipto = 2);
+dν_Maslin = CSV.read("Data_files/Date_experimentale/Multiplicitate_n/U5NUAMASLIN.DAT", DataFrame; delim=' ', ignorerepeated=true, header=["A", "ν", "σν"], skipto = 2);
+dν_Nishio = CSV.read("Data_files/Date_experimentale/Multiplicitate_n/U5NUANISHIO.DAT", DataFrame; delim=' ', ignorerepeated=true, header=["A", "ν", "σν"], skipto = 2);
+dν_Vorobyev = CSV.read("Data_files/Date_experimentale/Multiplicitate_n/U5NUAVORO.DAT", DataFrame; delim=' ', ignorerepeated=true, header=["A", "ν", "σν"], skipto = 2);
 
 struct distributie_unidym
     x
@@ -45,6 +45,9 @@ function Y_A(dy, A)
             push!(Y.x, A - A_H)
             push!(Y.y, y_A)
             push!(Y.σ, σ_y_A)
+        else
+            Y.y[Y.x .== A_H] .+= y_A
+            Y.σ[Y.x .== A_H] .+= σ_y_A
         end
     end
     # Normarea distributiei

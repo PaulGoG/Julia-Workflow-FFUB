@@ -9,8 +9,8 @@ gr();
 cd(@__DIR__); # Adauga calea relativa la folderul de lucru
 
 # Citire fisiere de date
-df = CSV.File("Data_files/AUDI2021.csv"; delim=' ', ignorerepeated=true, header=["Z", "A", "Sym", "D", "σD"]) |> DataFrame
-dy = CSV.File("Data_files/U5YAZTKE.csv"; delim=' ', ignorerepeated=true, header=["A_H", "Z_H", "TKE", "Y", "σY"]) |> DataFrame
+df = CSV.read("Data_files/Defecte_masa/AUDI2021.csv", DataFrame; delim=' ', ignorerepeated=true, header=["Z", "A", "Sym", "D", "σD"]);
+dy = CSV.read("Data_files/Yield/U5YAZTKE.STR", DataFrame; delim=' ', ignorerepeated=true, header=["A_H", "Z_H", "TKE", "Y", "σY"], skipto = 2);
 
 struct distributie_unidym
     x
@@ -349,7 +349,7 @@ function Grafic_scatter(distributie, titlu, axa_x, axa_y, scalare_inf, scalare_s
         legend = :false,
         title = "$titlu",
         minorgrid = :true,
-        size = (900, 900)
+        size = (1000, 950)
     )
     return plt
 end

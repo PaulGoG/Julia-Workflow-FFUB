@@ -75,7 +75,7 @@ function Grafic(x, y, eticheta, culoare, plt)
 end
 function Afisare_grafic(plt, titlu)
     display(plt)
-    savefig("$titlu.png")
+    #savefig("$titlu.png")
 end
 
 E = 1600.0:0.1:3000.0;

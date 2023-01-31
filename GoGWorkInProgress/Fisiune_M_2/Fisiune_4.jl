@@ -13,8 +13,8 @@ gr();
 cd(@__DIR__); # Adauga calea relativa la folderul de lucru
 
 # Citire fisiere de date
-df = CSV.File("Data_files/AUDI95.csv"; delim=' ', ignorerepeated=true, header=["Z", "A", "Sym", "D", "σD"]) |> DataFrame
-dy = CSV.File("Data_files/U5YAZTKE.csv"; delim=' ', ignorerepeated=true, header=["A_H", "Z_H", "TKE", "Y", "σY"]) |> DataFrame
+df = CSV.read("Data_files/Defecte_masa/AUDI2021.csv", DataFrame; delim=' ', ignorerepeated=true, header=["Z", "A", "Sym", "D", "σD"]);
+dy = CSV.read("Data_files/Yield/U5YAZTKE.STR", DataFrame; delim=' ', ignorerepeated=true, header=["A_H", "Z_H", "TKE", "Y", "σY"], skipto = 2);
 
 struct distributie_unidym
     x
@@ -43,6 +43,9 @@ function Y_A(dy, A)
             push!(Y.x, A - A_H)
             push!(Y.y, y_A)
             push!(Y.σ, σ_y_A)
+        else
+            Y.y[Y.x .== A_H] .+= y_A
+            Y.σ[Y.x .== A_H] .+= σ_y_A
         end
     end
     # Normarea distributiei
@@ -90,7 +93,7 @@ function Energie_separare(A_part, Z_part, A, Z, df)
         return [NaN, NaN]
     end 
 end
-# Q(A, Z)
+# Q(A,Z)
 function Q_A_Z(A, Z, df, limInfA_H, limSupA_H)
     Q = distributie_bidym(Int[], Int[], Float64[], Float64[])
     D = df.D[(df.A .== A) .& (df.Z .== Z)][1]
@@ -117,7 +120,7 @@ function Q_A_Z(A, Z, df, limInfA_H, limSupA_H)
     end 
     return Q
 end
-# TXE(A, Z)
+# TXE(A,Z)
 function TXE_A_Z(q_A_Z, tke_A, df, A, Z, εₙ)
     txe_A_Z = distributie_bidym(Int[], Int[], Float64[], Float64[])
     Sₙ = Energie_separare(1, 0, A, Z, df)
@@ -171,7 +174,7 @@ end
 # Constructia lui N(E)
 function N_E(A, Z, E_min, h_E, E_max, limInfA_H, limSupA_H, txe_A_Z, tke_A, y_A)
     n_E = distributie_unidym(Float64[], Float64[], Float64[])
-    E = collect(E_min:h_E:E_max)
+    E = E_min:h_E:E_max
     for i_E in eachindex(E)
         Numarator = 0
         Numitor = 0
@@ -219,7 +222,7 @@ end
 # Aici se opreste partea de calcul a programului
 #####
 # Constructia reprezentarilor grafice
-function Grafic_plot(distributie, titlu, eticheta, axa_x, axa_y, scalare_inf, scalare_sup, scala_y, x_maxim)
+function Grafic_plot(distributie, titlu, eticheta, axa_x, axa_y, scalare_inf, scalare_sup, scala_x, scala_y, x_maxim)
     plt = plot(
         distributie.x, 
         distributie.y, 
@@ -230,9 +233,11 @@ function Grafic_plot(distributie, titlu, eticheta, axa_x, axa_y, scalare_inf, sc
         framestyle = :box,
         label = "$eticheta",
         title = "$titlu",
+        xscale = scala_x,
         yscale = scala_y,
         minorgrid = :true,
-        size = (900, 900)
+        size = (1000, 1000),
+        dpi = 600,
     )
     return plt
 end
@@ -247,8 +252,8 @@ Z₀ = 92;
 εₙ = 0;
 limInfA_H = 118;
 limSupA_H = 160;
-E_min = 1e-2;
-h_E = E_min;
+E_min = 1e-1;
+h_E = E_min/10;
 E_max = 20;
 
 y_A = Y_A(dy, A₀);
@@ -256,15 +261,16 @@ tke_A = TKE_A(dy);
 q_A_Z = Q_A_Z(A₀, Z₀, df, limInfA_H, limSupA_H);
 txe_A_Z = TXE_A_Z(q_A_Z, tke_A, df, A₀, Z₀, εₙ);
 n_E = N_E(A₀, Z₀, E_min, h_E, E_max, limInfA_H, limSupA_H, txe_A_Z, tke_A, y_A);
-T_M = 1.4;
+# <E_spectru> = 3/2 * T_M_echivalent
+T_M = 2/3 * trapz(n_E.x, n_E.y .* n_E.x)/trapz(n_E.x, n_E.y);
 n_E_Maxwell = Normare_Maxwell(n_E, T_M);
 
-Plot_n_E_liniar = Grafic_plot(n_E, "Spectrul neutronilor prompti in scala liniara", "", "E [MeV]", "N(E)", 1, 1.1, :identity, maximum(n_E.x));
+Plot_n_E_liniar = Grafic_plot(n_E, "Spectrul neutronilor prompți în scală liniară", "", "E [MeV]", "N(E)", 1, 1.1, :identity, :identity, maximum(n_E.x));
 Grafic_afisare(Plot_n_E_liniar, "Plot_n_E_liniar");
 
-Plot_n_E_logaritmic = Grafic_plot(n_E, "Spectrul neutronilor prompti in scala logaritmica", "", "E [MeV]", "N(E)", 1, 10, :log10, maximum(n_E.x));
+Plot_n_E_logaritmic = Grafic_plot(n_E, "Spectrul neutronilor prompți în scală logaritmică", "", "E [MeV]", "N(E)", 1, 10, :identity, :log10, maximum(n_E.x));
 Grafic_afisare(Plot_n_E_logaritmic, "Plot_n_E_logaritmic");
 
-Plot_n_E_Maxwell = Grafic_plot(n_E_Maxwell, "Spectrul neutronilor prompti normat la un spectru Maxwell", L"\mathrm{T_M} = 1.4 MeV", "E [MeV]", "Raportul spectrului la spectrul Maxwell", 1, 1.1, :identity, 10);
-hline!(Plot_n_E_Maxwell, [1.0], ls = :dashdot, label = "")
+Plot_n_E_Maxwell = Grafic_plot(n_E_Maxwell, "Spectrul neutronilor prompți normat la un spectru Maxwell echivalent", latexstring("\$\\mathrm{T_M} = $(round(T_M, digits = 3))\$ MeV"), "E [MeV]", latexstring("Raportul spectrului neutronilor prompți la spectrul Maxwell cu \$\\mathrm{T_M} = $(round(T_M, digits = 3))\$ MeV"), 1, 1.1, :log10, :identity, 10);
+hline!(Plot_n_E_Maxwell, [1.0], ls = :dashdot, label = "");
 Grafic_afisare(Plot_n_E_Maxwell, "Plot_n_E_Maxwell");
