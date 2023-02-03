@@ -27,7 +27,7 @@ function Q_A_Z(librarie, A, Z, limInfA_H, limSupA_H)
         Z_UCD = Z*A_H/A
         Z_p = Z_UCD - 0.5
         Z_mid = round(Z_p)
-        for Z_H in (Z_mid - 3):(Z_mid + 3) # Fragmentarile 3 Z/A
+        for Z_H in (Z_mid - 1):(Z_mid + 1) # Fragmentarile 3 Z/A
             # Verificam ca exista radionuclizii in libraria de date
             A_L = A - A_H
             Z_L = Z - Z_H
@@ -70,8 +70,7 @@ function Q_A(q_A_Z, A, Z)
         if Numitor != 0
             push!(q_A.y, Numarator/Numitor)
             push!(q_A.σ, sqrt(Sigma_temp²)/Numitor)
-            push!(q_A.x_1, A_H)
-    
+            push!(q_A.x_1, A_H)   
         end
     end
     return q_A
@@ -79,53 +78,42 @@ end
 # Aici se opreste partea de calcul a programului
 #####
 # Constructia reprezentarilor grafice
-function Grafic_scatter(Q, eticheta)
+function Grafic_scatter(Q, eticheta, culoare)
     plt = scatter(
         Q.x_1, 
         Q.y,  
         yerr = Q.σ, 
         xlabel = L"\mathrm{A_H}", 
-        ylabel = latexstring("\$\\mathrm{Q}\$ [MeV]"), 
+        ylabel = "Q [MeV]", 
+        xlims = (minimum(Q.x_1), maximum(Q.x_1)),
         framestyle = :box,
-        label = "$eticheta",
+        label = eticheta,
         title = latexstring("Energia eliberată la fisiune folosind 3 Z/A în jurul \$\\mathrm{Z_{p}(A)}\$"),
         minorgrid = :true,
-        size = (1000, 950)
+        size = (1000, 950),
+        dpi = 600,
+        color = culoare
     )
     return plt
 end
-function Grafic_scatter(Q, plt, eticheta)
+function Grafic_scatter(Q, plt, eticheta, culoare)
     scatter!(plt, 
         Q.x_1, 
         Q.y,  
         yerr = Q.σ,
-        label = "$eticheta"
+        label = eticheta,
+        color = culoare
     )
     return plt
 end
-function Grafic_unire_linie(Q, plt)
+function Grafic_unire_linie(Q, plt, culoare)
     plot!(plt, 
     Q.x_1, 
     Q.y,
     ribbon = Q.σ,
     fillalpha = .3,
-    label = ""
-    )
-    return plt
-end
-function Grafic_textbox(Q, plt, Q_med, Q_med_sigma)
-    annotate!(plt, 
-    maximum(Q.x_1)*0.925, 
-    maximum(Q.y)*0.99, 
-    latexstring("\$<\\mathrm{Q}> =\$ $Q_med \$\\pm\$ $Q_med_sigma MeV")
-    )
-    return plt
-end
-function Grafic_linie_medie(plt, Q_med)
-    hline!(plt, 
-    [Q_med], 
-    ls = :dashdot, 
-    label = ""
+    label = "",
+    color = culoare
     )
     return plt
 end
@@ -144,24 +132,7 @@ limSupA_H = 160;
 q_A_Z = Q_A_Z(librarie, A₀, Z₀, limInfA_H, limSupA_H);
 q_A = Q_A(q_A_Z, A₀, Z₀);
 
-Q_mediu = round(sum(q_A.y)/length(q_A.y), digits = 3);
-σ_Q_mediu = round(1/length(q_A.y) * sqrt(sum(q_A.σ .^2)), digits = 5);
-
-Grafic_afisare(
-    Grafic_linie_medie(
-        Grafic_textbox(
-            q_A, 
-            Grafic_unire_linie(
-                q_A, 
-                Grafic_scatter(
-                    q_A, 
-                    Grafic_scatter(q_A_Z, "Q(A,Z)"), 
-                    "Q(A)"
-                )
-            ), 
-            Q_mediu, 
-            σ_Q_mediu
-        ), 
-        Q_mediu
-    )
-)
+Plot = Grafic_scatter(q_A_Z, "Q(A,Z)", :black);
+Plot = Grafic_scatter(q_A, Plot, "Q(A)", :red);
+Plot = Grafic_unire_linie(q_A, Plot, :red);
+Grafic_afisare(Plot);

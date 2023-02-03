@@ -3,13 +3,13 @@ using CSV
 using DataFrames
 using LaTeXStrings
 
-# Cod de calcul pentru distributii uzuale folosite in studiul fisiunii
+# Cod de calcul pentru distributii uzuale folosite in studiul fisiunii prompte
 
 gr();
 cd(@__DIR__); # Adauga calea relativa la folderul de lucru
 
 # Citire fisiere de date
-df = CSV.read("Data_files/Defecte_masa/AUDI2021.csv", DataFrame; delim=' ', ignorerepeated=true, header=["Z", "A", "Sym", "D", "σD"]);
+dm = CSV.read("Data_files/Defecte_masa/AUDI2021.csv", DataFrame; delim=' ', ignorerepeated=true, header=["Z", "A", "Sym", "D", "σD"]);
 dy = CSV.read("Data_files/Yield/U5YAZTKE.STR", DataFrame; delim=' ', ignorerepeated=true, header=["A_H", "Z_H", "TKE", "Y", "σY"], skipto = 2);
 
 struct distributie_unidym
@@ -182,19 +182,19 @@ function KE_A(tke_A, A)
     return KE
 end
 # Q(A,Z)
-function Q_A_Z(A, Z, df, limInfA_H, limSupA_H)
+function Q_A_Z(A, Z, dm, limInfA_H, limSupA_H)
     Q = distributie_bidym(Int[], Int[], Float64[], Float64[])
-    D = df.D[(df.A .== A) .& (df.Z .== Z)][1]
-    σ_D = df.σD[(df.A .== A) .& (df.Z .== Z)][1]
+    D = dm.D[(dm.A .== A) .& (dm.Z .== Z)][1]
+    σ_D = dm.σD[(dm.A .== A) .& (dm.Z .== Z)][1]
     for A_H in limInfA_H:limSupA_H
-        for Z_H in minimum(df.Z[df.A .== A_H]):maximum(df.Z[df.A .== A_H])
+        for Z_H in minimum(dm.Z[dm.A .== A_H]):maximum(dm.Z[dm.A .== A_H])
             A_L = A - A_H
             Z_L = Z - Z_H
-            if isassigned(df.D[(df.A .== A_H) .& (df.Z .== Z_H)], 1) && isassigned(df.D[(df.A .== A_L) .& (df.Z .== Z_L)], 1)
-                D_H = df.D[(df.A .== A_H) .& (df.Z .== Z_H)][1]
-                σ_D_H = df.σD[(df.A .== A_H) .& (df.Z .== Z_H)][1]
-                D_L = df.D[(df.A .== A_L) .& (df.Z .== Z_L)][1]
-                σ_D_L = df.σD[(df.A .== A_L) .& (df.Z .== Z_L)][1]
+            if isassigned(dm.D[(dm.A .== A_H) .& (dm.Z .== Z_H)], 1) && isassigned(dm.D[(dm.A .== A_L) .& (dm.Z .== Z_L)], 1)
+                D_H = dm.D[(dm.A .== A_H) .& (dm.Z .== Z_H)][1]
+                σ_D_H = dm.σD[(dm.A .== A_H) .& (dm.Z .== Z_H)][1]
+                D_L = dm.D[(dm.A .== A_L) .& (dm.Z .== Z_L)][1]
+                σ_D_L = dm.σD[(dm.A .== A_L) .& (dm.Z .== Z_L)][1]
                 q = D - (D_H + D_L)
                 if q > 0
                     # Energiile sunt salvate în MeV
@@ -244,24 +244,24 @@ function Q_A(q_A_Z, dy)
     return Q
 end
 # Calculul energiei de separare a particulei (A_part,Z_part) din nucleul (A,Z)
-function Energie_separare(A_part, Z_part, A, Z, df)
+function Energie_separare(A_part, Z_part, A, Z, dm)
     # Verificarea existentei radionuclizilor folositi in libraria de date
-    if isassigned(df.D[(df.A .== A_part) .& (df.Z .== Z_part)], 1) && isassigned(df.D[(df.A .== A) .& (df.Z .== Z)], 1) && isassigned(df.D[(df.A .== A - A_part) .& (df.Z .== Z - Z_part)], 1)
-        D_part = df.D[(df.A .== A_part) .& (df.Z .== Z_part)][1]
-        σ_part = df.σD[(df.A .== A_part) .& (df.Z .== Z_part)][1]
-        D = df.D[(df.A .== A - A_part) .& (df.Z .== Z - Z_part)][1]
-        σᴰ = df.σD[(df.A .== A - A_part) .& (df.Z .== Z - Z_part)][1]    
-        S = (D + D_part - df.D[(df.A .== A) .& (df.Z .== Z)][1])*1e-3
-        σˢ = sqrt(σ_part^2 + σᴰ^2 + (df.σD[(df.A .== A) .& (df.Z .== Z)][1])^2)*1e-3
+    if isassigned(dm.D[(dm.A .== A_part) .& (dm.Z .== Z_part)], 1) && isassigned(dm.D[(dm.A .== A) .& (dm.Z .== Z)], 1) && isassigned(dm.D[(dm.A .== A - A_part) .& (dm.Z .== Z - Z_part)], 1)
+        D_part = dm.D[(dm.A .== A_part) .& (dm.Z .== Z_part)][1]
+        σ_part = dm.σD[(dm.A .== A_part) .& (dm.Z .== Z_part)][1]
+        D = dm.D[(dm.A .== A - A_part) .& (dm.Z .== Z - Z_part)][1]
+        σᴰ = dm.σD[(dm.A .== A - A_part) .& (dm.Z .== Z - Z_part)][1]    
+        S = (D + D_part - dm.D[(dm.A .== A) .& (dm.Z .== Z)][1])*1e-3
+        σˢ = sqrt(σ_part^2 + σᴰ^2 + (dm.σD[(dm.A .== A) .& (dm.Z .== Z)][1])^2)*1e-3
         return [S, σˢ]
     else 
         return [NaN, NaN]
     end 
 end
 # TXE(A) = Q(A) - TKE(A) + Sₙ
-function TXE_A(q_A, tke_A, df, A, Z)
+function TXE_A(q_A, tke_A, dm, A, Z)
     TXE = distributie_unidym(Int[], Float64[], Float64[])
-    Sₙ = Energie_separare(1, 0, A, Z, df)
+    Sₙ = Energie_separare(1, 0, A, Z, dm)
     for A_H in minimum(q_A.x):maximum(q_A.x)
         if isassigned(tke_A.y[tke_A.x .== A_H], 1)
             txe = q_A.y[q_A.x .== A_H][1] + Sₙ[1] - tke_A.y[tke_A.x .== A_H][1]
@@ -412,9 +412,9 @@ y_N = Sortare_distributie(Y_N(dy, A₀, Z₀));
 y_TKE = Sortare_distributie(Y_TKE(dy));
 tke_A = Sortare_distributie(TKE_A(dy));
 ke_A = Sortare_distributie(KE_A(tke_A, A₀));
-q_A_Z = Q_A_Z(A₀, Z₀, df, limInfA_H, limSupA_H);
+q_A_Z = Q_A_Z(A₀, Z₀, dm, limInfA_H, limSupA_H);
 q_A = Sortare_distributie(Q_A(q_A_Z, dy));
-txe_A = Sortare_distributie(TXE_A(q_A, tke_A, df, A₀, Z₀));
+txe_A = Sortare_distributie(TXE_A(q_A, tke_A, dm, A₀, Z₀));
 
 Plot_Y_A = Grafic_scatter(y_A, "Y(A)", "A", "Y %", 1, 1.1);
 Plot_Y_A = Grafic_unire_linie(y_A, Plot_Y_A);
