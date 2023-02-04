@@ -255,7 +255,7 @@ function Energie_separare(A_part, Z_part, A, Z, dm)
         σˢ = sqrt(σ_part^2 + σᴰ^2 + (dm.σD[(dm.A .== A) .& (dm.Z .== Z)][1])^2)*1e-3
         return [S, σˢ]
     else 
-        return [NaN, NaN]
+        return NaN
     end 
 end
 # TXE(A) = Q(A) - TKE(A) + Sₙ
@@ -322,7 +322,7 @@ function Medie_distributie(distributie, Y, index_min, index_max)
         end    
         return [round(Media_distributiei, digits = 3), round(sqrt(Suma_σ²)/Numitor, digits = 5)]    
     else 
-        return [NaN, NaN]
+        return NaN
     end
 end
 # Indicele de mijloc al abscisei unei distributii returnat ca Int
@@ -337,29 +337,52 @@ end
 # Aici se opreste partea de calcul a programului
 #####
 # Constructia reprezentarilor grafice
-function Grafic_scatter(distributie, titlu, axa_x, axa_y, scalare_inf, scalare_sup)
+function Grafic_scatter(distributie, titlu, eticheta, culoare, axa_x, axa_y, scalare_inf, scalare_sup)
     plt = scatter(
         distributie.x, 
         distributie.y, 
         yerr = distributie.σ, 
         ylims = (minimum(distributie.y)*scalare_inf, maximum(distributie.y)*scalare_sup),
-        xlabel = "$axa_x", 
-        ylabel = "$axa_y", 
+        xlims = (minimum(distributie.x)-0.5, maximum(distributie.x)+0.5),
+        xlabel = axa_x, 
+        ylabel = axa_y, 
         framestyle = :box,
-        legend = :false,
-        title = "$titlu",
-        minorgrid = :true,
-        size = (1000, 950)
+        label = eticheta,
+        title = titlu,
+        minorgrid = true,
+        size = (1000, 950),
+        dpi = 600,
+        color = culoare
     )
     return plt
 end
-function Grafic_unire_linie(distributie, plt)
+function Grafic_plot(distributie, titlu, eticheta, culoare, axa_x, axa_y, scalare_inf, scalare_sup)
+    plt = plot(
+        distributie.x, 
+        distributie.y, 
+        ribbon = distributie.σ, 
+        ylims = (minimum(distributie.y)*scalare_inf, maximum(distributie.y)*scalare_sup),
+        xlims = (minimum(distributie.x)-0.5, maximum(distributie.x)+0.5),
+        xlabel = axa_x, 
+        ylabel = axa_y, 
+        framestyle = :box,
+        label = eticheta,
+        title = titlu,
+        minorgrid = true,
+        size = (1000, 950),
+        dpi = 600,
+        color = culoare
+    )
+    return plt
+end
+function Grafic_unire_linie(distributie, plt, eticheta, culoare)
     plot!(plt, 
     distributie.x, 
     distributie.y,
     ribbon = distributie.σ,
     fillalpha = .3,
-    label = ""
+    label = eticheta,
+    color = culoare
     )
     return plt
 end
@@ -379,19 +402,21 @@ function Grafic_textbox(x, y, plt, distributie_nume, distributie_val, distributi
     )
     return plt
 end
-function Grafic_linie_medie_vertical(plt, distributie_med)
+function Grafic_linie_medie_vertical(plt, distributie_med, eticheta, culoare)
     vline!(plt, 
     [distributie_med], 
     ls = :dashdot, 
-    label = ""
+    label = eticheta,
+    color = culoare
     )
     return plt
 end
-function Grafic_linie_medie_orizontal(plt, distributie_med)
+function Grafic_linie_medie_orizontal(plt, distributie_med, eticheta, culoare)
     hline!(plt, 
     [distributie_med], 
     ls = :dashdot, 
-    label = ""
+    label = eticheta,
+    color = culoare
     )
     return plt
 end
@@ -416,61 +441,67 @@ q_A_Z = Q_A_Z(A₀, Z₀, dm, limInfA_H, limSupA_H);
 q_A = Sortare_distributie(Q_A(q_A_Z, dy));
 txe_A = Sortare_distributie(TXE_A(q_A, tke_A, dm, A₀, Z₀));
 
-Plot_Y_A = Grafic_scatter(y_A, "Y(A)", "A", "Y %", 1, 1.1);
-Plot_Y_A = Grafic_unire_linie(y_A, Plot_Y_A);
+Plot_Y_A = Grafic_scatter(y_A, "Y(A)", "", :orange, "A", "Y %", 1, 1.1);
+Plot_Y_A = Grafic_unire_linie(y_A, Plot_Y_A, "", :orange,);
 mid_index = Indice_mijloc(y_A);
 A_L_mediu = Medie_distributie_Y(y_A, 1, mid_index);
 A_H_mediu = Medie_distributie_Y(y_A, mid_index, length(y_A.x));
-Plot_Y_A = Grafic_linie_medie_vertical(Plot_Y_A, A_L_mediu[1]);
-Plot_Y_A = Grafic_linie_medie_vertical(Plot_Y_A, A_H_mediu[1]);
+Plot_Y_A = Grafic_linie_medie_vertical(Plot_Y_A, A_L_mediu[1], L"<\mathrm{A_L}>", :blue);
+Plot_Y_A = Grafic_linie_medie_vertical(Plot_Y_A, A_H_mediu[1], L"<\mathrm{A_H}>", :red);
 Plot_Y_A = Grafic_textbox_medie(y_A.x[mid_index], maximum(y_A.y), Plot_Y_A, "A_H", A_H_mediu[1], A_H_mediu[2], "");
 Plot_Y_A = Grafic_textbox_medie(y_A.x[mid_index], maximum(y_A.y)*0.95, Plot_Y_A, "A_L", A_L_mediu[1], A_L_mediu[2], "");
+xticks!(Plot_Y_A, unique(div.(y_A.x, 10.0).*10));
 Grafic_afisare(Plot_Y_A, "Y_A");
 
-Plot_Y_Z = Grafic_scatter(y_Z, "Y(Z)", "Z", "Y %", 1, 1.1);
-Plot_Y_Z = Grafic_unire_linie(y_Z, Plot_Y_Z);
+Plot_Y_Z = Grafic_scatter(y_Z, "Y(Z)", "", :orange, "Z", "Y %", 1, 1.1);
+Plot_Y_Z = Grafic_unire_linie(y_Z, Plot_Y_Z, "", :orange);
 mid_index = Indice_mijloc(y_Z);
 δₑₒ = (sum(y_Z.y[iseven.(y_Z.x)]) - sum(y_Z.y[isodd.(y_Z.x)]))/sum(y_Z.y);
 σ_δₑₒ = round((1/sum(y_Z.y)) * sqrt((1 + δₑₒ)^2 * sum(y_Z.σ .^2) + 2*δₑₒ*(sum(y_Z.σ[isodd.(y_Z.x)] .^2) - sum(y_Z.σ[iseven.(y_Z.x)].^2))), digits = 7);
 δₑₒ = round(δₑₒ, digits = 5);
-Plot_Y_Z = Grafic_textbox(y_Z.x[mid_index], maximum(y_Z.y), Plot_Y_Z, "\\delta_{eo}", δₑₒ*100, σ_δₑₒ*100, "%");
+Plot_Y_Z = Grafic_textbox(y_Z.x[mid_index], 19, Plot_Y_Z, "\\delta_{eo}", δₑₒ*100, σ_δₑₒ*100, "%");
+xticks!(Plot_Y_Z, unique(div.(y_Z.x, 2.0).*2));
 Grafic_afisare(Plot_Y_Z, "Y_Z");
 
-Plot_Y_N = Grafic_scatter(y_N, "Y(N)", "N", "Y %", 1, 1.1);
-Plot_Y_N = Grafic_unire_linie(y_N, Plot_Y_N);
+Plot_Y_N = Grafic_scatter(y_N, "Y(N)", "", :orange, "N", "Y %", 1, 1.1);
+Plot_Y_N = Grafic_unire_linie(y_N, Plot_Y_N, "", :orange);
 Grafic_afisare(Plot_Y_N, "Y_N");
 
-Plot_Y_TKE = Grafic_scatter(y_TKE, "Y(TKE)", "TKE [MeV]", "Y %", 1, 1.1);
-Plot_Y_TKE = Grafic_unire_linie(y_TKE, Plot_Y_TKE);
+Plot_Y_TKE = Grafic_plot(y_TKE, "Y(TKE)", "", :red, "TKE [MeV]", "Y %", 1, 1.1);
 TKE_mediu = Medie_distributie_Y(y_TKE, firstindex(y_TKE.x), lastindex(y_TKE.x));
 mid_index = Indice_mijloc(y_TKE);
-Plot_Y_TKE = Grafic_linie_medie_vertical(Plot_Y_TKE, TKE_mediu[1]);
+Plot_Y_TKE = Grafic_linie_medie_vertical(Plot_Y_TKE, TKE_mediu[1], L"<\mathrm{TKE}>", :blue);
 Plot_Y_TKE = Grafic_textbox_medie(y_TKE.x[mid_index]*0.92, maximum(y_TKE.y), Plot_Y_TKE, "TKE", TKE_mediu[1], TKE_mediu[2], "MeV");
+xticks!(Plot_Y_TKE, unique(div.(y_TKE.x, 10).*10));
 Grafic_afisare(Plot_Y_TKE, "Y_TKE");
 
-Plot_TKE_A = Grafic_scatter(tke_A, "TKE(A)", latexstring("\$\\mathrm{A_H}\$"), "TKE [MeV]", 1, 1.05);
+Plot_TKE_A = Grafic_scatter(tke_A, "TKE(A)", "", :orange, latexstring("\$\\mathrm{A_H}\$"), "TKE [MeV]", 0.99, 1.01);
 TKE_A_mediu = Medie_distributie(tke_A, y_A, firstindex(tke_A.x), lastindex(tke_A.x));
-Plot_TKE_A = Grafic_unire_linie(tke_A, Plot_TKE_A);
+Plot_TKE_A = Grafic_unire_linie(tke_A, Plot_TKE_A, "", :orange);
 mid_index = Indice_mijloc(tke_A);
 Plot_TKE_A = Grafic_textbox_medie(tke_A.x[mid_index]*1.07, maximum(tke_A.y), Plot_TKE_A, "TKE", TKE_A_mediu[1], TKE_A_mediu[2], "MeV");
+xticks!(Plot_TKE_A, unique(div.(tke_A.x, 5).*5));
 Grafic_afisare(Plot_TKE_A, "TKE_A");
 
-Plot_KE_A = Grafic_scatter(ke_A, "KE(A)", "A", "KE [MeV]", 1, 1.05);
-Plot_KE_A = Grafic_unire_linie(ke_A, Plot_KE_A);
+Plot_KE_A = Grafic_scatter(ke_A, "KE(A)", "", :orange, "A", "KE [MeV]", 0.95, 1.05);
+Plot_KE_A = Grafic_unire_linie(ke_A, Plot_KE_A, "", :orange);
+xticks!(Plot_KE_A, unique(div.(ke_A.x, 10).*10));
 Grafic_afisare(Plot_KE_A, "KE_A");
 
-Plot_Q_A = Grafic_scatter(q_A, "Q(A) obtinut prin medierea Q(A,Z) pe Y(A, Z)", latexstring("\$\\mathrm{A_H}\$"), "Q [MeV]", 0.98, 1.02);
-Plot_Q_A = Grafic_unire_linie(q_A, Plot_Q_A);
+Plot_Q_A = Grafic_scatter(q_A, "Q(A) obținut prin medierea Q(A,Z) pe Y(A, Z)",  "", :orange, latexstring("\$\\mathrm{A_H}\$"), "Q [MeV]", 0.99, 1.01);
+Plot_Q_A = Grafic_unire_linie(q_A, Plot_Q_A, "", :orange,);
 Q_A_Mediu = Medie_distributie(q_A, y_A, firstindex(q_A.x), lastindex(q_A.x));
 mid_index = Indice_mijloc(q_A);
-Plot_Q_A = Grafic_textbox_medie(q_A.x[mid_index], maximum(q_A.y), Plot_Q_A, "Q", Q_A_Mediu[1], Q_A_Mediu[2], "MeV");
-Plot_Q_A = Grafic_linie_medie_orizontal(Plot_Q_A, Q_A_Mediu[1]);
+Plot_Q_A = Grafic_textbox_medie(148, 190, Plot_Q_A, "Q", Q_A_Mediu[1], Q_A_Mediu[2], "MeV");
+Plot_Q_A = Grafic_linie_medie_orizontal(Plot_Q_A, Q_A_Mediu[1], L"<\mathrm{Q}>", :red);
+xticks!(Plot_Q_A, unique(div.(q_A.x, 5).*5));
 Grafic_afisare(Plot_Q_A, "Q_A");
 
-Plot_TXE_A = Grafic_scatter(txe_A, "TXE(A) obtinut folosind distributia Y(A,Z,TKE)", latexstring("\$\\mathrm{A_H}\$"), "TXE [MeV]", 0.9, 1.1);
-Plot_TXE_A = Grafic_unire_linie(txe_A, Plot_TXE_A);
+Plot_TXE_A = Grafic_scatter(txe_A, "TXE(A) obținut folosind distributia Y(A,Z,TKE)", "", :orange, latexstring("\$\\mathrm{A_H}\$"), "TXE [MeV]", 0.98, 1.02);
+Plot_TXE_A = Grafic_unire_linie(txe_A, Plot_TXE_A, "", :orange);
 mid_index = Indice_mijloc(txe_A);
 TXE_A_Mediu = Medie_distributie(txe_A, y_A, firstindex(txe_A.x), lastindex(txe_A.x));
-Plot_TXE_A = Grafic_textbox_medie(txe_A.x[mid_index], maximum(txe_A.y), Plot_TXE_A, "TXE", TXE_A_Mediu[1], TXE_A_Mediu[2], "MeV");
-Plot_TXE_A = Grafic_linie_medie_orizontal(Plot_TXE_A, TXE_A_Mediu[1]);
+Plot_TXE_A = Grafic_textbox_medie(140, 27, Plot_TXE_A, "TXE", TXE_A_Mediu[1], TXE_A_Mediu[2], "MeV");
+Plot_TXE_A = Grafic_linie_medie_orizontal(Plot_TXE_A, TXE_A_Mediu[1], L"<\mathrm{TXE}>", :red);
+xticks!(Plot_TXE_A, unique(div.(txe_A.x, 5).*5));
 Grafic_afisare(Plot_TXE_A, "TXE_A");

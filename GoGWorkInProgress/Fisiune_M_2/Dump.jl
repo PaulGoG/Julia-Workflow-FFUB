@@ -34,3 +34,7 @@ index_delete = setdiff(eachindex(Y.x), index_true)
 deleteat!(Y.x, index_delete)
 deleteat!(Y.y, index_delete)
 deleteat!(Y.σ, index_delete)
+
+# Scriere date in CSV-uri sub forma de DataFrame
+df = DataFrame(col1 = y_A.x, col2 = y_A.y)
+CSV.write("Nume.terminatie", df)

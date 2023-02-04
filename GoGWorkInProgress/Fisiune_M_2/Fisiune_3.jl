@@ -3,7 +3,7 @@ using CSV
 using DataFrames
 using LaTeXStrings
 
-# Cod de calcul pentru partitionarea energiei totale de excitatie TXE intre fragmentele L & H
+# Cod de calcul pentru partitionarea energiei totale de excitatie TXE intre fragmentele L & H folosind modelarea la sciziune
 
 gr();
 cd(@__DIR__); # Adauga calea relativa la folderul de lucru
@@ -550,7 +550,7 @@ function Grafic_scatter(distributie, titlu, eticheta, axa_x, axa_y, scalare_inf,
         label = "$eticheta",
         title = "$titlu",
         minorgrid = :true,
-        size = (900, 900)
+        size = (1000, 950)
     )
     return plt
 end

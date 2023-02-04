@@ -3,7 +3,6 @@ using CSV
 using DataFrames
 using LaTeXStrings
 using QuadGK
-using LsqFit
 using Trapz
 
 # Cod de calcul pentru model de emisie cu tratare globala, 1 fragmentare cea mai probabila (Los Alamos)
@@ -90,7 +89,7 @@ function Energie_separare(A_part, Z_part, A, Z, df)
         σˢ = sqrt(σ_part^2 + σᴰ^2 + (df.σD[(df.A .== A) .& (df.Z .== Z)][1])^2)*1e-3
         return [S, σˢ]
     else 
-        return [NaN, NaN]
+        return NaN
     end 
 end
 # Q(A,Z)
@@ -208,36 +207,35 @@ function N_E(A, Z, E_min, h_E, E_max, limInfA_H, limSupA_H, txe_A_Z, tke_A, y_A)
 end
 # Normarea spectrului la un spectru Maxwell
 function Normare_Maxwell(n_E, T_M)
-    n_E_normat = distributie_unidym(Float64[], Float64[], Float64[])
     Maxwell(E) = (2/sqrt(π)) * T_M^(-3/2) * sqrt(E) * exp(-E/T_M)
     A_calculat = quadgk(Maxwell, first(n_E.x), last(n_E.x))[1]
     A_model = trapz(n_E.x, n_E.y)
     f = A_calculat/A_model
     for i in eachindex(n_E.x)
-        push!(n_E_normat.x, n_E.x[i])
-        push!(n_E_normat.y, n_E.y[i]*f/Maxwell(n_E.x[i]))
+        n_E.y[i] *= f/Maxwell(n_E.x[i])
     end
-    return n_E_normat
+    return n_E
 end
 # Aici se opreste partea de calcul a programului
 #####
 # Constructia reprezentarilor grafice
-function Grafic_plot(distributie, titlu, eticheta, axa_x, axa_y, scalare_inf, scalare_sup, scala_x, scala_y, x_maxim)
+function Grafic_plot(distributie, titlu, eticheta, axa_x, axa_y, scalare_inf, scalare_sup, scala_x, scala_y, x_maxim, culoare)
     plt = plot(
         distributie.x, 
         distributie.y, 
         xlims = (minimum(distributie.x), x_maxim),
         ylims = (minimum(distributie.y)*scalare_inf, maximum(distributie.y)*scalare_sup),
-        xlabel = "$axa_x", 
-        ylabel = "$axa_y", 
+        xlabel = axa_x, 
+        ylabel = axa_y, 
         framestyle = :box,
-        label = "$eticheta",
-        title = "$titlu",
+        label = eticheta,
+        title = titlu,
         xscale = scala_x,
         yscale = scala_y,
-        minorgrid = :true,
+        minorgrid = true,
         size = (1000, 1000),
         dpi = 600,
+        color = culoare
     )
     return plt
 end
@@ -263,14 +261,15 @@ txe_A_Z = TXE_A_Z(q_A_Z, tke_A, df, A₀, Z₀, εₙ);
 n_E = N_E(A₀, Z₀, E_min, h_E, E_max, limInfA_H, limSupA_H, txe_A_Z, tke_A, y_A);
 # <E_spectru> = 3/2 * T_M_echivalent
 T_M = 2/3 * trapz(n_E.x, n_E.y .* n_E.x)/trapz(n_E.x, n_E.y);
-n_E_Maxwell = Normare_Maxwell(n_E, T_M);
+n_E = DataFrame(x = n_E.x, y = n_E.y);
+n_E_Maxwell = Normare_Maxwell(copy(n_E), T_M);
 
-Plot_n_E_liniar = Grafic_plot(n_E, "Spectrul neutronilor prompți în scală liniară", "", "E [MeV]", "N(E)", 1, 1.1, :identity, :identity, maximum(n_E.x));
+Plot_n_E_liniar = Grafic_plot(n_E, "Spectrul neutronilor prompți în scală liniară", "", "E [MeV]", "N(E)", 1, 1.1, :identity, :identity, 16, :red);
 Grafic_afisare(Plot_n_E_liniar, "Plot_n_E_liniar");
 
-Plot_n_E_logaritmic = Grafic_plot(n_E, "Spectrul neutronilor prompți în scală logaritmică", "", "E [MeV]", "N(E)", 1, 10, :identity, :log10, maximum(n_E.x));
+Plot_n_E_logaritmic = Grafic_plot(n_E, "Spectrul neutronilor prompți în scală logaritmică", "", "E [MeV]", "N(E)", 1, 5, :identity, :log10, maximum(n_E.x), :red);
 Grafic_afisare(Plot_n_E_logaritmic, "Plot_n_E_logaritmic");
 
-Plot_n_E_Maxwell = Grafic_plot(n_E_Maxwell, "Spectrul neutronilor prompți normat la un spectru Maxwell echivalent", latexstring("\$\\mathrm{T_M} = $(round(T_M, digits = 3))\$ MeV"), "E [MeV]", latexstring("Raportul spectrului neutronilor prompți la spectrul Maxwell cu \$\\mathrm{T_M} = $(round(T_M, digits = 3))\$ MeV"), 1, 1.1, :log10, :identity, 10);
-hline!(Plot_n_E_Maxwell, [1.0], ls = :dashdot, label = "");
+Plot_n_E_Maxwell = Grafic_plot(n_E_Maxwell, "Spectrul neutronilor prompți normat la un spectru Maxwell echivalent", latexstring("\$\\mathrm{T_M} = $(round(T_M, digits = 3))\$ MeV"), "E [MeV]", latexstring("Raportul spectrului neutronilor prompți la distribuția Maxwell având \$\\mathrm{T_M} = $(round(T_M, digits = 3))\$ MeV"), 2, 1.05, :log10, :identity, 10, :blue);
+hline!(Plot_n_E_Maxwell, [1.0], ls = :dot, label = "", color = :red);
 Grafic_afisare(Plot_n_E_Maxwell, "Plot_n_E_Maxwell");
