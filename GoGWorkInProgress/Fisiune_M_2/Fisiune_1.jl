@@ -92,7 +92,8 @@ function Grafic_scatter(Q, eticheta, culoare)
         minorgrid = :true,
         size = (1000, 950),
         dpi = 600,
-        color = culoare
+        color = culoare,
+        markersize = 6
     )
     return plt
 end
@@ -102,7 +103,8 @@ function Grafic_scatter(Q, plt, eticheta, culoare)
         Q.y,  
         yerr = Q.σ,
         label = eticheta,
-        color = culoare
+        color = culoare,
+        markersize = 6
     )
     return plt
 end
@@ -111,7 +113,7 @@ function Grafic_unire_linie(Q, plt, culoare)
     Q.x_1, 
     Q.y,
     ribbon = Q.σ,
-    fillalpha = .3,
+    #fillalpha = .3,
     label = "",
     color = culoare
     )
@@ -132,7 +134,7 @@ limSupA_H = 160;
 q_A_Z = Q_A_Z(librarie, A₀, Z₀, limInfA_H, limSupA_H);
 q_A = Q_A(q_A_Z, A₀, Z₀);
 
-Plot = Grafic_scatter(q_A_Z, "Q(A,Z)", :black);
+Plot = Grafic_scatter(q_A_Z, "Q(A,Z)", :navy);
 Plot = Grafic_scatter(q_A, Plot, "Q(A)", :red);
 Plot = Grafic_unire_linie(q_A, Plot, :red);
 Grafic_afisare(Plot);
