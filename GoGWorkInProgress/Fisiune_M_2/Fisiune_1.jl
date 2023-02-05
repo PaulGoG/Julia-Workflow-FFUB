@@ -119,7 +119,7 @@ function Grafic_unire_linie(Q, plt, culoare)
 end
 function Grafic_afisare(plt)
     display(plt)
-    #savefig(plt, "Grafice/Q_value_T1.png")
+    savefig(plt, "Grafice/T1_Q_value.png")
 end
 #####
 # Apelarea functiilor definite pentru executia programului

@@ -422,7 +422,7 @@ function Grafic_linie_medie_orizontal(plt, distributie_med, eticheta, culoare)
 end
 function Grafic_afisare(plt, titlu)
     display(plt)
-    #savefig(plt, "Grafice/$(titlu)_T2.png")
+    savefig(plt, "Grafice/T2_$(titlu).png")
 end
 #####
 # Apelarea functiilor definite pentru executia programului
@@ -441,20 +441,20 @@ q_A_Z = Q_A_Z(A₀, Z₀, dm, limInfA_H, limSupA_H);
 q_A = Sortare_distributie(Q_A(q_A_Z, dy));
 txe_A = Sortare_distributie(TXE_A(q_A, tke_A, dm, A₀, Z₀));
 
-Plot_Y_A = Grafic_scatter(y_A, "Y(A)", "", :orange, "A", "Y %", 1, 1.1);
-Plot_Y_A = Grafic_unire_linie(y_A, Plot_Y_A, "", :orange,);
+Plot_Y_A = Grafic_scatter(y_A, "Y(A)", "", :orangered, "A", "Y %", 1, 1.1);
+Plot_Y_A = Grafic_unire_linie(y_A, Plot_Y_A, "", :orangered,);
 mid_index = Indice_mijloc(y_A);
 A_L_mediu = Medie_distributie_Y(y_A, 1, mid_index);
 A_H_mediu = Medie_distributie_Y(y_A, mid_index, length(y_A.x));
-Plot_Y_A = Grafic_linie_medie_vertical(Plot_Y_A, A_L_mediu[1], L"<\mathrm{A_L}>", :blue);
-Plot_Y_A = Grafic_linie_medie_vertical(Plot_Y_A, A_H_mediu[1], L"<\mathrm{A_H}>", :red);
+Plot_Y_A = Grafic_linie_medie_vertical(Plot_Y_A, A_L_mediu[1], L"<\mathrm{A_L}>", :olive);
+Plot_Y_A = Grafic_linie_medie_vertical(Plot_Y_A, A_H_mediu[1], L"<\mathrm{A_H}>", :navy);
 Plot_Y_A = Grafic_textbox_medie(y_A.x[mid_index], maximum(y_A.y), Plot_Y_A, "A_H", A_H_mediu[1], A_H_mediu[2], "");
 Plot_Y_A = Grafic_textbox_medie(y_A.x[mid_index], maximum(y_A.y)*0.95, Plot_Y_A, "A_L", A_L_mediu[1], A_L_mediu[2], "");
 xticks!(Plot_Y_A, unique(div.(y_A.x, 10.0).*10));
 Grafic_afisare(Plot_Y_A, "Y_A");
 
-Plot_Y_Z = Grafic_scatter(y_Z, "Y(Z)", "", :orange, "Z", "Y %", 1, 1.1);
-Plot_Y_Z = Grafic_unire_linie(y_Z, Plot_Y_Z, "", :orange);
+Plot_Y_Z = Grafic_scatter(y_Z, "Y(Z)", "", :orangered, "Z", "Y %", 1, 1.1);
+Plot_Y_Z = Grafic_unire_linie(y_Z, Plot_Y_Z, "", :orangered);
 mid_index = Indice_mijloc(y_Z);
 δₑₒ = (sum(y_Z.y[iseven.(y_Z.x)]) - sum(y_Z.y[isodd.(y_Z.x)]))/sum(y_Z.y);
 σ_δₑₒ = round((1/sum(y_Z.y)) * sqrt((1 + δₑₒ)^2 * sum(y_Z.σ .^2) + 2*δₑₒ*(sum(y_Z.σ[isodd.(y_Z.x)] .^2) - sum(y_Z.σ[iseven.(y_Z.x)].^2))), digits = 7);
@@ -463,8 +463,8 @@ Plot_Y_Z = Grafic_textbox(y_Z.x[mid_index], 19, Plot_Y_Z, "\\delta_{eo}", δₑ�
 xticks!(Plot_Y_Z, unique(div.(y_Z.x, 2.0).*2));
 Grafic_afisare(Plot_Y_Z, "Y_Z");
 
-Plot_Y_N = Grafic_scatter(y_N, "Y(N)", "", :orange, "N", "Y %", 1, 1.1);
-Plot_Y_N = Grafic_unire_linie(y_N, Plot_Y_N, "", :orange);
+Plot_Y_N = Grafic_scatter(y_N, "Y(N)", "", :orangered, "N", "Y %", 1, 1.1);
+Plot_Y_N = Grafic_unire_linie(y_N, Plot_Y_N, "", :orangered);
 Grafic_afisare(Plot_Y_N, "Y_N");
 
 Plot_Y_TKE = Grafic_plot(y_TKE, "Y(TKE)", "", :red, "TKE [MeV]", "Y %", 1, 1.1);
@@ -475,21 +475,21 @@ Plot_Y_TKE = Grafic_textbox_medie(y_TKE.x[mid_index]*0.92, maximum(y_TKE.y), Plo
 xticks!(Plot_Y_TKE, unique(div.(y_TKE.x, 10).*10));
 Grafic_afisare(Plot_Y_TKE, "Y_TKE");
 
-Plot_TKE_A = Grafic_scatter(tke_A, "TKE(A)", "", :orange, latexstring("\$\\mathrm{A_H}\$"), "TKE [MeV]", 0.99, 1.01);
+Plot_TKE_A = Grafic_scatter(tke_A, "TKE(A)", "", :orangered, latexstring("\$\\mathrm{A_H}\$"), "TKE [MeV]", 0.99, 1.01);
 TKE_A_mediu = Medie_distributie(tke_A, y_A, firstindex(tke_A.x), lastindex(tke_A.x));
-Plot_TKE_A = Grafic_unire_linie(tke_A, Plot_TKE_A, "", :orange);
+Plot_TKE_A = Grafic_unire_linie(tke_A, Plot_TKE_A, "", :orangered);
 mid_index = Indice_mijloc(tke_A);
 Plot_TKE_A = Grafic_textbox_medie(tke_A.x[mid_index]*1.07, maximum(tke_A.y), Plot_TKE_A, "TKE", TKE_A_mediu[1], TKE_A_mediu[2], "MeV");
 xticks!(Plot_TKE_A, unique(div.(tke_A.x, 5).*5));
 Grafic_afisare(Plot_TKE_A, "TKE_A");
 
-Plot_KE_A = Grafic_scatter(ke_A, "KE(A)", "", :orange, "A", "KE [MeV]", 0.95, 1.05);
-Plot_KE_A = Grafic_unire_linie(ke_A, Plot_KE_A, "", :orange);
+Plot_KE_A = Grafic_scatter(ke_A, "KE(A)", "", :orangered, "A", "KE [MeV]", 0.95, 1.05);
+Plot_KE_A = Grafic_unire_linie(ke_A, Plot_KE_A, "", :orangered);
 xticks!(Plot_KE_A, unique(div.(ke_A.x, 10).*10));
 Grafic_afisare(Plot_KE_A, "KE_A");
 
-Plot_Q_A = Grafic_scatter(q_A, "Q(A) obținut prin medierea Q(A,Z) pe Y(A, Z)",  "", :orange, latexstring("\$\\mathrm{A_H}\$"), "Q [MeV]", 0.99, 1.01);
-Plot_Q_A = Grafic_unire_linie(q_A, Plot_Q_A, "", :orange,);
+Plot_Q_A = Grafic_scatter(q_A, "Q(A) obținut prin medierea Q(A,Z) pe Y(A, Z)",  "", :orangered, latexstring("\$\\mathrm{A_H}\$"), "Q [MeV]", 0.99, 1.01);
+Plot_Q_A = Grafic_unire_linie(q_A, Plot_Q_A, "", :orangered,);
 Q_A_Mediu = Medie_distributie(q_A, y_A, firstindex(q_A.x), lastindex(q_A.x));
 mid_index = Indice_mijloc(q_A);
 Plot_Q_A = Grafic_textbox_medie(148, 190, Plot_Q_A, "Q", Q_A_Mediu[1], Q_A_Mediu[2], "MeV");
@@ -497,8 +497,8 @@ Plot_Q_A = Grafic_linie_medie_orizontal(Plot_Q_A, Q_A_Mediu[1], L"<\mathrm{Q}>",
 xticks!(Plot_Q_A, unique(div.(q_A.x, 5).*5));
 Grafic_afisare(Plot_Q_A, "Q_A");
 
-Plot_TXE_A = Grafic_scatter(txe_A, "TXE(A) obținut folosind distributia Y(A,Z,TKE)", "", :orange, latexstring("\$\\mathrm{A_H}\$"), "TXE [MeV]", 0.98, 1.02);
-Plot_TXE_A = Grafic_unire_linie(txe_A, Plot_TXE_A, "", :orange);
+Plot_TXE_A = Grafic_scatter(txe_A, "TXE(A) obținut folosind distributia Y(A,Z,TKE)", "", :orangered, latexstring("\$\\mathrm{A_H}\$"), "TXE [MeV]", 0.98, 1.02);
+Plot_TXE_A = Grafic_unire_linie(txe_A, Plot_TXE_A, "", :orangered);
 mid_index = Indice_mijloc(txe_A);
 TXE_A_Mediu = Medie_distributie(txe_A, y_A, firstindex(txe_A.x), lastindex(txe_A.x));
 Plot_TXE_A = Grafic_textbox_medie(140, 27, Plot_TXE_A, "TXE", TXE_A_Mediu[1], TXE_A_Mediu[2], "MeV");

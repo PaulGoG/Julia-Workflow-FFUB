@@ -93,7 +93,7 @@ function Grafic_textbox(x, y, text, plt)
 end
 function Grafic_afisare(plt, titlu)
     display(plt)
-    savefig(plt, "Grafice/$(titlu)_T5.png")
+    savefig(plt, "Grafice/T5_$(titlu).png")
 end
 #####
 # Apelarea functiilor definite pentru executia programului

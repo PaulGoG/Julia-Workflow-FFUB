@@ -9,7 +9,7 @@ gr();
 cd(@__DIR__); # Adauga calea relativa la folderul de lucru
 
 # Citire fisiere de date
-df = CSV.read("Data_files/Defecte_masa/AUDI2021.csv", DataFrame; delim=' ', ignorerepeated=true, header=["Z", "A", "Sym", "D", "σD"]);
+dm = CSV.read("Data_files/Defecte_masa/AUDI2021.csv", DataFrame; delim=' ', ignorerepeated=true, header=["Z", "A", "Sym", "D", "σD"]);
 dy = CSV.read("Data_files/Yield/U5YAZTKE.STR", DataFrame; delim=' ', ignorerepeated=true, header=["A_H", "Z_H", "TKE", "Y", "σY"], skipto = 2);
 dβ₀ = CSV.read("Data_files/Parametrizari_auxiliare/B2MOLLER.ANA", DataFrame; delim=' ', ignorerepeated=true, header=["Z", "A", "β"], skipto = 2);
 dGC = CSV.read("Data_files/Parametrizari_auxiliare/SZSN.GC", DataFrame; delim=' ', ignorerepeated=true, header=["n", "S_N", "S_Z"], skipto = 2);
@@ -81,27 +81,27 @@ function TKE_A(dy)
     return tke
 end
 # Calculul energiei de separare a particulei (A_part,Z_part) din nucleul (A,Z)
-function Energie_separare(A_part, Z_part, A, Z, df)
+function Energie_separare(A_part, Z_part, A, Z, dm)
     # Verificarea existentei radionuclizilor folositi in libraria de date
-    if isassigned(df.D[(df.A .== A_part) .& (df.Z .== Z_part)], 1) && isassigned(df.D[(df.A .== A) .& (df.Z .== Z)], 1) && isassigned(df.D[(df.A .== A - A_part) .& (df.Z .== Z - Z_part)], 1)
-        D_part = df.D[(df.A .== A_part) .& (df.Z .== Z_part)][1]
-        σ_part = df.σD[(df.A .== A_part) .& (df.Z .== Z_part)][1]
-        D = df.D[(df.A .== A - A_part) .& (df.Z .== Z - Z_part)][1]
-        σᴰ = df.σD[(df.A .== A - A_part) .& (df.Z .== Z - Z_part)][1]    
-        S = (D + D_part - df.D[(df.A .== A) .& (df.Z .== Z)][1])*1e-3
-        σˢ = sqrt(σ_part^2 + σᴰ^2 + (df.σD[(df.A .== A) .& (df.Z .== Z)][1])^2)*1e-3
+    if isassigned(dm.D[(dm.A .== A_part) .& (dm.Z .== Z_part)], 1) && isassigned(dm.D[(dm.A .== A) .& (dm.Z .== Z)], 1) && isassigned(dm.D[(dm.A .== A - A_part) .& (dm.Z .== Z - Z_part)], 1)
+        D_part = dm.D[(dm.A .== A_part) .& (dm.Z .== Z_part)][1]
+        σ_part = dm.σD[(dm.A .== A_part) .& (dm.Z .== Z_part)][1]
+        D = dm.D[(dm.A .== A - A_part) .& (dm.Z .== Z - Z_part)][1]
+        σᴰ = dm.σD[(dm.A .== A - A_part) .& (dm.Z .== Z - Z_part)][1]    
+        S = (D + D_part - dm.D[(dm.A .== A) .& (dm.Z .== Z)][1])*1e-3
+        σˢ = sqrt(σ_part^2 + σᴰ^2 + (dm.σD[(dm.A .== A) .& (dm.Z .== Z)][1])^2)*1e-3
         return [S, σˢ]
     else 
-        return [NaN, NaN]
+        return NaN
     end 
 end
 # Calculul Sₙ(A,Z) pentru fragmentele L & H
-function Sn_A_Z(A, Z, df, limInfA_H, limSupA_H)
+function Sn_A_Z(A, Z, dm, limInfA_H, limSupA_H)
     sn = distributie_bidym(Int[], Int[], Float64[], Float64[])
     for A_H in limInfA_H:limSupA_H
-        for Z_H in minimum(df.Z[df.A .== A_H]):maximum(df.Z[df.A .== A_H])
-            S_H = Energie_separare(1, 0, A_H, Z_H, df)
-            S_L = Energie_separare(1, 0, A - A_H, Z - Z_H, df)
+        for Z_H in minimum(dm.Z[dm.A .== A_H]):maximum(dm.Z[dm.A .== A_H])
+            S_H = Energie_separare(1, 0, A_H, Z_H, dm)
+            S_L = Energie_separare(1, 0, A - A_H, Z - Z_H, dm)
             if !isnan(S_H[1]) && !isnan(S_L[1])
                 push!(sn.y, S_H[1])
                 push!(sn.σ, S_H[2])
@@ -123,19 +123,19 @@ function p_A_Z(Z, Z_p)
     return 1/(sqrt(2*π) * 0.6) * exp(-(Z - Z_p)^2 /(2*0.6^2))
 end
 # Q(A,Z)
-function Q_A_Z(A, Z, df, limInfA_H, limSupA_H)
+function Q_A_Z(A, Z, dm, limInfA_H, limSupA_H)
     Q = distributie_bidym(Int[], Int[], Float64[], Float64[])
-    D = df.D[(df.A .== A) .& (df.Z .== Z)][1]
-    σ_D = df.σD[(df.A .== A) .& (df.Z .== Z)][1]
+    D = dm.D[(dm.A .== A) .& (dm.Z .== Z)][1]
+    σ_D = dm.σD[(dm.A .== A) .& (dm.Z .== Z)][1]
     for A_H in limInfA_H:limSupA_H
-        for Z_H in minimum(df.Z[df.A .== A_H]):maximum(df.Z[df.A .== A_H])
+        for Z_H in minimum(dm.Z[dm.A .== A_H]):maximum(dm.Z[dm.A .== A_H])
             A_L = A - A_H
             Z_L = Z - Z_H
-            if isassigned(df.D[(df.A .== A_H) .& (df.Z .== Z_H)], 1) && isassigned(df.D[(df.A .== A_L) .& (df.Z .== Z_L)], 1)
-                D_H = df.D[(df.A .== A_H) .& (df.Z .== Z_H)][1]
-                σ_D_H = df.σD[(df.A .== A_H) .& (df.Z .== Z_H)][1]
-                D_L = df.D[(df.A .== A_L) .& (df.Z .== Z_L)][1]
-                σ_D_L = df.σD[(df.A .== A_L) .& (df.Z .== Z_L)][1]
+            if isassigned(dm.D[(dm.A .== A_H) .& (dm.Z .== Z_H)], 1) && isassigned(dm.D[(dm.A .== A_L) .& (dm.Z .== Z_L)], 1)
+                D_H = dm.D[(dm.A .== A_H) .& (dm.Z .== Z_H)][1]
+                σ_D_H = dm.σD[(dm.A .== A_H) .& (dm.Z .== Z_H)][1]
+                D_L = dm.D[(dm.A .== A_L) .& (dm.Z .== Z_L)][1]
+                σ_D_L = dm.σD[(dm.A .== A_L) .& (dm.Z .== Z_L)][1]
                 q = D - (D_H + D_L)
                 if q > 0
                     # Energiile sunt salvate în MeV
@@ -150,9 +150,9 @@ function Q_A_Z(A, Z, df, limInfA_H, limSupA_H)
     return Q
 end
 # TXE(A,Z)
-function TXE_A_Z(q_A_Z, tke_A, df, A, Z, εₙ)
+function TXE_A_Z(q_A_Z, tke_A, dm, A, Z, εₙ)
     txe_A_Z = distributie_bidym(Int[], Int[], Float64[], Float64[])
-    Sₙ = Energie_separare(1, 0, A, Z, df)
+    Sₙ = Energie_separare(1, 0, A, Z, dm)
     for A_H in minimum(q_A_Z.x_1):maximum(q_A_Z.x_1)
         for Z_H in minimum(q_A_Z.x_2[q_A_Z.x_1 .== A_H]):maximum(q_A_Z.x_2[q_A_Z.x_1 .== A_H])
             if isassigned(tke_A.y[tke_A.x .== A_H], 1)
@@ -385,10 +385,12 @@ function ν_pereche(txe, sn, a, A, Z)
             sn_L = sn.y[(sn.x_1 .== A_L) .& (sn.x_2 .== Z_L)][1]
             sn_H = sn.y[(sn.x_1 .== A_H) .& (sn.x_2 .== Z_H)][1]
             Sₙ_med = 0.5*(sn_L + sn_H)
-            push!(ν.x_1, A_H)
-            push!(ν.x_2, Z_H)
-            push!(ν.y, (TXE - q)/(ε_med + Sₙ_med + p))
-            push!(ν.σ, 0.0)
+            if TXE >= Sₙ_med
+                push!(ν.x_1, A_H)
+                push!(ν.x_2, Z_H)
+                push!(ν.y, (TXE - q)/(ε_med + Sₙ_med + p))
+                push!(ν.σ, 0.0)
+            end
         end
     end
     return ν
@@ -399,18 +401,20 @@ function ν_partitionat(ν_pereche, R, A, Z)
     for A_H in minimum(R.x_1):maximum(R.x_1)
         A_L = A - A_H
         for Z_H in minimum(R.x_2[R.x_1 .== A_H]):maximum(R.x_2[R.x_1 .== A_H])
-            Z_L = Z - Z_H
-            mu_pereche = ν_pereche.y[(ν_pereche.x_1 .== A_H) .& (ν_pereche.x_2 .== Z_H)][1]
-            R_pereche = R.y[(R.x_1 .== A_H) .& (R.x_2 .== Z_H)][1]
-            push!(ν.x_1, A_H)
-            push!(ν.x_2, Z_H)
-            push!(ν.y, R_pereche * mu_pereche)
-            push!(ν.σ, 0.0)
-            if A_L != A_H
-                push!(ν.x_1, A_L)
-                push!(ν.x_2, Z_L)
-                push!(ν.y, (1 - R_pereche) * mu_pereche)
+            if isassigned(ν_pereche.y[(ν_pereche.x_1 .== A_H) .& (ν_pereche.x_2 .== Z_H)], 1)
+                Z_L = Z - Z_H
+                mu_pereche = ν_pereche.y[(ν_pereche.x_1 .== A_H) .& (ν_pereche.x_2 .== Z_H)][1]
+                R_pereche = R.y[(R.x_1 .== A_H) .& (R.x_2 .== Z_H)][1]
+                push!(ν.x_1, A_H)
+                push!(ν.x_2, Z_H)
+                push!(ν.y, R_pereche * mu_pereche)
                 push!(ν.σ, 0.0)
+                if A_L != A_H
+                    push!(ν.x_1, A_L)
+                    push!(ν.x_2, Z_L)
+                    push!(ν.y, (1 - R_pereche) * mu_pereche)
+                    push!(ν.σ, 0.0)
+                end
             end
         end
     end
@@ -428,11 +432,11 @@ end
 # Sortarea crescatoare dupa ordonata a structurilor de tip obiect unidimensional
 # Si stergerea elementelor duplicate dupa abscisa
 function Sortare_distributie(distributie)
-    index_true = unique(i -> distributie.x[i], eachindex(distributie.x))
-    index_delete = setdiff(eachindex(distributie.x), index_true)
-    deleteat!(distributie.x, index_delete)
-    deleteat!(distributie.y, index_delete)
-    deleteat!(distributie.σ, index_delete)
+    #index_true = unique(i -> distributie.x[i], eachindex(distributie.x))
+    #index_delete = setdiff(eachindex(distributie.x), index_true)
+    #deleteat!(distributie.x, index_delete)
+    #deleteat!(distributie.y, index_delete)
+    #deleteat!(distributie.σ, index_delete)
     x = sort(distributie.x)
     y = [distributie.y[distributie.x .== i][1] for i in minimum(x):maximum(x)]
     σ = [distributie.σ[distributie.x .== i][1] for i in minimum(x):maximum(x)]
@@ -444,7 +448,7 @@ function Sortare_distributie(distributie)
     return distributie
 end
 # Valoare medie & incertitudine pentru distributii mediate folosind o distributie de yield
-function Medie_distributie(distributie, Y, index_min, index_max)
+function Medie_distributie_yield(distributie, Y, index_min, index_max)
     Numarator = 0
     Numitor = 0
     Suma_σ² = 0
@@ -464,34 +468,11 @@ function Medie_distributie(distributie, Y, index_min, index_max)
         end    
         return [round(Media_distributiei, digits = 3), round(sqrt(Suma_σ²)/Numitor, digits = 5)]    
     else 
-        return [NaN, NaN]
+        return NaN
     end
 end
-# Functia de mediere a unei distributii_bidym(A, Z) pe distributia p(A, Z) considerand fragmentele H
-function Mediere_distributie_H(distributie_A_Z, A, Z, limInfA_H, limSupA_H)
-    distributie_A = distributie_unidym(Int[], Float64[], Float64[])
-    for A_H in limInfA_H:limSupA_H
-        Numarator = 0
-        Numitor = 0
-        Sigma_temp² = 0
-        Z_UCD = Z*A_H/A
-        Z_p = Z_UCD - 0.5
-        for j = 1:length(distributie_A_Z.x_2[distributie_A_Z.x_1 .== A_H])
-            P_A_Z = p_A_Z(distributie_A_Z.x_2[distributie_A_Z.x_1 .== A_H][j], Z_p)
-            Numarator += distributie_A_Z.y[distributie_A_Z.x_1 .== A_H][j] * P_A_Z
-            Numitor += P_A_Z
-            Sigma_temp² += (P_A_Z * distributie_A_Z.σ[distributie_A_Z.x_1 .== A_H][j])^2
-        end
-        if Numitor != 0
-            push!(distributie_A.y, Numarator/Numitor)
-            push!(distributie_A.σ, sqrt(Sigma_temp²)/Numitor)
-            push!(distributie_A.x, A_H)
-        end
-    end
-    return distributie_A
-end
-# Functia de mediere a unei distributii_bidym(A, Z) pe distributia p(A, Z) considerand toate fragmentele
-function Mediere_distributie_L_H(distributie_A_Z, A, Z, limInfA_H, limSupA_H)
+# Functia de mediere a unei distributii_bidym(A,Z) pe distributia p(A,Z)
+function Mediere_distributie_p(distributie_A_Z, A, Z, limInfA_H, limSupA_H)
     distributie_A = distributie_unidym(Int[], Float64[], Float64[])
     # Baleiaj interval fragmente H
     for A_H in limInfA_H:limSupA_H
@@ -515,6 +496,9 @@ function Mediere_distributie_L_H(distributie_A_Z, A, Z, limInfA_H, limSupA_H)
     # Baleiaj interval fragmente L
     limInfA_L = A - limSupA_H
     limSupA_L = A - limInfA_H
+    if limSupA_L == limInfA_H
+        limSupA_L -= 1
+    end
     for A_L in limInfA_L:limSupA_L
         Numarator = 0
         Numitor = 0
@@ -535,107 +519,116 @@ function Mediere_distributie_L_H(distributie_A_Z, A, Z, limInfA_H, limSupA_H)
     end
     return distributie_A
 end
+# Trecerea datelor experimentale de la tot intervalul A la intervalul fragmentelor grele
+function ν_pair_experimental(dν, A, limInfA_H, limSupA_H)
+    ν_pair_exp = distributie_unidym(Int[], Float64[], Float64[])
+    for A_H in limInfA_H:limSupA_H
+        A_L = A - A_H
+        if isassigned(dν.A[dν.A .== A_H], 1) && isassigned(dν.A[dν.A .== A_L], 1)
+            push!(ν_pair_exp.x, A_H)
+            push!(ν_pair_exp.y, dν.ν[dν.A .== A_H][1] + dν.ν[dν.A .== A_L][1])
+            push!(ν_pair_exp.σ, sqrt(dν.σν[dν.A .== A_H][1]^2 + dν.σν[dν.A .== A_L][1]^2))
+        end
+    end
+    return ν_pair_exp
+end
+# Calculul raportului νₕ/ν_pair
+function Raport_νH_νPair(ν, ν_pereche, A)
+    raport = distributie_unidym(Int[], Float64[], Float64[])
+    for i in eachindex(ν_pereche.x)
+        A_H = ν_pereche.x[i]
+        if isassigned(ν.x[ν.x .== A_H], 1)
+            ν_p = ν_pereche.y[i]
+            ν_H = ν.y[ν.x .== A_H][1]
+            f = ν_H/ν_p
+            push!(raport.x, A_H)
+            push!(raport.y, f)
+            σν_p = ν_pereche.σ[i]
+            if σν_p != 0
+                push!(raport.σ, (1/ν_p) * sqrt(ν.σ[ν.x .== A_H][1]^2 + f^2 * σν_p^2))
+            else
+                push!(raport.σ, 0.0)
+            end
+        end
+    end
+    return raport
+end
 # Aici se opreste partea de calcul a programului
 #####
 # Constructia reprezentarilor grafice
-function Grafic_scatter(distributie, titlu, eticheta, axa_x, axa_y, scalare_inf, scalare_sup)
+function Grafic_scatter(x, y, σ, titlu, eticheta, culoare, forma, marime, axa_x, axa_y, scalare_inf, scalare_sup, x_minim, x_maxim)
     plt = scatter(
-        distributie.x, 
-        distributie.y, 
-        yerr = distributie.σ, 
-        ylims = (minimum(distributie.y)*scalare_inf, maximum(distributie.y)*scalare_sup),
-        xlabel = "$axa_x", 
-        ylabel = "$axa_y", 
+        x, 
+        y,
+        yerr = σ, 
+        ylims = (minimum(y)*scalare_inf, maximum(y)*scalare_sup),
+        xlims = (x_minim, x_maxim),
+        xlabel = axa_x, 
+        ylabel = axa_y, 
         framestyle = :box,
-        label = "$eticheta",
-        title = "$titlu",
-        minorgrid = :true,
-        size = (1000, 950)
+        label = eticheta,
+        title = titlu,
+        minorgrid = true,
+        size = (1000, 950),
+        dpi = 600,
+        color = culoare,
+        shape = forma,
+        markersize = marime
     )
     return plt
 end
-function Grafic_scatter(distributie, plt, eticheta, dimensiune_punct)
-    scatter!(plt, 
-        distributie.x_1, 
-        distributie.y,  
-        yerr = distributie.σ,
-        label = "$eticheta",
-        markersize = dimensiune_punct
+function Grafic_scatter(x, y, σ, eticheta, culoare, forma, marime, plt)
+    scatter!(plt,
+        x, 
+        y,
+        yerr = σ, 
+        label = eticheta,
+        color = culoare,
+        shape = forma,
+        markersize = marime
     )
     return plt
 end
-function Grafic_scatter_over(plt, distributie, eticheta)
-    scatter!(plt, 
-        distributie.x, 
-        distributie.y,  
-        yerr = distributie.σ,
-        label = "$eticheta"
-    )
-    return plt
-end
-function Grafic_scatter_dataframe(plt, eticheta, dν, dimensiune_punct)
-    scatter!(plt, 
-        dν.A, 
-        dν.ν,  
-        yerr = dν.σν,
-        label = "$eticheta",
-        markersize = dimensiune_punct
-    )
-    return plt
-end
-function Grafic_unire_linie(distributie, plt)
+function Grafic_unire_linie(x, y, σ, plt, eticheta, culoare)
     plot!(plt, 
-    distributie.x, 
-    distributie.y,
-    ribbon = distributie.σ,
-    fillalpha = .3,
-    label = ""
+    x, 
+    y,
+    ribbon = σ,
+    #fillalpha = .3,
+    label = eticheta,
+    color = culoare
     )
     return plt
 end
-function Grafic_textbox_medie(x, y, plt, distributie_nume, distributie_med, distributie_med_sigma, unitate_masura)
+function Grafic_textbox(x, y, plt, text)
     annotate!(plt, 
     x, 
     y, 
-    latexstring("\$<\\mathrm{$distributie_nume}> =\$ $distributie_med \$\\pm\$ $distributie_med_sigma $unitate_masura")
+    text
     )
     return plt
 end
-function Grafic_textbox_medie(x, y, plt, distributie_nume, distributie_med, unitate_masura)
-    annotate!(plt, 
-    x, 
-    y, 
-    latexstring("\$<\\mathrm{$distributie_nume}> =\$ $distributie_med $unitate_masura")
-    )
-    return plt
-end
-function Grafic_textbox(x, y, plt, distributie_nume, distributie_val, distributie_val_sigma, unitate_masura)
-    annotate!(plt, 
-    x, 
-    y, 
-    latexstring("\$\\mathrm{$distributie_nume} =\$ $distributie_val \$\\pm\$ $distributie_val_sigma $unitate_masura")
-    )
-    return plt
-end
-function Grafic_linie_medie_vertical(plt, distributie_med)
+function Grafic_linie_medie_vertical(plt, valoare_medie, eticheta, culoare)
     vline!(plt, 
-    [distributie_med], 
+    [valoare_medie], 
     ls = :dashdot, 
-    label = ""
+    label = eticheta,
+    color = culoare
     )
     return plt
 end
-function Grafic_linie_medie_orizontal(plt, distributie_med)
+function Grafic_linie_medie_orizontal(plt, valoare_medie, eticheta, culoare)
     hline!(plt, 
-    [distributie_med], 
+    [valoare_medie], 
     ls = :dashdot, 
-    label = ""
+    label = eticheta,
+    color = culoare
     )
     return plt
 end
 function Grafic_afisare(plt, titlu)
     display(plt)
-    #savefig(plt, "Grafice/$(titlu)_T3.png")
+    savefig(plt, "Grafice/T3_$(titlu).png")
 end
 #####
 # Apelarea functiilor definite pentru executia programului
@@ -647,97 +640,112 @@ limSupA_H = 160;
 
 y_A = Sortare_distributie(Y_A(dy, A₀));
 tke_A = Sortare_distributie(TKE_A(dy));
-q_A_Z = Q_A_Z(A₀, Z₀, df, limInfA_H, limSupA_H);
-q_A = Sortare_distributie(Mediere_distributie_H(q_A_Z, A₀, Z₀, limInfA_H, limSupA_H));
-sn_A_Z = Sn_A_Z(A₀, Z₀, df, limInfA_H, limSupA_H);
-sn_A = Sortare_distributie(Mediere_distributie_L_H(sn_A_Z, A₀, Z₀, limInfA_H, limSupA_H));
-txe_A_Z = TXE_A_Z(q_A_Z, tke_A, df, A₀, Z₀, εₙ);
-txe_A = Sortare_distributie(Mediere_distributie_L_H(txe_A_Z, A₀, Z₀, limInfA_H, limSupA_H));
+q_A_Z = Q_A_Z(A₀, Z₀, dm, limInfA_H, limSupA_H);
+q_A = Sortare_distributie(Mediere_distributie_p(q_A_Z, A₀, Z₀, limInfA_H, limSupA_H));
+sn_A_Z = Sn_A_Z(A₀, Z₀, dm, limInfA_H, limSupA_H);
+sn_A = Sortare_distributie(Mediere_distributie_p(sn_A_Z, A₀, Z₀, limInfA_H, limSupA_H));
+txe_A_Z = TXE_A_Z(q_A_Z, tke_A, dm, A₀, Z₀, εₙ);
+txe_A = Sortare_distributie(Mediere_distributie_p(txe_A_Z, A₀, Z₀, limInfA_H, limSupA_H));
 β_sciz = Beta_sciziune();
 ΔE_def_A_Z = ΔE_deformare_A_Z(A₀, Z₀, dβ₀, β_sciz, limInfA_H, limSupA_H);
-ΔE_def_A = Sortare_distributie(Mediere_distributie_L_H(ΔE_def_A_Z, A₀, Z₀, limInfA_H, limSupA_H));
+ΔE_def_A = Sortare_distributie(Mediere_distributie_p(ΔE_def_A_Z, A₀, Z₀, limInfA_H, limSupA_H));
 a_A_Z = a_Gilbert_Cameron(dGC, A₀, Z₀, limInfA_H, limSupA_H);
-a_A = Sortare_distributie(Mediere_distributie_L_H(a_A_Z, A₀, Z₀, limInfA_H, limSupA_H));
+a_A = Sortare_distributie(Mediere_distributie_p(a_A_Z, A₀, Z₀, limInfA_H, limSupA_H));
 E_sciz_A_Z = E_sciziune(txe_A_Z, ΔE_def_A_Z, a_A_Z, A₀, Z₀, limInfA_H, limSupA_H);
-E_sciz_A = Sortare_distributie(Mediere_distributie_L_H(E_sciz_A_Z, A₀, Z₀, limInfA_H, limSupA_H));
+E_sciz_A = Sortare_distributie(Mediere_distributie_p(E_sciz_A_Z, A₀, Z₀, limInfA_H, limSupA_H));
 E_excitatie_A_Z = E_excitatie_at(ΔE_def_A_Z, E_sciz_A_Z, A₀, Z₀, limInfA_H, limSupA_H);
-E_excitatie_A = Sortare_distributie(Mediere_distributie_L_H(E_excitatie_A_Z, A₀, Z₀, limInfA_H, limSupA_H));
+E_excitatie_A = Sortare_distributie(Mediere_distributie_p(E_excitatie_A_Z, A₀, Z₀, limInfA_H, limSupA_H));
 R_A_Z = R_partitionare(E_excitatie_A_Z, txe_A_Z);
-R_A = Sortare_distributie(Mediere_distributie_H(R_A_Z, A₀, Z₀, limInfA_H, limSupA_H));
+R_A = Sortare_distributie(Mediere_distributie_p(R_A_Z, A₀, Z₀, limInfA_H, limSupA_H));
 ν_pereche_A_Z = ν_pereche(txe_A_Z, sn_A_Z, a_A_Z, A₀, Z₀);
-ν_pereche_A = Sortare_distributie(Mediere_distributie_L_H(ν_pereche_A_Z, A₀, Z₀, limInfA_H, limSupA_H));
+ν_pereche_A = Sortare_distributie(Mediere_distributie_p(ν_pereche_A_Z, A₀, Z₀, limInfA_H, limSupA_H));
 ν_A_Z = ν_partitionat(ν_pereche_A_Z, R_A_Z, A₀, Z₀);
-ν_A = Sortare_distributie(Mediere_distributie_L_H(ν_A_Z, A₀, Z₀, limInfA_H, limSupA_H));
+ν_A = Sortare_distributie(Mediere_distributie_p(ν_A_Z, A₀, Z₀, limInfA_H, limSupA_H));
+raport_νH_νPair_Model = Raport_νH_νPair(ν_A, ν_pereche_A, A₀);
 
-Plot_Q_A = Grafic_scatter(q_A, "Q(A) obtinut prin medierea Q(A,Z) pe distributia izobara de sarcina p(A,Z)", "Q(A)", L"\mathrm{A_H}", "Q [MeV]", 0.9, 1.02);
-Plot_Q_A = Grafic_scatter(q_A_Z, Plot_Q_A, "Q(A,Z)", 3);
-Plot_Q_A = Grafic_unire_linie(q_A ,Plot_Q_A);
-Grafic_afisare(Plot_Q_A, "Q_A_Q_A_Z");
+ν_pereche_Gook = ν_pair_experimental(copy(dν_Gook), A₀, limInfA_H, limSupA_H);
+ν_Gook = DataFrame(x = dν_Gook.A, y = dν_Gook.ν, σ = dν_Gook.σν);
+raport_νH_νPair_Gook = Raport_νH_νPair(ν_Gook, ν_pereche_Gook, A₀);
 
-Q_med = Medie_distributie(q_A, y_A, firstindex(q_A.x), lastindex(q_A.x));
-Plot_Q_A = Grafic_scatter(q_A, "Q(A) obtinut prin medierea Q(A,Z) pe distributia izobara de sarcina p(A,Z)", "", L"\mathrm{A_H}", "Q [MeV]", 0.98, 1.02);
-Plot_Q_A = Grafic_textbox_medie(q_A.x[Indice_mijloc(q_A)]*1.05, maximum(q_A.y)*1, Plot_Q_A, "Q", Q_med[1], Q_med[2], "MeV");
-Plot_Q_A = Grafic_unire_linie(q_A, Plot_Q_A);
+ν_pereche_Maslin = ν_pair_experimental(copy(dν_Maslin), A₀, limInfA_H, limSupA_H);
+ν_Maslin = DataFrame(x = dν_Maslin.A, y = dν_Maslin.ν, σ = dν_Maslin.σν);
+raport_νH_νPair_Maslin = Raport_νH_νPair(ν_Maslin, ν_pereche_Maslin, A₀);
+
+ν_pereche_Nishio = ν_pair_experimental(copy(dν_Nishio), A₀, limInfA_H, limSupA_H);
+ν_Nishio = DataFrame(x = dν_Nishio.A, y = dν_Nishio.ν, σ = dν_Nishio.σν);
+raport_νH_νPair_Nishio = Raport_νH_νPair(ν_Nishio, ν_pereche_Nishio, A₀);
+
+ν_pereche_Vorobyev = ν_pair_experimental(copy(dν_Vorobyev), A₀, limInfA_H, limSupA_H);
+ν_Vorobyev = DataFrame(x = dν_Vorobyev.A, y = dν_Vorobyev.ν, σ = dν_Vorobyev.σν);
+raport_νH_νPair_Vorobyev = Raport_νH_νPair(ν_Vorobyev, ν_pereche_Vorobyev, A₀);
+
+
+Q_med = Medie_distributie_yield(q_A, y_A, firstindex(q_A.x), lastindex(q_A.x));
+Plot_Q_A = Grafic_scatter(q_A.x, q_A.y, q_A.σ, "Q(A) obținut prin medierea Q(A,Z) al fragmentelor pe distribuția izobară de sarcină", "", :orangered, :circle, 6, L"\mathrm{A_H}", "Q [MeV]", 0.98, 1.03, first(q_A.x)-0.5, last(q_A.x)+0.5);
+Plot_Q_A = Grafic_textbox(151.5, 200, Plot_Q_A, latexstring("\$<\\mathrm{Q}> =\$ $(round(Q_med[1], digits = 3)) \$\\pm\$ $(round(Q_med[2], digits = 5)) MeV"));
+Plot_Q_A = Grafic_unire_linie(q_A.x, q_A.y, q_A.σ, Plot_Q_A, "", :orangered);
 Grafic_afisare(Plot_Q_A, "Q_A");
 
-Plot_Sn_A = Grafic_scatter(sn_A, "Energia de separare a neutronului din fragmentele de fisiune", L"\mathrm{S_n(A)}", "A", L"\mathrm{S_n \: [MeV]}", 0.4, 1.6);
-Plot_Sn_A = Grafic_scatter(sn_A_Z, Plot_Sn_A, L"\mathrm{S_n(A,Z)}", 3);
-Plot_Sn_A = Grafic_unire_linie(sn_A, Plot_Sn_A);
-Grafic_afisare(Plot_Sn_A, "Sn_A_Sn_A_Z");
-
-Sn_H_med = Medie_distributie(sn_A, y_A, firstindex(sn_A.x), Indice_mijloc(sn_A));
-Sn_L_med = Medie_distributie(sn_A, y_A, Indice_mijloc(sn_A), lastindex(sn_A.x));
-Plot_Sn_A = Grafic_scatter(sn_A, "Energia de separare a neutronului din fragmentele de fisiune", "", "A", L"\mathrm{S_n \: [MeV]}", 0.95, 1.05);
-Plot_Sn_A = Grafic_textbox_medie(sn_A.x[Indice_mijloc(sn_A)]*0.9, maximum(sn_A.y)*1.02, Plot_Sn_A, "\\mathrm{S_n^H}", Sn_H_med[1], Sn_H_med[2], "MeV");
-Plot_Sn_A = Grafic_textbox_medie(sn_A.x[Indice_mijloc(sn_A)]*0.9, maximum(sn_A.y)*0.99, Plot_Sn_A, "\\mathrm{S_n^L}", Sn_L_med[1], Sn_L_med[2], "MeV");
-Plot_Sn_A = Grafic_unire_linie(sn_A, Plot_Sn_A);
+Sn_H_med = Medie_distributie_yield(sn_A, y_A, firstindex(sn_A.x), Indice_mijloc(sn_A));
+Sn_L_med = Medie_distributie_yield(sn_A, y_A, Indice_mijloc(sn_A), lastindex(sn_A.x));
+Plot_Sn_A = Grafic_scatter(sn_A.x, sn_A.y, sn_A.σ, "Energia de separare a neutronului din fragmentele de fisiune", "", :orangered, :circle, 6, "A", latexstring("\$\\mathrm{S_n}\$ [MeV]"), 0.95, 1.05, first(sn_A.x)-0.5, last(sn_A.x)+0.5);
+Plot_Sn_A = Grafic_textbox(100, 7.25, Plot_Sn_A, latexstring("\$<\\mathrm{S_n^H}> =\$ $(round(Sn_H_med[1], digits = 3)) \$\\pm\$ $(round(Sn_H_med[2], digits = 5)) MeV"));
+Plot_Sn_A = Grafic_textbox(100, 7.1, Plot_Sn_A, latexstring("\$<\\mathrm{S_n^L}> =\$ $(round(Sn_L_med[1], digits = 3)) \$\\pm\$ $(round(Sn_L_med[2], digits = 5)) MeV"));
+Plot_Sn_A = Grafic_unire_linie(sn_A.x, sn_A.y, sn_A.σ, Plot_Sn_A, "", :orangered);
 Grafic_afisare(Plot_Sn_A, "Sn_A");
 
-Plot_TXE_A = Grafic_scatter(txe_A, "TXE al tuturor fragmentarilor", "TXE(A)", L"\mathrm{A_H}", "TXE [MeV]", 1e-3, 1.1);
-Plot_TXE_A = Grafic_scatter(txe_A_Z, Plot_TXE_A, "TXE(A,Z)", 3);
-Plot_TXE_A = Grafic_unire_linie(txe_A, Plot_TXE_A);
-Grafic_afisare(Plot_TXE_A, "TXE_A_TXE_A_Z");
-
-TXE_med = Medie_distributie(txe_A, y_A, firstindex(txe_A.x), lastindex(txe_A.x));
-Plot_TXE_A = Grafic_scatter(txe_A, "TXE al tuturor fragmentarilor", "", L"\mathrm{A_H}", "TXE [MeV]", 0.95, 1.05);
-Plot_TXE_A = Grafic_textbox_medie(txe_A.x[Indice_mijloc(txe_A)], maximum(txe_A.y)*0.95, Plot_TXE_A, "TXE", TXE_med[1], TXE_med[2], "MeV");
-Plot_TXE_A = Grafic_linie_medie_orizontal(Plot_TXE_A, TXE_med[1]);
-Plot_TXE_A = Grafic_unire_linie(txe_A, Plot_TXE_A);
+TXE_med = Medie_distributie_yield(txe_A, y_A, firstindex(txe_A.x), lastindex(txe_A.x));
+Plot_TXE_A = Grafic_scatter(txe_A.x, txe_A.y, txe_A.σ, "TXE(A) obținut prin medierea TXE(A,Z) al fragmentelor pe distribuția izobară de sarcină", "", :orangered, :circle, 5, L"\mathrm{A_H}", "TXE [MeV]", 0.95, 1.05, first(txe_A.x)-0.5, last(txe_A.x)+0.5);
+Plot_TXE_A = Grafic_textbox(140, 41/5, Plot_TXE_A, latexstring("\$<\\mathrm{TXE}> =\$ $(round(TXE_med[1], digits = 3)) \$\\pm\$ $(round(TXE_med[2], digits = 5)) MeV"));
+Plot_TXE_A = Grafic_linie_medie_orizontal(Plot_TXE_A, TXE_med[1], L"<\mathrm{TXE}>", :olive);
+Plot_TXE_A = Grafic_unire_linie(txe_A.x, txe_A.y, txe_A.σ, Plot_TXE_A, "", :orangered);
 Grafic_afisare(Plot_TXE_A, "TXE_A");
 
-Plot_a_A = Grafic_scatter(a_A, "Parametrul densitatii de nivele, sistematica Gilbert-Cameron", "a(A)", "A", L"\mathrm{a \;\; [MeV^{-1}]}", 1e-3, 2);
-Plot_a_A = Grafic_scatter(a_A_Z, Plot_a_A, "a(A,Z)", 2.5);
-Plot_a_A = Grafic_unire_linie(a_A, Plot_a_A);
-Grafic_afisare(Plot_a_A, "a_A_a_A_Z");
-
-a_H_med = Medie_distributie(a_A, y_A, firstindex(a_A.x), Indice_mijloc(a_A));
-a_L_med = Medie_distributie(a_A, y_A, Indice_mijloc(a_A), lastindex(a_A.x));
-Plot_a_A = Grafic_scatter(a_A, "Parametrul densitatii de nivele, sistematica Gilbert-Cameron", "", "A", L"\mathrm{a \;\; [MeV^{-1}]}", 0.95, 1.05);
-Plot_a_A = Grafic_textbox_medie(a_A.x[Indice_mijloc(a_A)]*0.9, maximum(a_A.y)*1.02, Plot_a_A, "\\mathrm{a_H}", a_H_med[1], L"\mathrm{MeV^{-1}}");
-Plot_a_A = Grafic_textbox_medie(a_A.x[Indice_mijloc(a_A)]*0.9, maximum(a_A.y)*0.99, Plot_a_A, "\\mathrm{a_L}", a_L_med[1], L"\mathrm{MeV^{-1}}");
+a_H_med = Medie_distributie_yield(a_A, y_A, firstindex(a_A.x), Indice_mijloc(a_A));
+a_L_med = Medie_distributie_yield(a_A, y_A, Indice_mijloc(a_A), lastindex(a_A.x));
+Plot_a_A = Grafic_scatter(a_A.x, a_A.y, a_A.σ, "Parametrul densității de nivele, sistematica Gilbert-Cameron", "", :orangered, :circle, 6, "A", L"\mathrm{a \;\; [MeV^{-1}]}", 0.95, 1.05, first(a_A.x)-0.5, last(a_A.x)+0.5);
+Plot_a_A = Grafic_textbox(a_A.x[Indice_mijloc(a_A)]*0.9, maximum(a_A.y)*1.02, Plot_a_A, latexstring("\$<\\mathrm{a^H}> =\$ $(round(a_H_med[1], digits = 3)) \$\\pm\$ $(round(a_H_med[2], digits = 5)) MeV\$^{-1}\$"));
+Plot_a_A = Grafic_textbox(a_A.x[Indice_mijloc(a_A)]*0.9, maximum(a_A.y)*0.99, Plot_a_A, latexstring("\$<\\mathrm{a^L}> =\$ $(round(a_L_med[1], digits = 3)) \$\\pm\$ $(round(a_L_med[2], digits = 5)) MeV\$^{-1}\$"));
 Grafic_afisare(Plot_a_A, "a_A");
 
-Plot_E_A = Grafic_scatter(ΔE_def_A, "Energii de excitatie ale fragmentelor de fisiune", L"\mathrm{\Delta{}E_{def}}", "A", "E [MeV]", 0, 2.5);
-Plot_E_A = Grafic_scatter_over(Plot_E_A, E_sciz_A, L"\mathrm{E_{sciziune}}");
-Plot_E_A = Grafic_scatter_over(Plot_E_A, E_excitatie_A, L"\mathrm{E}^*");
-Plot_E_A = Grafic_unire_linie(ΔE_def_A, Plot_E_A);
-Plot_E_A = Grafic_unire_linie(E_sciz_A, Plot_E_A);
-Plot_E_A = Grafic_unire_linie(E_excitatie_A, Plot_E_A);
-Grafic_afisare(Plot_E_A, "Energii_A");
+Plot_E_A = Grafic_scatter(ΔE_def_A.x, ΔE_def_A.y, ΔE_def_A.σ, "Energiile de excitație ale fragmentelor de fisiune", L"\mathrm{\Delta{}E_{def}}", :orangered, :circle, 7, "A", "E [MeV]", 0.0, 2.5, first(ΔE_def_A.x)-0.5, last(ΔE_def_A.x)+0.5);
+Plot_E_A = Grafic_scatter(E_sciz_A.x, E_sciz_A.y, E_sciz_A.σ, L"\mathrm{E_{sciziune}}", :navy, :pentagon, 7, Plot_E_A);
+Plot_E_A = Grafic_scatter(E_excitatie_A.x, E_excitatie_A.y, E_excitatie_A.σ, L"\mathrm{E}^*", :magenta, :dtriangle, 7, Plot_E_A);
+Plot_E_A = Grafic_unire_linie(ΔE_def_A.x, ΔE_def_A.y, ΔE_def_A.σ, Plot_E_A, "", :orangered);
+Plot_E_A = Grafic_unire_linie(E_sciz_A.x, E_sciz_A.y, E_sciz_A.σ, Plot_E_A, "", :navy);
+Plot_E_A = Grafic_unire_linie(E_excitatie_A.x, E_excitatie_A.y, E_excitatie_A.σ, Plot_E_A, "", :magenta);
+Grafic_afisare(Plot_E_A, "Energii_excitatie_A");
 
-Plot_R_A = Grafic_scatter(R_A, "", "R(A)", "A", "R", 0.8, 1.2);
-Plot_R_A = Grafic_scatter(R_A_Z, Plot_R_A, "R(A,Z)", 3);
-Plot_R_A = Grafic_unire_linie(R_A, Plot_R_A);
+Plot_R_A = Grafic_scatter(R_A.x, R_A.y, R_A.σ, latexstring("Raportul de partiționare R = \$\\mathrm{E^*_H/TXE}\$"), "", :orangered, :circle, 7, L"\mathrm{A_H}", "R(A)", 0.9, 1.05, first(R_A.x)-0.5, last(R_A.x)+0.5);
+Plot_R_A = Grafic_unire_linie(R_A.x, R_A.y, R_A.σ, Plot_R_A, "", :orangered);
+Plot_R_A = Grafic_linie_medie_orizontal(Plot_R_A, 0.5, "", :olive);
 Grafic_afisare(Plot_R_A, "R_A");
 
-Plot_ν_pereche_A = Grafic_scatter(ν_pereche_A, "Multiplicitatea neutronica a perechilor de fragmente in emisia prompta", "", L"\mathrm{A_H}", L"\nu_{\mathrm{pereche}}", 0.95, 1.05);
-Plot_ν_pereche_A = Grafic_unire_linie(ν_pereche_A, Plot_ν_pereche_A);
+ν_pereche_med = Medie_distributie_yield(ν_pereche_A, y_A, firstindex(ν_pereche_A.x), lastindex(ν_pereche_A.x));
+Plot_ν_pereche_A = Grafic_scatter(ν_pereche_A.x, ν_pereche_A.y, ν_pereche_A.σ, "Multiplicitatea neutronică a perechilor de fragmente în emisia promptă", "Modelare la sciziune", :red, :circle, 10, L"\mathrm{A_H}", latexstring("\$\\nu_{\\mathrm{pereche}}\$(A)"), 0.6, 1.05, first(ν_pereche_A.x)-0.5, last(ν_pereche_A.x)+0.5);
+Plot_ν_pereche_A = Grafic_scatter(ν_pereche_Gook.x, ν_pereche_Gook.y, ν_pereche_Gook.σ, "Gook", :blue, :xcross, 6.5, Plot_ν_pereche_A);
+Plot_ν_pereche_A = Grafic_scatter(ν_pereche_Maslin.x, ν_pereche_Maslin.y, ν_pereche_Maslin.σ, "Maslin", :green, :star5, 6.5, Plot_ν_pereche_A);
+Plot_ν_pereche_A = Grafic_scatter(ν_pereche_Nishio.x, ν_pereche_Nishio.y, ν_pereche_Nishio.σ, "Nishio", :purple, :dtriangle, 6.5, Plot_ν_pereche_A);
+Plot_ν_pereche_A = Grafic_scatter(ν_pereche_Vorobyev.x, ν_pereche_Vorobyev.y, ν_pereche_Vorobyev.σ, "Vorobyev", :gold, :diamond, 6.5, Plot_ν_pereche_A);
+Plot_ν_pereche_A = Grafic_unire_linie(ν_pereche_A.x, ν_pereche_A.y, ν_pereche_A.σ, Plot_ν_pereche_A, "", :red);
+Plot_ν_pereche_A = Grafic_textbox(135, 4.5, Plot_ν_pereche_A, latexstring("\$<\\nu_{\\mathrm{pereche}}>\$ = $(round(ν_pereche_med[1], digits = 3)) \$^\\pm\$ $(round(ν_pereche_med[2], digits = 5))"));
 Grafic_afisare(Plot_ν_pereche_A, "Multiplicitati_neutronice_pereche");
 
-Plot_ν_A = Grafic_scatter(ν_A, "Multiplicitatea neutronica a fragmentelor de fisiune in emisia prompta", "Modelare la sciziune", "A", L"\nu", 0.8, 1.2);
-Plot_ν_A = Grafic_scatter_dataframe(Plot_ν_A, "Gook", dν_Gook, 3);
-Plot_ν_A = Grafic_scatter_dataframe(Plot_ν_A, "Maslin", dν_Maslin, 3);
-Plot_ν_A = Grafic_scatter_dataframe(Plot_ν_A, "Nishio", dν_Nishio, 3);
-Plot_ν_A = Grafic_scatter_dataframe(Plot_ν_A, "Vorobyev", dν_Vorobyev, 3);
-Plot_ν_A = Grafic_unire_linie(ν_A ,Plot_ν_A);
+ν_med = Medie_distributie_yield(ν_A, y_A, firstindex(ν_A.x), lastindex(ν_A.x));
+Plot_ν_A = Grafic_scatter(ν_A.x, ν_A.y, ν_A.σ, "Multiplicitatea neutronică a fragmentelor de fisiune în emisia promptă", "Modelare la sciziune", :red, :circle, 10, "A", latexstring("\$\\nu_{\\mathrm{A}}\$"), 0.0, 1.35, first(ν_A.x)-2.5, last(ν_A.x)+2.5);
+Plot_ν_A = Grafic_scatter(ν_Gook.x, ν_Gook.y, ν_Gook.σ, "Gook", :blue, :xcross, 5.5, Plot_ν_A);
+Plot_ν_A = Grafic_scatter(ν_Maslin.x, ν_Maslin.y, ν_Maslin.σ, "Maslin", :green, :star5, 5.5, Plot_ν_A);
+Plot_ν_A = Grafic_scatter(ν_Nishio.x, ν_Nishio.y, ν_Nishio.σ, "Nishio", :purple, :dtriangle, 5.5, Plot_ν_A);
+Plot_ν_A = Grafic_scatter(ν_Vorobyev.x, ν_Vorobyev.y, ν_Vorobyev.σ, "Vorobyev", :gold, :diamond, 5.5, Plot_ν_A);
+Plot_ν_A = Grafic_unire_linie(ν_A.x, ν_A.y, ν_A.σ, Plot_ν_A, "", :red);
+Plot_ν_A = Grafic_textbox(89, 2.8, Plot_ν_A, latexstring("\$<\\nu>\$ = $(round(ν_med[1], digits = 3)) \$\\pm\$ $(round(ν_med[2], digits = 5))"));
 Grafic_afisare(Plot_ν_A, "Multiplicitati_neutronice_fragmente");
+
+Plot_rapoarte_A = Grafic_scatter(R_A.x, R_A.y, R_A.σ, latexstring("Raportul \$\\mathrm{E^*_H/TXE}\$ comparat cu rapoartele \$\\nu_\\mathrm{H}/\\nu_\\mathrm{pereche}\$"), latexstring("R = \$\\mathrm{E^*_H/TXE}\$ - Modelare la sciziune"), :red, :utriangle, 8, L"\mathrm{A_H}", "Rapoarte de partiționare", 0.0, 1.6, first(R_A.x)-0.5, last(R_A.x)+0.5);
+Plot_rapoarte_A = Grafic_scatter(raport_νH_νPair_Model.x, raport_νH_νPair_Model.y, raport_νH_νPair_Model.σ, latexstring("\$\\nu_\\mathrm{H}/\\nu_\\mathrm{pereche}\$ - Modelare la sciziune"), :blue, :dtriangle, 8, Plot_rapoarte_A);
+Plot_rapoarte_A = Grafic_scatter(raport_νH_νPair_Gook.x, raport_νH_νPair_Gook.y, raport_νH_νPair_Gook.σ, latexstring("\$\\nu_\\mathrm{H}/\\nu_\\mathrm{pereche}\$ - Gook"), :gold, :xcross, 5, Plot_rapoarte_A);
+Plot_rapoarte_A = Grafic_scatter(raport_νH_νPair_Nishio.x, raport_νH_νPair_Nishio.y, raport_νH_νPair_Nishio.σ, latexstring("\$\\nu_\\mathrm{H}/\\nu_\\mathrm{pereche}\$ - Nishio"), :green, :star5, 5, Plot_rapoarte_A);
+Plot_rapoarte_A = Grafic_scatter(raport_νH_νPair_Maslin.x, raport_νH_νPair_Maslin.y, raport_νH_νPair_Maslin.σ, latexstring("\$\\nu_\\mathrm{H}/\\nu_\\mathrm{pereche}\$ - Maslin"), :purple, :circle, 5, Plot_rapoarte_A);
+Plot_rapoarte_A = Grafic_scatter(raport_νH_νPair_Vorobyev.x, raport_νH_νPair_Vorobyev.y, raport_νH_νPair_Vorobyev.σ, latexstring("\$\\nu_\\mathrm{H}/\\nu_\\mathrm{pereche}\$ - Vorobyev"), :orange, :diamond, 5, Plot_rapoarte_A);
+Plot_rapoarte_A = Grafic_linie_medie_orizontal(Plot_rapoarte_A, 0.5, "", :olive);
+Grafic_afisare(Plot_rapoarte_A, "Rapoarte_A");

@@ -241,7 +241,7 @@ function Grafic_plot(distributie, titlu, eticheta, axa_x, axa_y, scalare_inf, sc
 end
 function Grafic_afisare(plt, titlu)
     display(plt)
-    #savefig(plt, "Grafice/$(titlu)_T4.png")
+    savefig(plt, "Grafice/T4_$(titlu).png")
 end
 #####
 # Apelarea functiilor definite pentru executia programului
@@ -270,6 +270,6 @@ Grafic_afisare(Plot_n_E_liniar, "Plot_n_E_liniar");
 Plot_n_E_logaritmic = Grafic_plot(n_E, "Spectrul neutronilor prompți în scală logaritmică", "", "E [MeV]", "N(E)", 1, 5, :identity, :log10, maximum(n_E.x), :red);
 Grafic_afisare(Plot_n_E_logaritmic, "Plot_n_E_logaritmic");
 
-Plot_n_E_Maxwell = Grafic_plot(n_E_Maxwell, "Spectrul neutronilor prompți normat la un spectru Maxwell echivalent", latexstring("\$\\mathrm{T_M} = $(round(T_M, digits = 3))\$ MeV"), "E [MeV]", latexstring("Raportul spectrului neutronilor prompți la distribuția Maxwell având \$\\mathrm{T_M} = $(round(T_M, digits = 3))\$ MeV"), 2, 1.05, :log10, :identity, 10, :blue);
-hline!(Plot_n_E_Maxwell, [1.0], ls = :dot, label = "", color = :red);
+Plot_n_E_Maxwell = Grafic_plot(n_E_Maxwell, "Spectrul neutronilor prompți normat la un spectru Maxwell echivalent", latexstring("\$\\mathrm{T_M} = $(round(T_M, digits = 3))\$ MeV"), "E [MeV]", latexstring("Raportul spectrului neutronilor prompți la distribuția Maxwell având \$\\mathrm{T_M} = $(round(T_M, digits = 3))\$ MeV"), 2, 1.05, :log10, :identity, 10, :red);
+hline!(Plot_n_E_Maxwell, [1.0], ls = :dash, label = "", color = :navy);
 Grafic_afisare(Plot_n_E_Maxwell, "Plot_n_E_Maxwell");
