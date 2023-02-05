@@ -352,7 +352,8 @@ function Grafic_scatter(distributie, titlu, eticheta, culoare, axa_x, axa_y, sca
         minorgrid = true,
         size = (1000, 950),
         dpi = 600,
-        color = culoare
+        color = culoare,
+        markersize = 6
     )
     return plt
 end
@@ -470,7 +471,7 @@ Grafic_afisare(Plot_Y_N, "Y_N");
 Plot_Y_TKE = Grafic_plot(y_TKE, "Y(TKE)", "", :red, "TKE [MeV]", "Y %", 1, 1.1);
 TKE_mediu = Medie_distributie_Y(y_TKE, firstindex(y_TKE.x), lastindex(y_TKE.x));
 mid_index = Indice_mijloc(y_TKE);
-Plot_Y_TKE = Grafic_linie_medie_vertical(Plot_Y_TKE, TKE_mediu[1], L"<\mathrm{TKE}>", :blue);
+Plot_Y_TKE = Grafic_linie_medie_vertical(Plot_Y_TKE, TKE_mediu[1], L"<\mathrm{TKE}>", :olive);
 Plot_Y_TKE = Grafic_textbox_medie(y_TKE.x[mid_index]*0.92, maximum(y_TKE.y), Plot_Y_TKE, "TKE", TKE_mediu[1], TKE_mediu[2], "MeV");
 xticks!(Plot_Y_TKE, unique(div.(y_TKE.x, 10).*10));
 Grafic_afisare(Plot_Y_TKE, "Y_TKE");
@@ -493,7 +494,7 @@ Plot_Q_A = Grafic_unire_linie(q_A, Plot_Q_A, "", :orangered,);
 Q_A_Mediu = Medie_distributie(q_A, y_A, firstindex(q_A.x), lastindex(q_A.x));
 mid_index = Indice_mijloc(q_A);
 Plot_Q_A = Grafic_textbox_medie(148, 190, Plot_Q_A, "Q", Q_A_Mediu[1], Q_A_Mediu[2], "MeV");
-Plot_Q_A = Grafic_linie_medie_orizontal(Plot_Q_A, Q_A_Mediu[1], L"<\mathrm{Q}>", :red);
+Plot_Q_A = Grafic_linie_medie_orizontal(Plot_Q_A, Q_A_Mediu[1], L"<\mathrm{Q}>", :olive);
 xticks!(Plot_Q_A, unique(div.(q_A.x, 5).*5));
 Grafic_afisare(Plot_Q_A, "Q_A");
 
@@ -502,6 +503,6 @@ Plot_TXE_A = Grafic_unire_linie(txe_A, Plot_TXE_A, "", :orangered);
 mid_index = Indice_mijloc(txe_A);
 TXE_A_Mediu = Medie_distributie(txe_A, y_A, firstindex(txe_A.x), lastindex(txe_A.x));
 Plot_TXE_A = Grafic_textbox_medie(140, 27, Plot_TXE_A, "TXE", TXE_A_Mediu[1], TXE_A_Mediu[2], "MeV");
-Plot_TXE_A = Grafic_linie_medie_orizontal(Plot_TXE_A, TXE_A_Mediu[1], L"<\mathrm{TXE}>", :red);
+Plot_TXE_A = Grafic_linie_medie_orizontal(Plot_TXE_A, TXE_A_Mediu[1], L"<\mathrm{TXE}>", :olive);
 xticks!(Plot_TXE_A, unique(div.(txe_A.x, 5).*5));
 Grafic_afisare(Plot_TXE_A, "TXE_A");

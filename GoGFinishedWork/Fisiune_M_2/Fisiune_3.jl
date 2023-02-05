@@ -696,14 +696,14 @@ Grafic_afisare(Plot_Sn_A, "Sn_A");
 
 TXE_med = Medie_distributie_yield(txe_A, y_A, firstindex(txe_A.x), lastindex(txe_A.x));
 Plot_TXE_A = Grafic_scatter(txe_A.x, txe_A.y, txe_A.σ, "TXE(A) obținut prin medierea TXE(A,Z) al fragmentelor pe distribuția izobară de sarcină", "", :orangered, :circle, 5, L"\mathrm{A_H}", "TXE [MeV]", 0.95, 1.05, first(txe_A.x)-0.5, last(txe_A.x)+0.5);
-Plot_TXE_A = Grafic_textbox(140, 41/5, Plot_TXE_A, latexstring("\$<\\mathrm{TXE}> =\$ $(round(TXE_med[1], digits = 3)) \$\\pm\$ $(round(TXE_med[2], digits = 5)) MeV"));
+Plot_TXE_A = Grafic_textbox(140, 41.5, Plot_TXE_A, latexstring("\$<\\mathrm{TXE}> =\$ $(round(TXE_med[1], digits = 3)) \$\\pm\$ $(round(TXE_med[2], digits = 5)) MeV"));
 Plot_TXE_A = Grafic_linie_medie_orizontal(Plot_TXE_A, TXE_med[1], L"<\mathrm{TXE}>", :olive);
 Plot_TXE_A = Grafic_unire_linie(txe_A.x, txe_A.y, txe_A.σ, Plot_TXE_A, "", :orangered);
 Grafic_afisare(Plot_TXE_A, "TXE_A");
 
 a_H_med = Medie_distributie_yield(a_A, y_A, firstindex(a_A.x), Indice_mijloc(a_A));
 a_L_med = Medie_distributie_yield(a_A, y_A, Indice_mijloc(a_A), lastindex(a_A.x));
-Plot_a_A = Grafic_scatter(a_A.x, a_A.y, a_A.σ, "Parametrul densității de nivele, sistematica Gilbert-Cameron", "", :orangered, :circle, 6, "A", L"\mathrm{a \;\; [MeV^{-1}]}", 0.95, 1.05, first(a_A.x)-0.5, last(a_A.x)+0.5);
+Plot_a_A = Grafic_scatter(a_A.x, a_A.y, a_A.σ, "Parametrul densității de nivele energetice, sistematica Gilbert-Cameron", "", :orangered, :circle, 6, "A", L"\mathrm{a \;\; [MeV^{-1}]}", 0.95, 1.05, first(a_A.x)-0.5, last(a_A.x)+0.5);
 Plot_a_A = Grafic_textbox(a_A.x[Indice_mijloc(a_A)]*0.9, maximum(a_A.y)*1.02, Plot_a_A, latexstring("\$<\\mathrm{a^H}> =\$ $(round(a_H_med[1], digits = 3)) \$\\pm\$ $(round(a_H_med[2], digits = 5)) MeV\$^{-1}\$"));
 Plot_a_A = Grafic_textbox(a_A.x[Indice_mijloc(a_A)]*0.9, maximum(a_A.y)*0.99, Plot_a_A, latexstring("\$<\\mathrm{a^L}> =\$ $(round(a_L_med[1], digits = 3)) \$\\pm\$ $(round(a_L_med[2], digits = 5)) MeV\$^{-1}\$"));
 Grafic_afisare(Plot_a_A, "a_A");
@@ -722,7 +722,7 @@ Plot_R_A = Grafic_linie_medie_orizontal(Plot_R_A, 0.5, "", :olive);
 Grafic_afisare(Plot_R_A, "R_A");
 
 ν_pereche_med = Medie_distributie_yield(ν_pereche_A, y_A, firstindex(ν_pereche_A.x), lastindex(ν_pereche_A.x));
-Plot_ν_pereche_A = Grafic_scatter(ν_pereche_A.x, ν_pereche_A.y, ν_pereche_A.σ, "Multiplicitatea neutronică a perechilor de fragmente în emisia promptă", "Modelare la sciziune", :red, :circle, 10, L"\mathrm{A_H}", latexstring("\$\\nu_{\\mathrm{pereche}}\$(A)"), 0.6, 1.05, first(ν_pereche_A.x)-0.5, last(ν_pereche_A.x)+0.5);
+Plot_ν_pereche_A = Grafic_scatter(ν_pereche_A.x, ν_pereche_A.y, ν_pereche_A.σ, "Multiplicitatea neutronică a perechilor de fragmente în emisia promptă", "Modelare la sciziune", :red, :circle, 10, L"\mathrm{A_H}", latexstring("\$\\nu_{\\mathrm{pereche}}\$"), 0.6, 1.05, first(ν_pereche_A.x)-0.5, last(ν_pereche_A.x)+0.5);
 Plot_ν_pereche_A = Grafic_scatter(ν_pereche_Gook.x, ν_pereche_Gook.y, ν_pereche_Gook.σ, "Gook", :blue, :xcross, 6.5, Plot_ν_pereche_A);
 Plot_ν_pereche_A = Grafic_scatter(ν_pereche_Maslin.x, ν_pereche_Maslin.y, ν_pereche_Maslin.σ, "Maslin", :green, :star5, 6.5, Plot_ν_pereche_A);
 Plot_ν_pereche_A = Grafic_scatter(ν_pereche_Nishio.x, ν_pereche_Nishio.y, ν_pereche_Nishio.σ, "Nishio", :purple, :dtriangle, 6.5, Plot_ν_pereche_A);
@@ -732,7 +732,7 @@ Plot_ν_pereche_A = Grafic_textbox(135, 4.5, Plot_ν_pereche_A, latexstring("\$<
 Grafic_afisare(Plot_ν_pereche_A, "Multiplicitati_neutronice_pereche");
 
 ν_med = Medie_distributie_yield(ν_A, y_A, firstindex(ν_A.x), lastindex(ν_A.x));
-Plot_ν_A = Grafic_scatter(ν_A.x, ν_A.y, ν_A.σ, "Multiplicitatea neutronică a fragmentelor de fisiune în emisia promptă", "Modelare la sciziune", :red, :circle, 10, "A", latexstring("\$\\nu_{\\mathrm{A}}\$"), 0.0, 1.35, first(ν_A.x)-2.5, last(ν_A.x)+2.5);
+Plot_ν_A = Grafic_scatter(ν_A.x, ν_A.y, ν_A.σ, "Multiplicitatea neutronică a fragmentelor de fisiune în emisia promptă", "Modelare la sciziune", :red, :circle, 10, "A", latexstring("\$\\nu\$"), 0.0, 1.35, first(ν_A.x)-2.5, last(ν_A.x)+2.5);
 Plot_ν_A = Grafic_scatter(ν_Gook.x, ν_Gook.y, ν_Gook.σ, "Gook", :blue, :xcross, 5.5, Plot_ν_A);
 Plot_ν_A = Grafic_scatter(ν_Maslin.x, ν_Maslin.y, ν_Maslin.σ, "Maslin", :green, :star5, 5.5, Plot_ν_A);
 Plot_ν_A = Grafic_scatter(ν_Nishio.x, ν_Nishio.y, ν_Nishio.σ, "Nishio", :purple, :dtriangle, 5.5, Plot_ν_A);

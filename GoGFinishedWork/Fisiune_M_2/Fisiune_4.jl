@@ -270,6 +270,6 @@ Grafic_afisare(Plot_n_E_liniar, "Plot_n_E_liniar");
 Plot_n_E_logaritmic = Grafic_plot(n_E, "Spectrul neutronilor prompți în scală logaritmică", "", "E [MeV]", "N(E)", 1, 5, :identity, :log10, maximum(n_E.x), :red);
 Grafic_afisare(Plot_n_E_logaritmic, "Plot_n_E_logaritmic");
 
-Plot_n_E_Maxwell = Grafic_plot(n_E_Maxwell, "Spectrul neutronilor prompți normat la un spectru Maxwell echivalent", latexstring("\$\\mathrm{T_M} = $(round(T_M, digits = 3))\$ MeV"), "E [MeV]", latexstring("Raportul spectrului neutronilor prompți la distribuția Maxwell având \$\\mathrm{T_M} = $(round(T_M, digits = 3))\$ MeV"), 2, 1.05, :log10, :identity, 10, :red);
-hline!(Plot_n_E_Maxwell, [1.0], ls = :dash, label = "", color = :navy);
+Plot_n_E_Maxwell = Grafic_plot(n_E_Maxwell, "Spectrul neutronilor prompți normat la un spectru Maxwell echivalent", "", "E [MeV]", latexstring("Raportul spectrului neutronilor prompți la distribuția Maxwell având \$\\mathrm{T_M} = $(round(T_M, digits = 3))\$ MeV"), 2, 1.05, :log10, :identity, 10, :red);
+hline!(Plot_n_E_Maxwell, [1.0], ls = :dash, label = latexstring("\$\\mathrm{T_M} = $(round(T_M, digits = 3))\$ MeV"), color = :navy);
 Grafic_afisare(Plot_n_E_Maxwell, "Plot_n_E_Maxwell");
