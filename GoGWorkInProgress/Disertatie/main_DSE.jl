@@ -5,4 +5,5 @@ For secondary results comparable to experimental data (eg. neutron multiplicity)
 secondary_output.jl program, and for graphical representations run the graphics_plots.jl program;
 =#
 
-include("input.jl");
+include("input.jl")
+include("error_handling.jl")
