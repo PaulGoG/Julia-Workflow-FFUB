@@ -2,9 +2,10 @@
 #####
 #Add relative folder path
 cd(@__DIR__)
+cd("input_data/")
 
 #Mass excess data file name and relative path
-mass_excess_filename = "input_data/AUDI2021.ANA"
+mass_excess_filename = "AUDI2021.ANA"
 
 #(A,Z) of the fissionant nucleus
 A₀ = 235
@@ -55,11 +56,11 @@ VARIABLE for energy-dependent cross section
 =#
 evaporation_cs_type = "CONSTANT"
 if evaporation_cs_type == "VARIABLE"
-    const ħc = 197.3268601
-    const a.m.u = 931.50176
-    const aₘ = 1.008665
-    const r₀ = 1.2
-    const C_α = (π*ħc)^2 /(aₘ*a.m.u)
+    ħc = 197.3268601
+    a.m.u = 931.50176
+    aₘ = 1.008665
+    r₀ = 1.2
+    global C_α = (π*ħc)^2 /(aₘ*a.m.u)
     S₀_datafile = "input_data/"
 end
 

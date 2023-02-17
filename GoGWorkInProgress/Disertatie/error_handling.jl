@@ -16,4 +16,6 @@ if density_parameter_type != "GC" && density_parameter_type != "BSFG"
     error("$density_parameter_type is not a valid input for density_parameter_type!")
 end
 
-density_parameter_filename
+if !isfile(density_parameter_filename)
+    error("$density_parameter_filename does not exist or it cannot be accesed by the program!")
+end

@@ -7,3 +7,5 @@ secondary_output.jl program, and for graphical representations run the graphics_
 
 include("input.jl")
 include("error_handling.jl")
+
+cd(@__DIR__)
