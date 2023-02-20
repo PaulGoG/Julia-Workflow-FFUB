@@ -4,8 +4,15 @@
 cd(@__DIR__)
 cd("input_data/")
 
-#Mass excess data file name and relative path
+#=
+Mass excess data file name, column names, delimiter symbol, number of first row of actual data in file
+!!Header names can be rearranged, added or eliminated in order to match the actual data format of the file, but 
+it should not deviate from the standard convention of eligible fields: Z, A, Symbol, D, σ_D!!
+=#
 mass_excess_filename = "AUDI2021.ANA"
+mass_excess_header = ["Z", "A", "Symbol", "D", "σ_D"]
+mass_excess_delimiter = ' '
+mass_excess_firstdataline = 1
 
 #(A,Z) of the fissionant nucleus
 A₀ = 235
@@ -17,7 +24,7 @@ A_H_max = 160
 
 #Total Kinetic Energy range and step in MeV
 TKE_min = 100.0
-TKE_max= 200.0
+TKE_max = 200.0
 TKE_step = 0.5
 
 #=
@@ -45,7 +52,7 @@ GC for Gilbert-Cameron
 BSFG for Egidy-Bucurescu
 =#
 density_parameter_type = "GC"
-density_parameter_filename = "input_data/"
+density_parameter_filename = "SZSN.GC"
 
 #=
 Neutron evaporation cross section type:
@@ -55,17 +62,16 @@ VARIABLE for energy-dependent cross section
 !If variable σ is used, provide the necessary data file for the force function S₀!
 =#
 evaporation_cs_type = "CONSTANT"
-if evaporation_cs_type == "VARIABLE"
-    ħc = 197.3268601
-    a.m.u = 931.50176
-    aₘ = 1.008665
-    r₀ = 1.2
-    global C_α = (π*ħc)^2 /(aₘ*a.m.u)
-    S₀_datafile = "input_data/"
-end
 
-#Yield distribution path and filename
-yield_distribution_filename = "input_data/U5YATKE.SRE"
+ħc = 197.3268601
+amu = 931.50176
+aₘ = 1.008665
+r₀ = 1.2
+global C_α = (π*ħc)^2 /(aₘ*amu)
+S₀_datafile = ""
+
+#Yield distribution filename
+yield_distribution_filename = "U5YATKE.SRE"
 
 #=
 Input type for the isobaric charge distribution p(Z,A):
@@ -75,24 +81,24 @@ DATA for values provided in a datafile
 !If variable ΔZ(A) & rms(A) are used, provide the necessary data file!
 =#
 isobaric_distribution_type = "MEAN_VALUES"
-if isobaric_distribution_type == "DATA"
-    isobaric_distribution_datafile = "input_data/"
-end
+isobaric_distribution_datafile = ""
 
 #=
 Number of Z per A fragments considered
-!!MUST BE AN ODD INTEGER VALUE!!
 =#
-No_ZperA = 2.3
-if !isodd(No_ZperA)
-    No_ZperA = Int(round(No_ZperA*2 - 1)) 
-end
-#Main output file name
-output_filename = "dse_main.out"
+No_ZperA = 3
+
 #=
 Total Excitation Energy partitioning method:
 MSCZ for Modelling at scission
+PARAM for file-provided partitioning ratios
 
-!Necessary data files must be provided in each case!
+!Necessary data files must be provided in each case!: 
+Extra deformation energies for MSCZ
+Partitioning ratios for PARAM
 =#
 txe_partitioning_type = "MSCZ"
+txe_partitioning_datafile = "EXTRADEF.DSE"
+
+#Main output file name
+output_filename = "dse_main_$(density_parameter_type)_$(evaporation_cs_type)_$(txe_partitioning_type).out"

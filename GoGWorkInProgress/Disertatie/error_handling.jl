@@ -1,11 +1,29 @@
 #=
-Flow control and error handling for input parameters and filenames
+Flow control and error handling for input parameters and filenames of the main program
 =#
 #####
-include("input.jl")
 
 if !isfile(mass_excess_filename)
-    error("$mass_excess_filename does not exist or it cannot be accesed by the program!")
+    error("$mass_excess_filename does not exist at input_data/  PATH!")
+end
+
+if isassigned(filter(x -> !in(x, ("Z", "A", "Symbol", "D", "σ_D")) ,mass_excess_header), 1)
+    error(
+    "mass_excess_header contains invalid fields: $(filter(x -> !in(x, ("Z", "A", "Symbol", "D", "σ_D")) ,mass_excess_header));
+    allowed header names list: Z, A, Symbol, D, σ_D"
+    )
+end
+
+if A_H_min < A₀/2
+    error("$A_H_min invalid Heavy Fragment region lower bound!")
+end
+
+if A_H_max >= A₀
+    error("$A_H_max invalid Heavy Fragment region upper bound!")
+end
+
+if TKE_min >= TKE_max
+    error("Invalid TKE range!")
 end
 
 if fission_type != "SF" && fission_type != "(n,f)"
@@ -17,5 +35,37 @@ if density_parameter_type != "GC" && density_parameter_type != "BSFG"
 end
 
 if !isfile(density_parameter_filename)
-    error("$density_parameter_filename does not exist or it cannot be accesed by the program!")
+    error("$density_parameter_filename does not exist at input_data/  PATH!")
+end
+
+if evaporation_cs_type != "CONSTANT" && evaporation_cs_type != "VARIABLE"
+    error("$evaporation_cs_type is not a valid input for evaporation_cs_type!")
+end
+
+if evaporation_cs_type == "VARIABLE"
+    if !isfile(S₀_datafile)
+        error("$S₀_datafile does not exist at input_data/  PATH!")
+    end
+end
+
+if isobaric_distribution_type != "MEAN_VALUES" && isobaric_distribution_type != "DATA"
+    error("$isobaric_distribution_type is not a valid input for isobaric_distribution_type!")
+end
+
+if isobaric_distribution_type == "DATA"
+    if !isfile(isobaric_distribution_datafile)
+        error("$isobaric_distribution_datafile does not exist at input_data/  PATH!")
+    end
+end
+
+if !isodd(No_ZperA)
+    error("No_ZperA must be an odd Integer!")
+end
+
+if txe_partitioning_type != "MSCZ" && txe_partitioning_type != "PARAM"
+    error("$txe_partitioning_type is not a valid input for txe_partitioning_type!")
+end
+
+if !isfile(txe_partitioning_datafile)
+    error("$txe_partitioning_datafile does not exist at input_data/  PATH!")
 end
