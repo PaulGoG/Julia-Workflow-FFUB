@@ -22,7 +22,7 @@ end
 function p_A_Z(Z, Z_p, rms_A)
     return 1/(sqrt(2*π) * rms_A) * exp(-(Z - Z_p)^2 /(2* rms_A^2))
 end
-#Q_value energy released at fission
+#Q_value energy released at fission in MeV
 function Q_value_released(A, Z, A_H, Z_H, dm)
     D = dm.D[(dm.A .== A) .& (dm.Z .== Z)][1]
     σ_D = dm.σ_D[(dm.A .== A) .& (dm.Z .== Z)][1]
@@ -44,7 +44,7 @@ function Q_value_released(A, Z, A_H, Z_H, dm)
         return NaN
     end
 end
-#Separation energy of particle (A_part,Z_part) from nucleus (A,Z)
+#Separation energy of particle (A_part,Z_part) from nucleus (A,Z) in MeV
 function Separation_energy(A_part, Z_part, A, Z, dm)
     if isassigned(dm.D[(dm.A .== A_part) .& (dm.Z .== Z_part)], 1) && isassigned(dm.D[(dm.A .== A) .& (dm.Z .== Z)], 1) && isassigned(dm.D[(dm.A .== A - A_part) .& (dm.Z .== Z - Z_part)], 1)
         D_part = dm.D[(dm.A .== A_part) .& (dm.Z .== Z_part)][1]
