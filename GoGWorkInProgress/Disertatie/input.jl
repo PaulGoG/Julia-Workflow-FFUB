@@ -1,14 +1,11 @@
 #Designation of input values and parameters used throughout the main program
 #####
-#Add relative folder path
+#Add path to input data folder
 cd(@__DIR__)
 cd("input_data/")
 
-#=
-Mass excess data file name, column names, delimiter symbol, number of first row of actual data in file
-!!Header names can be rearranged, added or eliminated in order to match the actual data format of the file, but 
-it should not deviate from the standard convention of eligible fields: Z, A, Symbol, D, σ_D!!
-=#
+#Mass excess data file name, column names, delimiter symbol, number of first row of actual data in file
+
 mass_excess_filename = "AUDI2021.ANA"
 mass_excess_header = ["Z", "A", "Symbol", "D", "σ_D"]
 mass_excess_delimiter = ' '
@@ -53,6 +50,9 @@ BSFG for Egidy-Bucurescu
 =#
 density_parameter_type = "GC"
 density_parameter_filename = "SZSN.GC"
+density_parameter_header = ["n", "S_Z", "S_N"]
+density_parameter_delimiter = ' '
+density_parameter_firstdataline = 2
 
 #=
 Neutron evaporation cross section type:
@@ -67,11 +67,8 @@ evaporation_cs_type = "CONSTANT"
 amu = 931.50176
 aₘ = 1.008665
 r₀ = 1.2
-global C_α = (π*ħc)^2 /(aₘ*amu)
+C_α = (π*ħc)^2 /(aₘ*amu)
 S₀_datafile = ""
-
-#Yield distribution filename
-yield_distribution_filename = "U5YATKE.SRE"
 
 #=
 Input type for the isobaric charge distribution p(Z,A):
