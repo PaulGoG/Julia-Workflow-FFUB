@@ -82,8 +82,8 @@ function Fragmentation_domain(A, Z, NoZperA, A_H_min, A_H_max, dpAZ)
             RMS = dpAZ.rms_A[dpAZ.A .== A_H][1]
             ΔZ = dpAZ.ΔZ_A[dpAZ.A .== A_H][1]
         else
-            RMS = 0.6
-            ΔZ = -0.5
+            RMS = first(dpAZ.rms_A)
+            ΔZ = first(dpAZ.ΔZ_A)
         end
         Zₚ = Most_probable_charge(A, Z, A_H, ΔZ)
         Z_H_min = Int(round(Zₚ) - (NoZperA - 1)/2)
@@ -96,9 +96,10 @@ function Fragmentation_domain(A, Z, NoZperA, A_H_min, A_H_max, dpAZ)
                 Z_L = Z - Z_H
                 push!(fragmdomain.A, A_L)
                 push!(fragmdomain.Z, Z_L)
-                push!(fragmdomain.Value, p_A_Z(Z_L, Zₚ, RMS))
+                push!(fragmdomain.Value, p_A_Z(Z_L, Z - Zₚ, RMS))
             end
         end
     end
+    #SORTARE DUPA A!
     return fragmdomain
 end
