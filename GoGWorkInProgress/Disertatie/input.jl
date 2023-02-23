@@ -34,15 +34,6 @@ fission_type = "(n,f)"
 #Specify incident neutron energy in MeV
 Eₙ = 25*1e-9
 
-#Input variables corrections according to fission type
-if fission_type == "SF"
-    #Null neutron incident energy in spontaneous fission
-    Eₙ = 0.0
-elseif fission_type == "(n,f)"
-    #Taking into account compound nucleus formation
-    A₀ += 1
-end
-
 #=
 Density level parameter computation method:
 GC for Gilbert-Cameron
@@ -62,12 +53,6 @@ VARIABLE for energy-dependent cross section
 !If variable σ is used, provide the necessary data file for the force function S₀!
 =#
 evaporation_cs_type = "CONSTANT"
-
-ħc = 197.3268601
-amu = 931.50176
-aₘ = 1.008665
-r₀ = 1.2
-C_α = (π*ħc)^2 /(aₘ*amu)
 S₀_datafile = ""
 
 #=
@@ -96,6 +81,9 @@ Partitioning ratios for PARAM
 =#
 txe_partitioning_type = "MSCZ"
 txe_partitioning_datafile = "EXTRADEF.DSE"
+txe_partitioning_header = ["A", "Z", "Value"]
+txe_partitioning_delimiter = ' '
+txe_partitioning_firstdataline = 2
 
 #Main output file name
 output_filename = "dse_main_$(density_parameter_type)_$(evaporation_cs_type)_$(txe_partitioning_type).out"

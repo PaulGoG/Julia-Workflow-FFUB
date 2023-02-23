@@ -2,27 +2,6 @@
 Flow control and error handling for input parameters and filenames of the main program
 =#
 #####
-
-if !isfile(mass_excess_filename)
-    error("$mass_excess_filename does not exist at input_data/  PATH!")
-end
-
-if isassigned(filter(x -> !in(x, ("Z", "A", "Symbol", "D", "σ_D")), mass_excess_header), 1)
-    error(
-    "mass_excess_header contains invalid fields: $(filter(x -> !in(x, ("Z", "A", "Symbol", "D", "σ_D")) ,mass_excess_header));
-    allowed header names list: Z, A, Symbol, D, σ_D"
-    )
-end
-
-if density_parameter_type == "GC"
-    if isassigned(filter(x -> !in(x, ("n", "S_Z", "S_N")), density_parameter_header), 1)
-        error(
-        "density_parameter_header contains invalid fields: $(filter(x -> !in(x, ("n", "S_Z", "S_N")), density_parameter_header));
-        allowed header names list: n, S_Z, S_N"
-        )
-    end
-end
-
 if A_H_min < A₀/2
     error("$A_H_min invalid Heavy Fragment region lower bound!")
 end
@@ -35,8 +14,19 @@ if A_H_min >= A_H_max
     error("invalid Heavy Fragment range!")
 end
 
-if TKE_min >= TKE_max
+if TKE_min >= TKE_max || TKE_step >= (TKE_max - TKE_min)
     error("invalid TKE range!")
+end
+
+if !isfile(mass_excess_filename)
+    error("$mass_excess_filename does not exist at input_data/  PATH!")
+end
+
+if isassigned(filter(x -> !in(x, ("Z", "A", "Symbol", "D", "σ_D")), mass_excess_header), 1)
+    error(
+    "mass_excess_header contains invalid fields: $(filter(x -> !in(x, ("Z", "A", "Symbol", "D", "σ_D")) ,mass_excess_header));
+    allowed header names list: Z, A, Symbol, D, σ_D"
+    )
 end
 
 if fission_type != "SF" && fission_type != "(n,f)"
@@ -49,6 +39,15 @@ end
 
 if !isfile(density_parameter_filename)
     error("$density_parameter_filename does not exist at input_data/  PATH!")
+end
+
+if density_parameter_type == "GC"
+    if isassigned(filter(x -> !in(x, ("n", "S_Z", "S_N")), density_parameter_header), 1)
+        error(
+        "density_parameter_header contains invalid fields: $(filter(x -> !in(x, ("n", "S_Z", "S_N")), density_parameter_header));
+        allowed header names list: n, S_Z, S_N"
+        )
+    end
 end
 
 if evaporation_cs_type != "CONSTANT" && evaporation_cs_type != "VARIABLE"
@@ -82,3 +81,11 @@ end
 if !isfile(txe_partitioning_datafile)
     error("$txe_partitioning_datafile does not exist at input_data/  PATH!")
 end
+
+if isassigned(filter(x -> !in(x, ("A", "Z", "Value")), txe_partitioning_header), 1)
+    error(
+    "density_parameter_header contains invalid fields: $(filter(x -> !in(x, ("A", "Z", "Value")), txe_partitioning_header));
+    allowed header names list: A, Z, Value"
+    )
+end
+

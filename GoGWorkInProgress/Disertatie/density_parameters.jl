@@ -4,7 +4,7 @@ as defined in the Fermi-Gas model:
 1. Gilbert-Cameron
 2. Egidy-Bucurescu
 =#
-
+#####
 function density_parameter_Gilbert_Cameron(A, Z, A_H, Z_H, dGC)
     N_H = A_H - Z_H
     A_L = A - A_H
@@ -25,4 +25,13 @@ function density_parameter_Gilbert_Cameron(A, Z, A_H, Z_H, dGC)
     else 
         return NaN
     end
+end
+# !MODIFY FOR BSFG SELECTOR!
+function density_parameter(density_parameter_type, A, Z, A_H, Z_H, density_parameter_datafile)
+    if density_parameter_type == "GC"
+        a = density_parameter_Gilbert_Cameron(A, Z, A_H, Z_H, density_parameter_datafile)
+    elseif density_parameter_type == "BSFG"
+        #a = 
+    end
+    return a
 end

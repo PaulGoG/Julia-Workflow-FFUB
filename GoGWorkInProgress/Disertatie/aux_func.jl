@@ -18,12 +18,33 @@ struct Distribution_unidym{T <: Vector{Float64}} <: AbstractDistribution
     σ::T
 end
 
+#Define value range for TKE
+tkerange = TKE_min:TKE_step:TKE_max
+
+#Input variables corrections according to fission type
+if fission_type == "SF"
+    #Null neutron incident energy in spontaneous fission
+    Eₙ = 0.0
+elseif fission_type == "(n,f)"
+    #Taking into account compound nucleus formation
+    A₀ += 1
+end
+
+#Input parameters necessary for variable σ_evaporation
+if evaporation_cs_type == "VARIABLE"
+    ħc = 197.3268601
+    amu = 931.50176
+    aₘ = 1.008665
+    r₀ = 1.2
+    C_α = (π*ħc)^2 /(aₘ*amu)
+end
+
 #Function bodies
 #Isobaric charge distribution p(Z,A)
 function p_A_Z(Z, Z_p, rms_A)
     return 1/(sqrt(2*π) * rms_A) * exp(-(Z - Z_p)^2 /(2* rms_A^2))
 end
-#
+#Compute the most probable charge for a given heavy fragment
 function Most_probable_charge(A, Z, A_H, ΔZ)
     return A_H*Z/A + ΔZ
 end
@@ -63,7 +84,7 @@ function Separation_energy(A_part, Z_part, A, Z, dm)
         return NaN
     end 
 end
-#Total Excitation Energy
+#Total Excitation Energy for a given set of data in MeV
 function Total_excitation_energy(Q, σ_Q, TKE, σ_TKE, Sₙ, σ_Sₙ, Eₙ)
     TXE = Q - TKE + Sₙ + Eₙ
     σ_TXE = sqrt(σ_Q^2 + σ_Sₙ^2 + σ_TKE^2)
@@ -73,7 +94,7 @@ function Total_excitation_energy(Q, σ_Q, TKE, σ_TKE, Sₙ, σ_Sₙ, Eₙ)
         return NaN
     end
 end
-#Construct vectorized fragmentation domain
+#Construct vectorized fragmentation domain with p(A,Z) values stored in memory
 function Fragmentation_domain(A, Z, NoZperA, A_H_min, A_H_max, dpAZ)
     fragmdomain = Distribution(Int[], Int[], Float64[], Int[], Float64[], Float64[])
     for A_H in A_H_min:A_H_max
@@ -82,8 +103,8 @@ function Fragmentation_domain(A, Z, NoZperA, A_H_min, A_H_max, dpAZ)
             RMS = dpAZ.rms_A[dpAZ.A .== A_H][1]
             ΔZ = dpAZ.ΔZ_A[dpAZ.A .== A_H][1]
         else
-            RMS = first(dpAZ.rms_A)
-            ΔZ = first(dpAZ.ΔZ_A)
+            RMS = 0.6
+            ΔZ = -0.5
         end
         Zₚ = Most_probable_charge(A, Z, A_H, ΔZ)
         Z_H_min = Int(round(Zₚ) - (NoZperA - 1)/2)
@@ -100,6 +121,16 @@ function Fragmentation_domain(A, Z, NoZperA, A_H_min, A_H_max, dpAZ)
             end
         end
     end
-    #SORTARE DUPA A!
+    #Sorting struct in ascending order by mass number
+    a = sort(fragmdomain.A)
+    z = [fragmdomain.Z[fragmdomain.A .== i] for i in first(a):last(a)]
+    z = reduce(vcat, z)
+    val = [fragmdomain.Value[fragmdomain.A .== i] for i in first(a):last(a)]
+    val = reduce(vcat, val)
+    for i in eachindex(a)
+        fragmdomain.A[i] = a[i]
+        fragmdomain.Z[i] = z[i]
+        fragmdomain.Value[i] = val[i]
+    end
     return fragmdomain
 end
