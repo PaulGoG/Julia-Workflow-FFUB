@@ -22,7 +22,7 @@ A_H_max = 160
 #Total Kinetic Energy range and step in MeV
 TKE_min = 100.0
 TKE_max = 200.0
-TKE_step = 0.5
+TKE_step = 1.0
 
 #=
 Fission type: 
@@ -53,17 +53,20 @@ VARIABLE for energy-dependent cross section
 !If variable σ is used, provide the necessary data file for the force function S₀!
 =#
 evaporation_cs_type = "CONSTANT"
-S₀_datafile = ""
+S₀_filename = ""
 
 #=
 Input type for the isobaric charge distribution p(Z,A):
-MEAN_VALUES for ΔZ(A)≊|0.5| & rms(A)≊0.6
+MEAN_VALUES for ΔZ(A)=0.5 & rms(A)=0.6
 DATA for values provided in a datafile
 
 !If variable ΔZ(A) & rms(A) are used, provide the necessary data file!
 =#
 isobaric_distribution_type = "MEAN_VALUES"
-isobaric_distribution_datafile = ""
+isobaric_distribution_filename = "Converted_deltaZA_rmsA.CSV"
+isobaric_distribution_header = ["A", "ΔZ_A", "rms_A"]
+isobaric_distribution_delimiter = ' '
+isobaric_distribution_firstdataline = 2
 
 #=
 Number of Z per A fragments considered
@@ -80,10 +83,10 @@ Extra deformation energies for MSCZ
 Partitioning ratios for PARAM
 =#
 txe_partitioning_type = "MSCZ"
-txe_partitioning_datafile = "EXTRADEF.DSE"
+txe_partitioning_datafile = "Converted_EXTRADEF.DSE"
 txe_partitioning_header = ["A", "Z", "Value"]
 txe_partitioning_delimiter = ' '
 txe_partitioning_firstdataline = 2
 
 #Main output file name
-output_filename = "dse_main_$(density_parameter_type)_$(evaporation_cs_type)_$(txe_partitioning_type).out"
+output_filename = "dse_main_$(density_parameter_type)_$(evaporation_cs_type)_$(txe_partitioning_type).OUT"

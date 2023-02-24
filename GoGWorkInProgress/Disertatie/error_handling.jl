@@ -68,6 +68,12 @@ if isobaric_distribution_type == "DATA"
     if !isfile(isobaric_distribution_datafile)
         error("$isobaric_distribution_datafile does not exist at input_data/  PATH!")
     end
+    if isassigned(filter(x -> !in(x, ("A", "ΔZ_A", "rms_A")), isobaric_distribution_header), 1)
+        error(
+        "isobaric_distribution_header contains invalid fields: $(filter(x -> !in(x, ("A", "ΔZ_A", "rms_A")), isobaric_distribution_header));
+        allowed header names list: A, ΔZ_A, rms_A"
+        )
+    end
 end
 
 if !isodd(No_ZperA)
