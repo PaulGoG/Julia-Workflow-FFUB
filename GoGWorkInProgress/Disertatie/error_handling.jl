@@ -54,12 +54,6 @@ if evaporation_cs_type != "CONSTANT" && evaporation_cs_type != "VARIABLE"
     error("$evaporation_cs_type is not a valid input for evaporation_cs_type!")
 end
 
-if evaporation_cs_type == "VARIABLE"
-    if !isfile(S₀_filename)
-        error("$S₀_filename does not exist at input_data/  PATH!")
-    end
-end
-
 if isobaric_distribution_type != "MEAN_VALUES" && isobaric_distribution_type != "DATA"
     error("$isobaric_distribution_type is not a valid input for isobaric_distribution_type!")
 end
@@ -90,7 +84,7 @@ end
 
 if isassigned(filter(x -> !in(x, ("A", "Z", "Value")), txe_partitioning_header), 1)
     error(
-    "density_parameter_header contains invalid fields: $(filter(x -> !in(x, ("A", "Z", "Value")), txe_partitioning_header));
+    "txe_partitioning_header contains invalid fields: $(filter(x -> !in(x, ("A", "Z", "Value")), txe_partitioning_header));
     allowed header names list: A, Z, Value"
     )
 end

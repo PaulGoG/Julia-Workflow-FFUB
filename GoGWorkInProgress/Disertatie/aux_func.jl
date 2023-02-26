@@ -2,6 +2,9 @@
 #####
 #Load Julia packages
 using DataFrames, CSV
+if evaporation_cs_type == "VARIABLE"
+    using Roots
+end
 
 #Main struct objects definitions
 abstract type AbstractDistribution end
@@ -40,8 +43,8 @@ if evaporation_cs_type == "VARIABLE"
     ħc = 197.3268601
     amu = 931.50176
     aₘ = 1.008665
-    r₀ = 1.2
-    C_α = (π*ħc)^2 /(aₘ*amu)
+    const r₀ = 1.2e-1
+    const C_α = (π*ħc)^2 /(aₘ*amu)
 end
 
 println("*reading data files")
@@ -163,4 +166,31 @@ function Fragmentation_domain(A, Z, NoZperA, A_H_min, A_H_max, dpAZ)
         fragmdomain.Value[index_A] = value[index_A]
     end
     return fragmdomain
+end
+#Parametrization for the force function S₀ of the s-wave neutron
+function Force_function_S₀(A)
+    if A <= 70
+        return 7e-5
+    elseif A > 70 && A <= 86
+        return 1e-4 * (A*1.875e-2 - 6.125e-1)
+    elseif A > 86 && A <= 111
+        return 1e-4 
+    elseif A > 111 && A <= 121
+        return 1e-4 * (-A*2.857e-2 + 4.1714)
+    elseif A > 121 && A <= 140
+        return 1e-4 
+    elseif A > 140 && A <= 144
+        return 1e-4 * (A*7.5e-2 - 9.8)
+    elseif A > 144
+        return 1e-4
+    end
+end
+#Solves the transcendental equation for given sequence
+function Solve_transcendental_eq(Eᵣ_k_last, Sₙ_k_last, a_k, A, k)
+    σ₀ = π*r₀^2 *(A - k)^(2/3)
+    S₀ = Force_function_S₀(A - k)
+    αₖ = 10*C_α*S₀/σ₀
+    f(Tₖ) = a_k*Tₖ^2 + Tₖ*(2*sqrt(Tₖ) + αₖ*3*sqrt(π)/4)/(sqrt(Tₖ) + αₖ*sqrt(π)/2) + (Sₙ_k_last - Eᵣ_k_last)
+    T_k = find_zero(f, 1.0)
+    return T_k, αₖ
 end

@@ -22,7 +22,7 @@ A_H_max = 160
 #Total Kinetic Energy range and step in MeV
 TKE_min = 100.0
 TKE_max = 200.0
-TKE_step = 1.0
+TKE_step = 2.0
 
 #=
 Fission type: 
@@ -49,11 +49,8 @@ density_parameter_firstdataline = 2
 Neutron evaporation cross section type:
 CONSTANT for energy-independent cross section
 VARIABLE for energy-dependent cross section
-
-!If variable σ is used, provide the necessary data file for the force function S₀!
 =#
-evaporation_cs_type = "CONSTANT"
-S₀_filename = ""
+evaporation_cs_type = "VARIABLE"
 
 #=
 Input type for the isobaric charge distribution p(Z,A):
@@ -89,4 +86,4 @@ txe_partitioning_delimiter = ' '
 txe_partitioning_firstdataline = 2
 
 #Main output file name
-output_filename = "DSE_main_density_parameter_$(density_parameter_type)_evaporation_cs_$(evaporation_cs_type)_txe_partitioning_$(txe_partitioning_type).OUT"
+output_filename = "DSE_$(No_ZperA)ZA_main_density_parameter_$(density_parameter_type)_evaporation_cs_$(evaporation_cs_type)_txe_partitioning_$(txe_partitioning_type).OUT"

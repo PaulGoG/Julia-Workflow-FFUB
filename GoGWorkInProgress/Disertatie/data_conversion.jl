@@ -36,7 +36,7 @@ end
 
 Output = Tables.table(Output;  header=[:A, :Z, :Value])
 newdatafile_name = "Converted_$rawdatafile_name"
-CSV.write(newdatafile_name, Output, writeheader=true, newline="\r\n", delim="   ")
+CSV.write(newdatafile_name, Output, delim="   ")
 =#
 
 #Concatenate data for ΔZ(A) & rms(A) in a single file
@@ -54,7 +54,7 @@ if nrow(rawdatafile_1) == nrow(rawdatafile_2)
     Output =  hcat(rawdatafile_1[!, 1], rawdatafile_1[!, 2], rawdatafile_2[!, 2])
     Output = Tables.table(Output;  header=[:A, :ΔZ, :rms])
     newdatafile_name = "Converted_deltaZA_rmsA.CSV"
-    CSV.write(newdatafile_name, Output, writeheader=true, newline="\r\n", delim="   ")
+    CSV.write(newdatafile_name, Output, delim="   ")
 else error("raw data files row sizes do not match!")
 end
 =#

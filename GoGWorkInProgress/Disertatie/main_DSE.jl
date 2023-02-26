@@ -28,10 +28,11 @@ println("*partitioning Total Excitation Energy")
 E_excitation = TXE_partitioning(txe_partitioning_type, A₀, Z₀, A_H_min, A_H_max, Eₙ, fragmdomain, txe_partitioning_datafile, tkerange, density_parameter_type, density_parameter_datafile, dmass_excess)
 
 println("*solving DSE energy conservation equations")
-Tₖ_L, εₖ_avg_L, aₖ_L, Tₖ_H, εₖ_avg_H, aₖ_H = DSE_equation_solver_CONSTANT_cs(A₀, Z₀, A_H_min, A_H_max, E_excitation, tkerange, density_parameter_type, density_parameter_datafile, dmass_excess)
+Tₖ_L, Tₖ_H, aₖ_L, aₖ_H = DSE_equation_solver(evaporation_cs_type, A₀, Z₀, A_H_min, A_H_max, E_excitation, tkerange, density_parameter_type, density_parameter_datafile, dmass_excess)
 
 println("*preparing output datafile")
-Output_datafile = DataFrame(A = vcat(Tₖ_L.A, Tₖ_H.A), Z = vcat(Tₖ_L.Z, Tₖ_H.Z), TKE = vcat(Tₖ_L.TKE, Tₖ_H.TKE), No_Sequence = vcat(Tₖ_L.NoSeq, Tₖ_H.NoSeq), Tₖ = vcat(Tₖ_L.Value, Tₖ_H.Value), Average_εₖ = vcat(εₖ_avg_L, εₖ_avg_H), aₖ = vcat(aₖ_L, aₖ_H))
-CSV.write("output_data/$output_filename", Output_datafile, writeheader=true, newline="\r\n", delim="       ")
+Output_datafile = DataFrame(A = vcat(Tₖ_L.A, Tₖ_H.A), Z = vcat(Tₖ_L.Z, Tₖ_H.Z), TKE = vcat(Tₖ_L.TKE, Tₖ_H.TKE), No_Sequence = vcat(Tₖ_L.NoSeq, Tₖ_H.NoSeq), Tₖ = vcat(Tₖ_L.Value, Tₖ_H.Value), aₖ = vcat(aₖ_L, aₖ_H), Eᵏᵣ = vcat(aₖ_L.*Tₖ_L.Value.^2, aₖ_H.*Tₖ_H.Value.^2))
+
+CSV.write("output_data/$output_filename", Output_datafile, delim="                  ")
 
 println("*program execution successful!")
