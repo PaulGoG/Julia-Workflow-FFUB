@@ -2,9 +2,6 @@
 #####
 #Load Julia packages
 using DataFrames, CSV
-if evaporation_cs_type == "VARIABLE"
-    using Roots
-end
 
 #Main struct objects definitions
 abstract type AbstractDistribution end
@@ -38,14 +35,15 @@ elseif fission_type == "(n,f)"
     A₀ += 1
 end
 
-#Input parameters necessary for variable σ_evaporation
 if evaporation_cs_type == "VARIABLE"
+    using Roots
     ħc = 197.3268601
     amu = 931.50176
     aₘ = 1.008665
     const r₀ = 1.2e-1
     const C_α = (π*ħc)^2 /(aₘ*amu)
 end
+
 
 println("*reading data files")
 #Read input data files as DataFrames
@@ -57,6 +55,16 @@ if density_parameter_type == "GC"
     println("reading $density_parameter_filename done!")
 elseif density_parameter_type == "BSFG"
     density_parameter_datafile = dmass_excess
+    const Dᵖ = dmass_excess.D[(dmass_excess.A .== 1) .& (dmass_excess.Z .== 1)][1]*1e-3
+    const Dⁿ = dmass_excess.D[(dmass_excess.A .== 1) .& (dmass_excess.Z .== 0)][1]*1e-3
+    const a_v = 15.65
+    const a_s = 17.63
+    const a_c = 0.864/1.233
+    const a_sim_1 = 27.72
+    const a_sim_2 = 25.6
+    const p_eb_1 = 1.99e-1
+    const p_eb_2 = 1.233
+    const p_eb_3 = 8.69e-1
 end
 
 if isobaric_distribution_type == "MEAN_VALUES"

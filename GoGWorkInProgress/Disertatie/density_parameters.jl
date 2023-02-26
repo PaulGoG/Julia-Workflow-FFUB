@@ -26,12 +26,16 @@ function density_parameter_Gilbert_Cameron(A, Z, A_H, Z_H, dGC)
         return NaN
     end
 end
-# !MODIFY FOR BSFG SELECTOR!
+function density_parameter_Egidy_Bucurescu(A, Z, dm)
+    D = dm.D[(dm.A .== A) .& (dm.Z .== Z)][1]*1e-3
+    W_exp = Z*Dᵖ + (A-Z)*Dⁿ - D
+    
+end
 function density_parameter(density_parameter_type, A, Z, A_H, Z_H, density_parameter_datafile)
     if density_parameter_type == "GC"
         a = density_parameter_Gilbert_Cameron(A, Z, A_H, Z_H, density_parameter_datafile)
     elseif density_parameter_type == "BSFG"
-        #a = 
+        a = density_parameter_Egidy_Bucurescu()
     end
     return a
 end
