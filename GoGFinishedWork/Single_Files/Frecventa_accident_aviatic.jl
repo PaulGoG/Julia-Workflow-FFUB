@@ -16,7 +16,8 @@ end
 function Caz_2(x)
     if x <= 0
         return (abs(x)^2/(x^2 + y^2)) * exp(-g * sqrt(x^2 + y^2))
-    else return 0
+    else
+         return 0
     end
 end
 

@@ -1,7 +1,6 @@
 #=
 Function bodies for solving the DSE conservation equations coresponding to 
 constant and variable neutron evaporation cross section types.
-Functions store data in  vectorized structs
 =#
 #####
 function DSE_equation_solver_CONSTANT_cs(A_0, Z_0, A_H_min, A_H_max, E_excitation, tkerange, density_parameter_type, density_parameter_datafile, dm)
