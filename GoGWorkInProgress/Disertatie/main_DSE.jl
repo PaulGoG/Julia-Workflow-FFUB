@@ -33,6 +33,6 @@ Tₖ_L, Tₖ_H, aₖ_L, aₖ_H = DSE_equation_solver(evaporation_cs_type, A₀, 
 println("*preparing output datafile")
 Output_datafile = DataFrame(A = vcat(Tₖ_L.A, Tₖ_H.A), Z = vcat(Tₖ_L.Z, Tₖ_H.Z), TKE = vcat(Tₖ_L.TKE, Tₖ_H.TKE), No_Sequence = vcat(Tₖ_L.NoSeq, Tₖ_H.NoSeq), Tₖ = vcat(Tₖ_L.Value, Tₖ_H.Value), aₖ = vcat(aₖ_L, aₖ_H), Eᵏᵣ = vcat(aₖ_L.*Tₖ_L.Value.^2, aₖ_H.*Tₖ_H.Value.^2))
 
-CSV.write("output_data/$output_filename", Output_datafile, delim="                  ")
+CSV.write("output_data/$output_filename", Output_datafile, delim="                          ")
 
 println("*program execution successful!")

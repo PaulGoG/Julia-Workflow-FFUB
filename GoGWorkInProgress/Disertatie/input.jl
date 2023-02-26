@@ -39,7 +39,7 @@ Density level parameter computation method:
 GC for Gilbert-Cameron
 BSFG for Egidy-Bucurescu
 =#
-density_parameter_type = "BSFG"
+density_parameter_type = "GC"
 density_parameter_filename = "SZSN.GC"
 density_parameter_header = ["n", "S_Z", "S_N"]
 density_parameter_delimiter = ' '
@@ -60,7 +60,7 @@ DATA for values provided in a datafile
 !If variable ΔZ(A) & rms(A) are used, provide the necessary data file!
 =#
 isobaric_distribution_type = "DATA"
-isobaric_distribution_filename = "Converted_deltaZA_rmsA.CSV"
+isobaric_distribution_filename = "DeltaZA_rmsA.U5"
 isobaric_distribution_header = ["A", "ΔZ_A", "rms_A"]
 isobaric_distribution_delimiter = ' '
 isobaric_distribution_firstdataline = 2
@@ -68,7 +68,7 @@ isobaric_distribution_firstdataline = 2
 #=
 Number of Z per A fragments considered
 =#
-No_ZperA = 3
+No_ZperA = 5
 
 #=
 Total Excitation Energy partitioning method:
@@ -80,7 +80,7 @@ Extra deformation energies for MSCZ
 Partitioning ratios for PARAM
 =#
 txe_partitioning_type = "MSCZ"
-txe_partitioning_filename = "Converted_EXTRADEF.DSE"
+txe_partitioning_filename = "EXTRADEF.IN"
 txe_partitioning_header = ["A", "Z", "Value"]
 txe_partitioning_delimiter = ' '
 txe_partitioning_firstdataline = 2

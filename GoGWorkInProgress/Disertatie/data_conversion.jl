@@ -1,18 +1,18 @@
 #Convert input data into desired format, standalone program, program abstraction kept to a minimum!
 
-include("input.jl")
-include("aux_func.jl")
+cd(@__DIR__)
+cd("input_data/")
 
-using Tables
+using CSV, DataFrames, Tables
 
 #=
 !DATA-SPECIFIC CODE!
-Blocks of code specific to one type of file conversion will be commented away
+Blocks of code specific to one type of file conversion
 =#
 #####
 #Convert L&H stacked values provided on H domain to single-file values on the whole A domain
 #=
-rawdatafile_name = "EXTRADEF.DSE"
+rawdatafile_name = "EXTRADF5.DSE"
 rawdatafile_header = ["A", "Z", "Val_L", "Val_H"]
 rawdatafile_firstline = 2
 rawdatafile_delim = ' '
@@ -35,7 +35,7 @@ for i in eachindex(Output[:, 1])
 end
 
 Output = Tables.table(Output;  header=[:A, :Z, :Value])
-newdatafile_name = "Converted_$rawdatafile_name"
+newdatafile_name = "EXTRADEF.IN"
 CSV.write(newdatafile_name, Output, delim="   ")
 =#
 
@@ -53,7 +53,7 @@ rawdatafile_2 = CSV.read(rawdatafile_name, DataFrame; delim = rawdatafile_delim,
 if nrow(rawdatafile_1) == nrow(rawdatafile_2)
     Output =  hcat(rawdatafile_1[!, 1], rawdatafile_1[!, 2], rawdatafile_2[!, 2])
     Output = Tables.table(Output;  header=[:A, :ΔZ, :rms])
-    newdatafile_name = "Converted_deltaZA_rmsA.CSV"
+    newdatafile_name = "DeltaZA_rmsA.U5"
     CSV.write(newdatafile_name, Output, delim="   ")
 else error("raw data files row sizes do not match!")
 end
