@@ -62,7 +62,7 @@ DATA for values provided in a datafile
 
 !If variable ΔZ(A) & rms(A) are used, provide the necessary data file!
 =#
-isobaric_distribution_type = "MEAN_VALUES"
+isobaric_distribution_type = "DATA"
 isobaric_distribution_filename = "Converted_deltaZA_rmsA.CSV"
 isobaric_distribution_header = ["A", "ΔZ_A", "rms_A"]
 isobaric_distribution_delimiter = ' '
@@ -83,10 +83,10 @@ Extra deformation energies for MSCZ
 Partitioning ratios for PARAM
 =#
 txe_partitioning_type = "MSCZ"
-txe_partitioning_datafile = "Converted_EXTRADEF.DSE"
+txe_partitioning_filename = "Converted_EXTRADEF.DSE"
 txe_partitioning_header = ["A", "Z", "Value"]
 txe_partitioning_delimiter = ' '
 txe_partitioning_firstdataline = 2
 
 #Main output file name
-output_filename = "dse_main_$(density_parameter_type)_$(evaporation_cs_type)_$(txe_partitioning_type).OUT"
+output_filename = "DSE_main_density_parameter_$(density_parameter_type)_evaporation_cs_$(evaporation_cs_type)_txe_partitioning_$(txe_partitioning_type).OUT"

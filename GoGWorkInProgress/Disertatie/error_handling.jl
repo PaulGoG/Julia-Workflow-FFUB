@@ -55,8 +55,8 @@ if evaporation_cs_type != "CONSTANT" && evaporation_cs_type != "VARIABLE"
 end
 
 if evaporation_cs_type == "VARIABLE"
-    if !isfile(S₀_datafile)
-        error("$S₀_datafile does not exist at input_data/  PATH!")
+    if !isfile(S₀_filename)
+        error("$S₀_filename does not exist at input_data/  PATH!")
     end
 end
 
@@ -65,8 +65,8 @@ if isobaric_distribution_type != "MEAN_VALUES" && isobaric_distribution_type != 
 end
 
 if isobaric_distribution_type == "DATA"
-    if !isfile(isobaric_distribution_datafile)
-        error("$isobaric_distribution_datafile does not exist at input_data/  PATH!")
+    if !isfile(isobaric_distribution_filename)
+        error("$isobaric_distribution_filename does not exist at input_data/  PATH!")
     end
     if isassigned(filter(x -> !in(x, ("A", "ΔZ_A", "rms_A")), isobaric_distribution_header), 1)
         error(
@@ -84,8 +84,8 @@ if txe_partitioning_type != "MSCZ" && txe_partitioning_type != "PARAM"
     error("$txe_partitioning_type is not a valid input for txe_partitioning_type!")
 end
 
-if !isfile(txe_partitioning_datafile)
-    error("$txe_partitioning_datafile does not exist at input_data/  PATH!")
+if !isfile(txe_partitioning_filename)
+    error("$txe_partitioning_filename does not exist at input_data/  PATH!")
 end
 
 if isassigned(filter(x -> !in(x, ("A", "Z", "Value")), txe_partitioning_header), 1)
@@ -94,4 +94,3 @@ if isassigned(filter(x -> !in(x, ("A", "Z", "Value")), txe_partitioning_header),
     allowed header names list: A, Z, Value"
     )
 end
-

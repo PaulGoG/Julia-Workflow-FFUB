@@ -13,8 +13,8 @@ function TXE_partitioning_MSCZ(A_0, Z_0, A_H_min, A_H_max, Eₙ, fragmdomain, d�
     if !isnan(Sₙ[1])
         for A_H in A_H_min:A_H_max
             A_L = A_0 - A_H
-            for i in eachindex(fragmdomain.Z[fragmdomain.A .== A_H])
-                Z_H = fragmdomain.Z[fragmdomain.A .== A_H][i]
+            for index_Z_H in eachindex(fragmdomain.Z[fragmdomain.A .== A_H])
+                Z_H = fragmdomain.Z[fragmdomain.A .== A_H][index_Z_H]
                 Z_L = Z_0 - Z_H
                 if isassigned(dΔE_def.Value[(dΔE_def.A .== A_H) .& (dΔE_def.Z .== Z_H)], 1) && isassigned(dΔE_def.Value[(dΔE_def.A .== A_L) .& (dΔE_def.Z .== Z_L)], 1)
                     ΔE_def_H = dΔE_def.Value[(dΔE_def.A .== A_H) .& (dΔE_def.Z .== Z_H)][1]
@@ -22,29 +22,27 @@ function TXE_partitioning_MSCZ(A_0, Z_0, A_H_min, A_H_max, Eₙ, fragmdomain, d�
                     Q = Q_value_released(A_0, Z_0, A_H, Z_H, dm)
                     Sₙ_L = Separation_energy(1, 0, A_L, Z_L, dm)[1]
                     Sₙ_H = Separation_energy(1, 0, A_H, Z_H, dm)[1]
-                    if !isnan(Q[1])
-                        for j in eachindex(tkerange)
-                            TXE = Total_excitation_energy(Q[1], Q[2], tkerange[j], 0.0, Sₙ[1], Sₙ[2], Eₙ)[1]
-                            if TXE > 0 
-                                a = density_parameter(density_parameter_type, A_0, Z_0, A_H, Z_H, density_parameter_datafile)
-                                if !isnan(a[1])
-                                    if a[1] > 0 && a[2] > 0
-                                        r = a[1]/a[2]
-                                        E_scission = TXE - (ΔE_def_L + ΔE_def_H)
-                                        if E_scission > 0
-                                            E_excit_L = E_scission/(1 + r) + ΔE_def_L
-                                            E_excit_H = r * E_scission/(1 + r) + ΔE_def_H
-                                            if E_excit_L > Sₙ_L || E_excit_H > Sₙ_H
-                                                push!(E_excit.A, A_H)
-                                                push!(E_excit.Z, Z_H)
-                                                push!(E_excit.TKE, tkerange[j])
-                                                push!(E_excit.Value, E_excit_H)
-                                                if A_L != A_H
-                                                    push!(E_excit.A, A_L)
-                                                    push!(E_excit.Z, Z_L)
-                                                    push!(E_excit.TKE, tkerange[j])
-                                                    push!(E_excit.Value, E_excit_L)
-                                                end
+                    if !isnan(Q[1]) && !isnan(Sₙ_L) && !isnan(Sₙ_H)
+                        a_L, a_H = density_parameter(density_parameter_type, A_0, Z_0, A_H, Z_H, density_parameter_datafile)
+                        if a_L > 0 && a_H > 0
+                            r = a_L/a_H
+                            for TKE in tkerange
+                                TXE = Total_excitation_energy(Q[1], Q[2], TKE, 0.0, Sₙ[1], Sₙ[2], Eₙ)[1]
+                                if TXE > 0
+                                    E_scission = TXE - (ΔE_def_L + ΔE_def_H)
+                                    if E_scission > 0
+                                        E_excit_L = E_scission/(1 + r) + ΔE_def_L
+                                        E_excit_H = r * E_scission/(1 + r) + ΔE_def_H
+                                        if E_excit_L > Sₙ_L || E_excit_H > Sₙ_H
+                                            push!(E_excit.A, A_H)
+                                            push!(E_excit.Z, Z_H)
+                                            push!(E_excit.TKE, TKE)
+                                            push!(E_excit.Value, E_excit_H)
+                                            if A_L != A_H
+                                                push!(E_excit.A, A_L)
+                                                push!(E_excit.Z, Z_L)
+                                                push!(E_excit.TKE, TKE)
+                                                push!(E_excit.Value, E_excit_L)
                                             end
                                         end
                                     end
@@ -64,29 +62,29 @@ function TXE_partitioning_PARAM(A_0, Z_0, A_H_min, A_H_max, Eₙ, fragmdomain, d
     if !isnan(Sₙ[1])
         for A_H in A_H_min:A_H_max
             A_L = A_0 - A_H
-            for i in eachindex(fragmdomain.Z[fragmdomain.A .== A_H])
-                Z_H = fragmdomain.Z[fragmdomain.A .== A_H][i]
+            for index_Z_H in eachindex(fragmdomain.Z[fragmdomain.A .== A_H])
+                Z_H = fragmdomain.Z[fragmdomain.A .== A_H][index_Z_H]
                 Z_L = Z_0 - Z_H
                 if isassigned(dRatio.Value[(dRatio.A .== A_H) .& (dRatio.Z .== Z_H)], 1)
                     Ratio = dRatio.Value[(dRatio.A .== A_H) .& (dRatio.Z .== Z_H)][1]
                     Q = Q_value_released(A_0, Z_0, A_H, Z_H, dm)
                     Sₙ_L = Separation_energy(1, 0, A_L, Z_L, dm)[1]
                     Sₙ_H = Separation_energy(1, 0, A_H, Z_H, dm)[1]
-                    if !isnan(Q[1])
-                        for j in eachindex(tkerange)
-                            TXE = Total_excitation_energy(Q[1], Q[2], tkerange[j], 0.0, Sₙ[1], Sₙ[2], Eₙ)[1]
+                    if !isnan(Q[1]) && !isnan(Sₙ_L) && !isnan(Sₙ_H)
+                        for TKE in tkerange
+                            TXE = Total_excitation_energy(Q[1], Q[2], TKE, 0.0, Sₙ[1], Sₙ[2], Eₙ)[1]
                             if TXE > 0 
                                 E_excit_H = TXE * Ratio
                                 E_excit_L = TXE - E_excit_H
                                 if E_excit_L > Sₙ_L || E_excit_H > Sₙ_H
                                     push!(E_excit.A, A_H)
                                     push!(E_excit.Z, Z_H)
-                                    push!(E_excit.TKE, tkerange[j])
+                                    push!(E_excit.TKE, TKE)
                                     push!(E_excit.Value, E_excit_H)
                                     if A_L != A_H
                                         push!(E_excit.A, A_L)
                                         push!(E_excit.Z, Z_L)
-                                        push!(E_excit.TKE, tkerange[j])
+                                        push!(E_excit.TKE, TKE)
                                         push!(E_excit.Value, E_excit_L)
                                     end
                                 end

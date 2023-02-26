@@ -18,6 +18,10 @@ struct Distribution_unidym{T <: Vector{Float64}} <: AbstractDistribution
     Value::T
     σ::T
 end
+struct Energy_spectrum{T <: Vector{Float64}} <: AbstractDistribution
+    ε::T
+    Value::T
+end
 
 #Define value range for TKE
 tkerange = TKE_min:TKE_step:TKE_max
@@ -43,25 +47,28 @@ end
 println("*reading data files")
 #Read input data files as DataFrames
 dmass_excess = CSV.read(mass_excess_filename, DataFrame; delim = mass_excess_delimiter, ignorerepeated = true, header = mass_excess_header, skipto = mass_excess_firstdataline)
+println("reading $mass_excess_filename done!")
 
 if density_parameter_type == "GC"
     density_parameter_datafile = CSV.read(density_parameter_filename, DataFrame; delim = density_parameter_delimiter, ignorerepeated = true, header = density_parameter_header, skipto = density_parameter_firstdataline)
+    println("reading $density_parameter_filename done!")
 elseif density_parameter_type == "BSFG"
     density_parameter_datafile = dmass_excess
 end
 
 if isobaric_distribution_type == "MEAN_VALUES"
-    dpAZ = DataFrame(A = NaN)
+    isobaric_distribution_datafile = DataFrame(A = NaN)
 elseif isobaric_distribution_type == "DATA"
-    dpAZ = CSV.read(isobaric_distribution_filename, DataFrame; delim = isobaric_distribution_delimiter, ignorerepeated = true, header = isobaric_distribution_header, skipto = isobaric_distribution_firstdataline)
+    isobaric_distribution_datafile = CSV.read(isobaric_distribution_filename, DataFrame; delim = isobaric_distribution_delimiter, ignorerepeated = true, header = isobaric_distribution_header, skipto = isobaric_distribution_firstdataline)
+    println("reading $isobaric_distribution_filename done!")
 end
 
 if txe_partitioning_type == "MSCZ"
-    txe_partitioning_datafile = CSV.read(txe_partitioning_datafile, DataFrame; delim = txe_partitioning_delimiter, ignorerepeated = true, header = txe_partitioning_header, skipto = txe_partitioning_firstdataline)
+    txe_partitioning_datafile = CSV.read(txe_partitioning_filename, DataFrame; delim = txe_partitioning_delimiter, ignorerepeated = true, header = txe_partitioning_header, skipto = txe_partitioning_firstdataline)
 elseif txe_partitioning_type == "PARAM"
-    txe_partitioning_datafile = CSV.read(txe_partitioning_datafile, DataFrame; delim = txe_partitioning_delimiter, ignorerepeated = true, header = txe_partitioning_header, skipto = txe_partitioning_firstdataline)
+    txe_partitioning_datafile = CSV.read(txe_partitioning_filename, DataFrame; delim = txe_partitioning_delimiter, ignorerepeated = true, header = txe_partitioning_header, skipto = txe_partitioning_firstdataline)
 end
-
+println("reading $txe_partitioning_filename done!")
 #Function bodies
 #Isobaric charge distribution p(Z,A)
 function p_A_Z(Z, Z_p, rms_A)
@@ -146,14 +153,14 @@ function Fragmentation_domain(A, Z, NoZperA, A_H_min, A_H_max, dpAZ)
     end
     #Sorting struct in ascending order by mass number
     a = sort(fragmdomain.A)
-    z = [fragmdomain.Z[fragmdomain.A .== i] for i in first(a):last(a)]
+    z = [fragmdomain.Z[fragmdomain.A .== A] for A in first(a):last(a)]
     z = reduce(vcat, z)
-    val = [fragmdomain.Value[fragmdomain.A .== i] for i in first(a):last(a)]
-    val = reduce(vcat, val)
-    for i in eachindex(a)
-        fragmdomain.A[i] = a[i]
-        fragmdomain.Z[i] = z[i]
-        fragmdomain.Value[i] = val[i]
+    value = [fragmdomain.Value[fragmdomain.A .== A] for A in first(a):last(a)]
+    value = reduce(vcat, value)
+    for index_A in eachindex(a)
+        fragmdomain.A[index_A] = a[index_A]
+        fragmdomain.Z[index_A] = z[index_A]
+        fragmdomain.Value[index_A] = value[index_A]
     end
     return fragmdomain
 end
