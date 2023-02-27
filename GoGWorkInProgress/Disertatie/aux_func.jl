@@ -63,7 +63,7 @@ elseif density_parameter_type == "BSFG"
     const a_sim_1 = 27.72
     const a_sim_2 = 25.6
     const p_eb_1 = 1.99e-1
-    const p_eb_2 = 1.233
+    const p_eb_2 = 9.6e-3
     const p_eb_3 = 8.69e-1
 end
 

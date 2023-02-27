@@ -16,8 +16,8 @@ function DSE_equation_solver_CONSTANT_cs(A_0, Z_0, A_H_min, A_H_max, E_excitatio
             Z_L = Z_0 - Z_H
             Sₙ_L = Separation_energy(1, 0, A_L, Z_L, dm)[1]
             Sₙ_H = Separation_energy(1, 0, A_H, Z_H, dm)[1]
-            a_1_H = density_parameter(density_parameter_type, A_0, Z_0, A_H - 1, Z_H, density_parameter_datafile)[2]
-            a_1_L = density_parameter(density_parameter_type, A_0, Z_0, A_H + 1, Z_H, density_parameter_datafile)[1]
+            a_1_H = density_parameter(density_parameter_type, A_H - 1, Z_H, density_parameter_datafile)
+            a_1_L = density_parameter(density_parameter_type, A_L - 1, Z_L, density_parameter_datafile)
             for TKE in tkerange
                 if isassigned(E_excitation.Value[(E_excitation.A .== A_H) .& (E_excitation.Z .== Z_H) .& (E_excitation.TKE .== TKE)], 1)
                     Eᵣ_k_last_H = E_excitation.Value[(E_excitation.A .== A_H) .& (E_excitation.Z .== Z_H) .& (E_excitation.TKE .== TKE)][1]
@@ -36,7 +36,7 @@ function DSE_equation_solver_CONSTANT_cs(A_0, Z_0, A_H_min, A_H_max, E_excitatio
                         Eᵣ_k_last_H = a_k_H * T_k_H^2
                         Sₙ_k_last_H = Separation_energy(1, 0, A_H - k_H, Z_H, dm)[1]
                         k_H += 1
-                        a_k_H = density_parameter(density_parameter_type, A_0, Z_0, A_H - k_H, Z_H, density_parameter_datafile)[2]
+                        a_k_H = density_parameter(density_parameter_type, A_H - k_H, Z_H, density_parameter_datafile)
                     end
                 end
                 if A_L != A_H
@@ -57,7 +57,7 @@ function DSE_equation_solver_CONSTANT_cs(A_0, Z_0, A_H_min, A_H_max, E_excitatio
                             Eᵣ_k_last_L = a_k_L * T_k_L^2
                             Sₙ_k_last_L = Separation_energy(1, 0, A_L - k_L, Z_H, dm)[1]
                             k_L += 1
-                            a_k_L = density_parameter(density_parameter_type, A_0, Z_0, A_H + k_L, Z_H, density_parameter_datafile)[2]
+                            a_k_L = density_parameter(density_parameter_type, A_L - k_L, Z_L, density_parameter_datafile)
                         end
                     end
                 end
@@ -82,8 +82,8 @@ function DSE_equation_solver_VARIABLE_cs(A_0, Z_0, A_H_min, A_H_max, E_excitatio
             Z_L = Z_0 - Z_H
             Sₙ_L = Separation_energy(1, 0, A_L, Z_L, dm)[1]
             Sₙ_H = Separation_energy(1, 0, A_H, Z_H, dm)[1]
-            a_1_H = density_parameter(density_parameter_type, A_0, Z_0, A_H - 1, Z_H, density_parameter_datafile)[2]
-            a_1_L = density_parameter(density_parameter_type, A_0, Z_0, A_H + 1, Z_H, density_parameter_datafile)[1]
+            a_1_H = density_parameter(density_parameter_type, A_H - 1, Z_H, density_parameter_datafile)
+            a_1_L = density_parameter(density_parameter_type, A_L - 1, Z_L, density_parameter_datafile)
             for TKE in tkerange
                 if isassigned(E_excitation.Value[(E_excitation.A .== A_H) .& (E_excitation.Z .== Z_H) .& (E_excitation.TKE .== TKE)], 1)
                     Eᵣ_k_last_H = E_excitation.Value[(E_excitation.A .== A_H) .& (E_excitation.Z .== Z_H) .& (E_excitation.TKE .== TKE)][1]
@@ -103,7 +103,7 @@ function DSE_equation_solver_VARIABLE_cs(A_0, Z_0, A_H_min, A_H_max, E_excitatio
                         Eᵣ_k_last_H = a_k_H * T_k_H^2
                         Sₙ_k_last_H = Separation_energy(1, 0, A_H - k_H, Z_H, dm)[1]
                         k_H += 1
-                        a_k_H = density_parameter(density_parameter_type, A_0, Z_0, A_H - k_H, Z_H, density_parameter_datafile)[2]
+                        a_k_H = density_parameter(density_parameter_type, A_H - k_H, Z_H, density_parameter_datafile)
                     end
                 end
                 if A_L != A_H
@@ -125,7 +125,7 @@ function DSE_equation_solver_VARIABLE_cs(A_0, Z_0, A_H_min, A_H_max, E_excitatio
                             Eᵣ_k_last_L = a_k_L * T_k_L^2
                             Sₙ_k_last_L = Separation_energy(1, 0, A_L - k_L, Z_H, dm)[1]
                             k_L += 1
-                            a_k_L = density_parameter(density_parameter_type, A_0, Z_0, A_H + k_L, Z_H, density_parameter_datafile)[2]
+                            a_k_L = density_parameter(density_parameter_type, A_L - k_L, Z_L, density_parameter_datafile)
                         end
                     end
                 end

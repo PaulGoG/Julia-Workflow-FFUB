@@ -23,7 +23,8 @@ function TXE_partitioning_MSCZ(A_0, Z_0, A_H_min, A_H_max, Eₙ, fragmdomain, d�
                     Sₙ_L = Separation_energy(1, 0, A_L, Z_L, dm)[1]
                     Sₙ_H = Separation_energy(1, 0, A_H, Z_H, dm)[1]
                     if !isnan(Q[1]) && !isnan(Sₙ_L) && !isnan(Sₙ_H)
-                        a_L, a_H = density_parameter(density_parameter_type, A_0, Z_0, A_H, Z_H, density_parameter_datafile)
+                        a_L = density_parameter(density_parameter_type, A_L, Z_L, density_parameter_datafile)
+                        a_H = density_parameter(density_parameter_type, A_H, Z_H, density_parameter_datafile)
                         if a_L > 0 && a_H > 0
                             r = a_L/a_H
                             for TKE in tkerange

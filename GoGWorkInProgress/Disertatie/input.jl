@@ -39,7 +39,7 @@ Density level parameter computation method:
 GC for Gilbert-Cameron
 BSFG for Egidy-Bucurescu
 =#
-density_parameter_type = "GC"
+density_parameter_type = "BSFG"
 density_parameter_filename = "SZSN.GC"
 density_parameter_header = ["n", "S_Z", "S_N"]
 density_parameter_delimiter = ' '
