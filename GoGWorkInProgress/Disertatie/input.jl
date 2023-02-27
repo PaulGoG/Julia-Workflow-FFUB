@@ -86,4 +86,4 @@ txe_partitioning_delimiter = ' '
 txe_partitioning_firstdataline = 2
 
 #Main output file name
-output_filename = "DSE_$(No_ZperA)ZA_main_density_parameter_$(density_parameter_type)_evaporation_cs_$(evaporation_cs_type)_txe_partitioning_$(txe_partitioning_type).OUT"
+output_filename = "DSE_$(No_ZperA)ZA_$(isobaric_distribution_type)_pAZ_$(density_parameter_type)_cs_$(evaporation_cs_type)_partitioning_$(txe_partitioning_type).OUT"
