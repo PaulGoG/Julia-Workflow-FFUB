@@ -36,17 +36,17 @@ function TXE_partitioning(A_0, Z_0, A_H_min, A_H_max, Eₙ, fragmdomain, dΔE_de
                                     if E_scission > 0
                                         E_excit_L = E_scission/(1 + r) + ΔE_def_L
                                         E_excit_H = r * E_scission/(1 + r) + ΔE_def_H
-                                        if E_excit_L > Sₙ_L || E_excit_H > Sₙ_H
+                                        if E_excit_H > Sₙ_H
                                             push!(E_excit.A, A_H)
                                             push!(E_excit.Z, Z_H)
                                             push!(E_excit.TKE, TKE)
                                             push!(E_excit.Value, E_excit_H)
-                                            if A_L != A_H
-                                                push!(E_excit.A, A_L)
-                                                push!(E_excit.Z, Z_L)
-                                                push!(E_excit.TKE, TKE)
-                                                push!(E_excit.Value, E_excit_L)
-                                            end
+                                        end
+                                        if A_L != A_H && E_excit_L > Sₙ_L
+                                            push!(E_excit.A, A_L)
+                                            push!(E_excit.Z, Z_L)
+                                            push!(E_excit.TKE, TKE)
+                                            push!(E_excit.Value, E_excit_L)
                                         end
                                     end
                                 end
@@ -79,17 +79,17 @@ function TXE_partitioning(A_0, Z_0, A_H_min, A_H_max, Eₙ, fragmdomain, dRatio,
                             if TXE > 0 
                                 E_excit_H = TXE * Ratio
                                 E_excit_L = TXE - E_excit_H
-                                if E_excit_L > Sₙ_L || E_excit_H > Sₙ_H
+                                if E_excit_H > Sₙ_H
                                     push!(E_excit.A, A_H)
                                     push!(E_excit.Z, Z_H)
                                     push!(E_excit.TKE, TKE)
                                     push!(E_excit.Value, E_excit_H)
-                                    if A_L != A_H
-                                        push!(E_excit.A, A_L)
-                                        push!(E_excit.Z, Z_L)
-                                        push!(E_excit.TKE, TKE)
-                                        push!(E_excit.Value, E_excit_L)
-                                    end
+                                end
+                                if A_L != A_H && E_excit_L > Sₙ_L
+                                    push!(E_excit.A, A_L)
+                                    push!(E_excit.Z, Z_L)
+                                    push!(E_excit.TKE, TKE)
+                                    push!(E_excit.Value, E_excit_L)
                                 end
                             end
                         end
@@ -122,17 +122,17 @@ function TXE_partitioning(A_0, Z_0, A_H_min, A_H_max, Eₙ, fragmdomain, tkerang
                         if TXE > 0 
                             E_excit_H = TXE * Ratio
                             E_excit_L = TXE - E_excit_H
-                            if E_excit_L > Sₙ_L || E_excit_H > Sₙ_H
+                            if E_excit_H > Sₙ_H
                                 push!(E_excit.A, A_H)
                                 push!(E_excit.Z, Z_H)
                                 push!(E_excit.TKE, TKE)
                                 push!(E_excit.Value, E_excit_H)
-                                if A_L != A_H
-                                    push!(E_excit.A, A_L)
-                                    push!(E_excit.Z, Z_L)
-                                    push!(E_excit.TKE, TKE)
-                                    push!(E_excit.Value, E_excit_L)
-                                end
+                            end
+                            if A_L != A_H && E_excit_L > Sₙ_L
+                                push!(E_excit.A, A_L)
+                                push!(E_excit.Z, Z_L)
+                                push!(E_excit.TKE, TKE)
+                                push!(E_excit.Value, E_excit_L)
                             end
                         end
                     end
