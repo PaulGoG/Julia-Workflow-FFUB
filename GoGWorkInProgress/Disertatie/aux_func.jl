@@ -144,10 +144,10 @@ function Total_excitation_energy(Q, σ_Q, TKE, σ_TKE, Sₙ, σ_Sₙ, Eₙ)
     end
 end
 #Construct vectorized fragmentation domain with p(A,Z) values stored in memory
-function Fragmentation_domain(A, Z, NoZperA, A_H_min, A_H_max, dpAZ)
+function Fragmentation_domain(A_0, Z_0, NoZperA, A_H_min, A_H_max, dpAZ)
     fragmdomain = Distribution(Int[], Int[], Float64[], Int[], Float64[], Float64[])
     for A_H in A_H_min:A_H_max
-        A_L = A - A_H
+        A_L = A_0 - A_H
         if isassigned(dpAZ.A[dpAZ.A .== A_H], 1)
             RMS = dpAZ.rms_A[dpAZ.A .== A_H][1]
             ΔZ = dpAZ.ΔZ_A[dpAZ.A .== A_H][1]
@@ -155,7 +155,7 @@ function Fragmentation_domain(A, Z, NoZperA, A_H_min, A_H_max, dpAZ)
             RMS = 0.6
             ΔZ = -0.5
         end
-        Zₚ = Most_probable_charge(A, Z, A_H, ΔZ)
+        Zₚ = Most_probable_charge(A_0, Z_0, A_H, ΔZ)
         Z_H_min = Int(round(Zₚ) - (NoZperA - 1)/2)
         Z_H_max = Z_H_min + NoZperA - 1
         for Z_H in Z_H_min:Z_H_max
@@ -163,10 +163,10 @@ function Fragmentation_domain(A, Z, NoZperA, A_H_min, A_H_max, dpAZ)
             push!(fragmdomain.Z, Z_H)
             push!(fragmdomain.Value, p_A_Z(Z_H, Zₚ, RMS))
             if A_L != A_H
-                Z_L = Z - Z_H
+                Z_L = Z_0 - Z_H
                 push!(fragmdomain.A, A_L)
                 push!(fragmdomain.Z, Z_L)
-                push!(fragmdomain.Value, p_A_Z(Z_L, Z - Zₚ, RMS))
+                push!(fragmdomain.Value, p_A_Z(Z_L, Z_0 - Zₚ, RMS))
             end
         end
     end
@@ -216,22 +216,22 @@ function Energy_FermiGas(a::Float64, T::Float64)
 end
 #Function bodies for neutron spectrum and average neutron energy for a given sequence
 if evaporation_cs_type == "CONSTANT"
-    function Neutron_spectrum(ε, T)
+    function Neutron_spectrum(ε::Float64, T::Float64)
         return ε*exp(-ε/T)/T^2
     end
-    function Average_neutron_energy(T)
+    function Average_neutron_energy(T::Float64)
         return 2*T
     end
 elseif evaporation_cs_type == "VARIABLE"
-    function Neutron_spectrum(ε, α, T)
+    function Neutron_spectrum(ε::Float64, α::Float64, T::Float64)
         (ε + α*sqrt(ε))*exp(-ε/T) /((sqrt(T) +α*sqrt(π)/2) *T^(3/2))
     end
-    function Average_neutron_energy(α, T)
+    function Average_neutron_energy(α::Float64, T::Float64)
         return T*(2*sqrt(T) + α*3*sqrt(π)/4) /(sqrt(T) + α*sqrt(π)/2)
     end
 end
 #Prepares and writes the output file
-function Write_main_output(DSE_eq_output, evaporation_cs_type, output_filename)
+function Construct_main_output(DSE_eq_output, evaporation_cs_type)
     Tₖ_L, Tₖ_H, aₖ_L, aₖ_H = DSE_eq_output[1], DSE_eq_output[2], DSE_eq_output[3], DSE_eq_output[4]
     if evaporation_cs_type .== "CONSTANT"
         Output_datafile = DataFrame(A = vcat(Tₖ_L.A, Tₖ_H.A), Z = vcat(Tₖ_L.Z, Tₖ_H.Z), TKE = vcat(Tₖ_L.TKE, Tₖ_H.TKE), No_Sequence = vcat(Tₖ_L.NoSeq, Tₖ_H.NoSeq), Tₖ = vcat(Tₖ_L.Value, Tₖ_H.Value), aₖ = vcat(aₖ_L, aₖ_H))
@@ -239,5 +239,5 @@ function Write_main_output(DSE_eq_output, evaporation_cs_type, output_filename)
         αₖ_L, αₖ_H = DSE_eq_output[5], DSE_eq_output[6]
         Output_datafile = DataFrame(A = vcat(Tₖ_L.A, Tₖ_H.A), Z = vcat(Tₖ_L.Z, Tₖ_H.Z), TKE = vcat(Tₖ_L.TKE, Tₖ_H.TKE), No_Sequence = vcat(Tₖ_L.NoSeq, Tₖ_H.NoSeq), Tₖ = vcat(Tₖ_L.Value, Tₖ_H.Value), aₖ = vcat(aₖ_L, aₖ_H), αₖ = vcat(αₖ_L, αₖ_H))
     end
-    CSV.write("output_data/$output_filename", Output_datafile, delim=' ')
+    return Output_datafile
 end

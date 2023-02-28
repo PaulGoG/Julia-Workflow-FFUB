@@ -28,9 +28,10 @@ println("*partitioning Total Excitation Energy")
 E_excitation = TXE_partitioning(txe_partitioning_type, A₀, Z₀, A_H_min, A_H_max, Eₙ, fragmdomain, txe_partitioning_datafile, tkerange, density_parameter_type, density_parameter_datafile, dmass_excess)
 
 println("*solving DSE energy conservation equations")
-DSE_eq_output = DSE_equation_solver(evaporation_cs_type, A₀, Z₀, A_H_min, A_H_max, E_excitation, tkerange, density_parameter_type, density_parameter_datafile, dmass_excess)
+DSE_eq_output = DSE_equation_solver(evaporation_cs_type, A₀, Z₀, A_H_min, A_H_max, fragmdomain, E_excitation, tkerange, density_parameter_type, density_parameter_datafile, dmass_excess)
 
 println("*preparing output datafile")
-Write_main_output(DSE_eq_output, evaporation_cs_type, output_filename)
+Output_datafile = Construct_main_output(DSE_eq_output, evaporation_cs_type)
+CSV.write("output_data/$output_filename", Output_datafile, delim=' ')
 
 println("*program execution successful!")

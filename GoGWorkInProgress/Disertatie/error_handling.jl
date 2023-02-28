@@ -14,7 +14,7 @@ if A_H_min >= A_H_max
     error("invalid Heavy Fragment range!")
 end
 
-if TKE_min >= TKE_max || TKE_step >= (TKE_max - TKE_min)
+if TKE_min >= TKE_max 
     error("invalid TKE range!")
 end
 

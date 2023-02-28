@@ -3,17 +3,16 @@ Function bodies for solving the DSE conservation equations coresponding to
 constant and variable neutron evaporation cross section types.
 =#
 #####
-function DSE_equation_solver_CONSTANT_cs(A_0, Z_0, A_H_min, A_H_max, E_excitation, tkerange, density_parameter_type, density_parameter_datafile, dm)
+function DSE_equation_solver_CONSTANT_cs(A_0, Z_0, A_H_min, A_H_max, fragmdomain, E_excitation, tkerange, density_parameter_type, density_parameter_datafile, dm)
     Tₖ_L = Distribution(Int[], Int[], Float64[], Int[], Float64[], Float64[])
     Tₖ_H = Distribution(Int[], Int[], Float64[], Int[], Float64[], Float64[]) 
     aₖ_L = Float64[] 
     aₖ_H = Float64[]
     for A_H in A_H_min:A_H_max
-        println("Progress: $(Int(round(100*(A_H - A_H_min + 1)/(A_H_max - A_H_min + 1))))%")
-        A_L = A_0 - A_H
-        for index_Z_H in eachindex(E_excitation.Z[E_excitation.A .== A_H])
-            Z_H = E_excitation.Z[E_excitation.A .== A_H][index_Z_H]
-            Z_L = Z_0 - Z_H
+        A_L = A_H + A_0 - (A_H_min + A_H_max)
+        for index_Z in eachindex(fragmdomain.Z[fragmdomain.A .== A_H])
+            Z_H = fragmdomain.Z[fragmdomain.A .== A_H][index_Z]
+            Z_L = fragmdomain.Z[fragmdomain.A .== A_L][index_Z]
             Sₙ_L = Separation_energy(1, 0, A_L, Z_L, dm)[1]
             Sₙ_H = Separation_energy(1, 0, A_H, Z_H, dm)[1]
             a_1_H = density_parameter(density_parameter_type, A_H - 1, Z_H, density_parameter_datafile)
@@ -67,7 +66,7 @@ function DSE_equation_solver_CONSTANT_cs(A_0, Z_0, A_H_min, A_H_max, E_excitatio
     println("DSE energy conservation equations done!")
     return Tₖ_L, Tₖ_H, aₖ_L, aₖ_H
 end
-function DSE_equation_solver_VARIABLE_cs(A_0, Z_0, A_H_min, A_H_max, E_excitation, tkerange, density_parameter_type, density_parameter_datafile, dm)
+function DSE_equation_solver_VARIABLE_cs(A_0, Z_0, A_H_min, A_H_max, fragmdomain, E_excitation, tkerange, density_parameter_type, density_parameter_datafile, dm)
     Tₖ_L = Distribution(Int[], Int[], Float64[], Int[], Float64[], Float64[])
     Tₖ_H = Distribution(Int[], Int[], Float64[], Int[], Float64[], Float64[]) 
     aₖ_L = Float64[]
@@ -75,11 +74,10 @@ function DSE_equation_solver_VARIABLE_cs(A_0, Z_0, A_H_min, A_H_max, E_excitatio
     αₖ_L = Float64[]
     αₖ_H = Float64[]
     for A_H in A_H_min:A_H_max
-        println("Progress: $(Int(round(100*(A_H - A_H_min + 1)/(A_H_max - A_H_min + 1))))%")
-        A_L = A_0 - A_H
-        for index_Z_H in eachindex(E_excitation.Z[E_excitation.A .== A_H])
-            Z_H = E_excitation.Z[E_excitation.A .== A_H][index_Z_H]
-            Z_L = Z_0 - Z_H
+        A_L = A_H + A_0 - (A_H_min + A_H_max)
+        for index_Z in eachindex(fragmdomain.Z[fragmdomain.A .== A_H])
+            Z_H = fragmdomain.Z[fragmdomain.A .== A_H][index_Z]
+            Z_L = fragmdomain.Z[fragmdomain.A .== A_L][index_Z]
             Sₙ_L = Separation_energy(1, 0, A_L, Z_L, dm)[1]
             Sₙ_H = Separation_energy(1, 0, A_H, Z_H, dm)[1]
             a_1_H = density_parameter(density_parameter_type, A_H - 1, Z_H, density_parameter_datafile)
@@ -135,11 +133,11 @@ function DSE_equation_solver_VARIABLE_cs(A_0, Z_0, A_H_min, A_H_max, E_excitatio
     println("DSE energy conservation equations done!")
     return Tₖ_L, Tₖ_H, aₖ_L, aₖ_H, αₖ_L, αₖ_H
 end
-function DSE_equation_solver(evaporation_cs_type, A_0, Z_0, A_H_min, A_H_max, E_excitation, tkerange, density_parameter_type, density_parameter_datafile, dm)
+function DSE_equation_solver(evaporation_cs_type, A_0, Z_0, A_H_min, A_H_max, fragmdomain, E_excitation, tkerange, density_parameter_type, density_parameter_datafile, dm)
     if evaporation_cs_type == "CONSTANT"
-        DSE_Output = DSE_equation_solver_CONSTANT_cs(A_0, Z_0, A_H_min, A_H_max, E_excitation, tkerange, density_parameter_type, density_parameter_datafile, dm)
+        DSE_Output = DSE_equation_solver_CONSTANT_cs(A_0, Z_0, A_H_min, A_H_max, fragmdomain, E_excitation, tkerange, density_parameter_type, density_parameter_datafile, dm)
     elseif evaporation_cs_type == "VARIABLE"
-        DSE_Output = DSE_equation_solver_VARIABLE_cs(A_0, Z_0, A_H_min, A_H_max, E_excitation, tkerange, density_parameter_type, density_parameter_datafile, dm)
+        DSE_Output = DSE_equation_solver_VARIABLE_cs(A_0, Z_0, A_H_min, A_H_max, fragmdomain, E_excitation, tkerange, density_parameter_type, density_parameter_datafile, dm)
     end
     return DSE_Output
 end
