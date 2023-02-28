@@ -77,7 +77,7 @@ RT for constant T_L/T_H provided by user when prompted by the program
 Extra deformation energies for MSCZ
 Partitioning ratios for PARAM
 =#
-txe_partitioning_type = "RT"
+txe_partitioning_type = "MSCZ"
 txe_partitioning_filename = "EXTRADEF.IN"
 txe_partitioning_header = ["A", "Z", "Value"]
 txe_partitioning_delimiter = ' '
