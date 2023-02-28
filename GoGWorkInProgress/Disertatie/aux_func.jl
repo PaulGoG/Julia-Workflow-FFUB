@@ -210,3 +210,34 @@ function Solve_transcendental_eq(Eᵣ_k_last, Sₙ_k_last, a_k, A, k)
     T_k = find_zero(f, 1.0)
     return T_k, αₖ
 end
+#Energy in Fermi Gas regime
+function Energy_FermiGas(a::Float64, T::Float64)      
+    return a*T^2
+end
+#Function bodies for neutron spectrum and average neutron energy for a given sequence
+if evaporation_cs_type == "CONSTANT"
+    function Neutron_spectrum(ε, T)
+        return ε*exp(-ε/T)/T^2
+    end
+    function Average_neutron_energy(T)
+        return 2*T
+    end
+elseif evaporation_cs_type == "VARIABLE"
+    function Neutron_spectrum(ε, α, T)
+        (ε + α*sqrt(ε))*exp(-ε/T) /((sqrt(T) +α*sqrt(π)/2) *T^(3/2))
+    end
+    function Average_neutron_energy(α, T)
+        return T*(2*sqrt(T) + α*3*sqrt(π)/4) /(sqrt(T) + α*sqrt(π)/2)
+    end
+end
+#Prepares and writes the output file
+function Write_main_output(DSE_eq_output, evaporation_cs_type, output_filename)
+    Tₖ_L, Tₖ_H, aₖ_L, aₖ_H = DSE_eq_output[1], DSE_eq_output[2], DSE_eq_output[3], DSE_eq_output[4]
+    if evaporation_cs_type .== "CONSTANT"
+        Output_datafile = DataFrame(A = vcat(Tₖ_L.A, Tₖ_H.A), Z = vcat(Tₖ_L.Z, Tₖ_H.Z), TKE = vcat(Tₖ_L.TKE, Tₖ_H.TKE), No_Sequence = vcat(Tₖ_L.NoSeq, Tₖ_H.NoSeq), Tₖ = vcat(Tₖ_L.Value, Tₖ_H.Value), aₖ = vcat(aₖ_L, aₖ_H))
+    elseif evaporation_cs_type .== "VARIABLE"
+        αₖ_L, αₖ_H = DSE_eq_output[5], DSE_eq_output[6]
+        Output_datafile = DataFrame(A = vcat(Tₖ_L.A, Tₖ_H.A), Z = vcat(Tₖ_L.Z, Tₖ_H.Z), TKE = vcat(Tₖ_L.TKE, Tₖ_H.TKE), No_Sequence = vcat(Tₖ_L.NoSeq, Tₖ_H.NoSeq), Tₖ = vcat(Tₖ_L.Value, Tₖ_H.Value), aₖ = vcat(aₖ_L, aₖ_H), αₖ = vcat(αₖ_L, αₖ_H))
+    end
+    CSV.write("output_data/$output_filename", Output_datafile, delim=' ')
+end

@@ -5,7 +5,6 @@ cd(@__DIR__)
 cd("input_data/")
 
 #Mass excess data file name, column names, delimiter symbol, number of first row of actual data in file
-
 mass_excess_filename = "AUDI2021.ANA"
 mass_excess_header = ["Z", "A", "Symbol", "D", "σ_D"]
 mass_excess_delimiter = ' '
@@ -56,8 +55,6 @@ evaporation_cs_type = "VARIABLE"
 Input type for the isobaric charge distribution p(Z,A):
 MEAN_VALUES for ΔZ(A)=0.5 & rms(A)=0.6
 DATA for values provided in a datafile
-
-!If variable ΔZ(A) & rms(A) are used, provide the necessary data file!
 =#
 isobaric_distribution_type = "DATA"
 isobaric_distribution_filename = "DeltaZA_rmsA.U5"
@@ -68,7 +65,7 @@ isobaric_distribution_firstdataline = 2
 #=
 Number of Z per A fragments considered
 =#
-No_ZperA = 5
+No_ZperA = 1
 
 #=
 Total Excitation Energy partitioning method:
