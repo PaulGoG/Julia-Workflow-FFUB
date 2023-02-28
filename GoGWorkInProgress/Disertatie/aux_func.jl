@@ -84,10 +84,11 @@ end
 
 if txe_partitioning_type == "MSCZ"
     txe_partitioning_datafile = CSV.read(txe_partitioning_filename, DataFrame; delim = txe_partitioning_delimiter, ignorerepeated = true, header = txe_partitioning_header, skipto = txe_partitioning_firstdataline)
+    println("reading $txe_partitioning_filename done!")
 elseif txe_partitioning_type == "PARAM"
     txe_partitioning_datafile = CSV.read(txe_partitioning_filename, DataFrame; delim = txe_partitioning_delimiter, ignorerepeated = true, header = txe_partitioning_header, skipto = txe_partitioning_firstdataline)
+    println("reading $txe_partitioning_filename done!")
 end
-println("reading $txe_partitioning_filename done!")
 #Function bodies
 #Isobaric charge distribution p(Z,A)
 function p_A_Z(Z, Z_p, rms_A)
@@ -98,11 +99,11 @@ function Most_probable_charge(A, Z, A_H, ΔZ)
     return A_H*Z/A + ΔZ
 end
 #Q_value energy in MeV released at fission of (A,Z) nucleus 
-function Q_value_released(A, Z, A_H, Z_H, dm)
-    D = dm.D[(dm.A .== A) .& (dm.Z .== Z)][1]
-    σ_D = dm.σ_D[(dm.A .== A) .& (dm.Z .== Z)][1]
-    A_L = A - A_H
-    Z_L = Z - Z_H
+function Q_value_released(A_0, Z_0, A_H, Z_H, dm)
+    D = dm.D[(dm.A .== A_0) .& (dm.Z .== Z_0)][1]
+    σ_D = dm.σ_D[(dm.A .== A_0) .& (dm.Z .== Z_0)][1]
+    A_L = A_0 - A_H
+    Z_L = Z_0 - Z_H
     if isassigned(dm.D[(dm.A .== A_H) .& (dm.Z .== Z_H)], 1) && isassigned(dm.D[(dm.A .== A_L) .& (dm.Z .== Z_L)], 1)
         D_H = dm.D[(dm.A .== A_H) .& (dm.Z .== Z_H)][1]
         σ_D_H = dm.σ_D[(dm.A .== A_H) .& (dm.Z .== Z_H)][1]

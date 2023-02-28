@@ -63,7 +63,6 @@ function DSE_equation_solver_CONSTANT_cs(A_0, Z_0, A_H_min, A_H_max, fragmdomain
             end            
         end
     end
-    println("DSE energy conservation equations done!")
     return Tₖ_L, Tₖ_H, aₖ_L, aₖ_H
 end
 function DSE_equation_solver_VARIABLE_cs(A_0, Z_0, A_H_min, A_H_max, fragmdomain, E_excitation, tkerange, density_parameter_type, density_parameter_datafile, dm)
@@ -130,7 +129,6 @@ function DSE_equation_solver_VARIABLE_cs(A_0, Z_0, A_H_min, A_H_max, fragmdomain
             end            
         end
     end
-    println("DSE energy conservation equations done!")
     return Tₖ_L, Tₖ_H, aₖ_L, aₖ_H, αₖ_L, αₖ_H
 end
 function DSE_equation_solver(evaporation_cs_type, A_0, Z_0, A_H_min, A_H_max, fragmdomain, E_excitation, tkerange, density_parameter_type, density_parameter_datafile, dm)

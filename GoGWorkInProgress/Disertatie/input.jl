@@ -19,9 +19,9 @@ A_H_min = 118
 A_H_max = 160
 
 #Total Kinetic Energy range and step in MeV
-TKE_min = 140.0
-TKE_max = 180.0
-TKE_step = 5.0
+TKE_min = 100.0
+TKE_max = 200.0
+TKE_step = 1.0
 
 #=
 Fission type: 
@@ -49,7 +49,7 @@ Neutron evaporation cross section type:
 CONSTANT for energy-independent cross section
 VARIABLE for energy-dependent cross section
 =#
-evaporation_cs_type = "CONSTANT"
+evaporation_cs_type = "VARIABLE"
 
 #=
 Input type for the isobaric charge distribution p(Z,A):
@@ -65,7 +65,7 @@ isobaric_distribution_firstdataline = 2
 #=
 Number of Z per A fragments considered
 =#
-No_ZperA = 9
+No_ZperA = 5
 
 #=
 Total Excitation Energy partitioning method:
