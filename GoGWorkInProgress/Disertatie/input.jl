@@ -20,8 +20,8 @@ A_H_min = 118
 A_H_max = 160
 
 #Total Kinetic Energy range and step in MeV
-TKE_min = 100.0
-TKE_max = 200.0
+TKE_min = 120.0
+TKE_max = 198.0
 TKE_step = 2.0
 
 #=
@@ -74,6 +74,7 @@ No_ZperA = 5
 Total Excitation Energy partitioning method:
 MSCZ for Modelling at scission
 PARAM for file-provided partitioning ratios
+RT for constant T_L/T_H provided by user when prompted by the program
 
 !Necessary data files must be provided in each case!: 
 Extra deformation energies for MSCZ
@@ -86,4 +87,4 @@ txe_partitioning_delimiter = ' '
 txe_partitioning_firstdataline = 2
 
 #Main output file name
-output_filename = "DSE_$(No_ZperA)ZA_$(isobaric_distribution_type)_pAZ_$(density_parameter_type)_cs_$(evaporation_cs_type)_partitioning_$(txe_partitioning_type).OUT"
+output_filename = "DSE_$(No_ZperA)ZA_$(isobaric_distribution_type)_pAZ_$(density_parameter_type)_a_$(evaporation_cs_type)_cs_$(txe_partitioning_type)_partitioning.OUT"

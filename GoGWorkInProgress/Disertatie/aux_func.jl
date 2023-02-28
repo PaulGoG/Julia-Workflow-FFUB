@@ -44,6 +44,14 @@ if evaporation_cs_type == "VARIABLE"
     const C_α = (π*ħc)^2 /(aₘ*amu)
 end
 
+if txe_partitioning_type == "RT"
+    println("Provide input value for R_T = T_L/T_H for fission fragments at total acceleration in Fermi Gas regime...")
+    println(' ')
+    print("R_T = ")
+    const R_T² = parse(Float64, readline())^2
+    println(' ')
+    txe_partitioning_datafile = DataFrame
+end
 
 println("*reading data files")
 #Read input data files as DataFrames

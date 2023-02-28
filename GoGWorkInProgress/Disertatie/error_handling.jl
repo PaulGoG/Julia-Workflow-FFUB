@@ -74,12 +74,14 @@ if !isodd(No_ZperA)
     error("No_ZperA must be an odd Integer!")
 end
 
-if txe_partitioning_type != "MSCZ" && txe_partitioning_type != "PARAM"
+if txe_partitioning_type != "MSCZ" && txe_partitioning_type != "PARAM" && txe_partitioning_type != "RT"
     error("$txe_partitioning_type is not a valid input for txe_partitioning_type!")
 end
 
-if !isfile(txe_partitioning_filename)
-    error("$txe_partitioning_filename does not exist at input_data/  PATH!")
+if txe_partitioning_type != "RT"
+    if !isfile(txe_partitioning_filename)
+        error("$txe_partitioning_filename does not exist at input_data/  PATH!")
+    end
 end
 
 if isassigned(filter(x -> !in(x, ("A", "Z", "Value")), txe_partitioning_header), 1)
