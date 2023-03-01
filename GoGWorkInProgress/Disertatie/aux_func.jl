@@ -171,45 +171,20 @@ function Fragmentation_domain(A_0, Z_0, NoZperA, A_H_min, A_H_max, dpAZ)
             end
         end
     end
-    #Sorting struct in ascending order by mass number
-    a = sort(fragmdomain.A)
-    z = [fragmdomain.Z[fragmdomain.A .== A] for A in first(a):last(a)]
-    z = reduce(vcat, z)
-    value = [fragmdomain.Value[fragmdomain.A .== A] for A in first(a):last(a)]
-    value = reduce(vcat, value)
-    for index_A in eachindex(a)
-        fragmdomain.A[index_A] = a[index_A]
-        fragmdomain.Z[index_A] = z[index_A]
-        fragmdomain.Value[index_A] = value[index_A]
+    #Sort by mass number in ascending order
+    aux_A = sort(fragmdomain.A)
+    aux_Z = [sort(fragmdomain.Z[fragmdomain.A .== A]) for A in first(aux_A):last(aux_A)]
+    aux_Z = reduce(vcat, aux_Z)
+    aux_Value = zeros(length(fragmdomain.Value))
+    for index in eachindex(aux_A)
+        aux_Value[index] = fragmdomain.Value[(fragmdomain.A .== aux_A[index]) .& (fragmdomain.Z .== aux_Z[index])][1]
+    end
+    for index in eachindex(aux_A)
+        fragmdomain.A[index] = aux_A[index]
+        fragmdomain.Z[index] = aux_Z[index]
+        fragmdomain.Value[index] = aux_Value[index]
     end
     return fragmdomain
-end
-#Parametrization for the force function S₀ of the s-wave neutron
-function Force_function_S₀(A)
-    if A <= 70
-        return 7e-5
-    elseif A > 70 && A <= 86
-        return 1e-4 * (A*1.875e-2 - 6.125e-1)
-    elseif A > 86 && A <= 111
-        return 1e-4 
-    elseif A > 111 && A <= 121
-        return 1e-4 * (-A*2.857e-2 + 4.1714)
-    elseif A > 121 && A <= 140
-        return 1e-4 
-    elseif A > 140 && A <= 144
-        return 1e-4 * (A*7.5e-2 - 9.8)
-    elseif A > 144
-        return 1e-4
-    end
-end
-#Solves the transcendental equation for given sequence
-function Solve_transcendental_eq(Eᵣ_k_last, Sₙ_k_last, a_k, A, k)
-    σ₀ = π*r₀^2 *(A - k)^(2/3)
-    S₀ = Force_function_S₀(A - k)
-    αₖ = 10*C_α*S₀/σ₀
-    f(Tₖ) = a_k*Tₖ^2 + Tₖ*(2*sqrt(Tₖ) + αₖ*3*sqrt(π)/4)/(sqrt(Tₖ) + αₖ*sqrt(π)/2) + (Sₙ_k_last - Eᵣ_k_last)
-    T_k = find_zero(f, 1.0)
-    return T_k, αₖ
 end
 #Energy in Fermi Gas regime
 function Energy_FermiGas(a::Float64, T::Float64)      
@@ -233,31 +208,31 @@ elseif evaporation_cs_type == "VARIABLE"
 end
 #Prepares and writes the output file
 function Construct_main_output(DSE_eq_output, evaporation_cs_type)
-    Tₖ_L, Tₖ_H, aₖ_L, aₖ_H = DSE_eq_output[1], DSE_eq_output[2], DSE_eq_output[3], DSE_eq_output[4]
+    Tₖ, aₖ = DSE_eq_output[1], DSE_eq_output[2]
     if evaporation_cs_type .== "CONSTANT"
         Output_datafile = DataFrame(
-            A = vcat(Tₖ_L.A, Tₖ_H.A), 
-            Z = vcat(Tₖ_L.Z, Tₖ_H.Z), 
-            TKE = vcat(Tₖ_L.TKE, Tₖ_H.TKE), 
-            No_Sequence = vcat(Tₖ_L.NoSeq, Tₖ_H.NoSeq), 
-            Tₖ = vcat(Tₖ_L.Value, Tₖ_H.Value), 
-            aₖ = vcat(aₖ_L, aₖ_H),
-            Avg_εₖ = Average_neutron_energy.(vcat(Tₖ_L.Value, Tₖ_H.Value)),
-            Eʳₖ = Energy_FermiGas.(vcat(aₖ_L, aₖ_H), vcat(Tₖ_L.Value, Tₖ_H.Value))
-            )
+            A = Tₖ.A, 
+            Z = Tₖ.Z, 
+            TKE = Tₖ.TKE, 
+            No_Sequence = Tₖ.NoSeq, 
+            Tₖ = Tₖ.Value, 
+            aₖ = aₖ,
+            Avg_εₖ = Average_neutron_energy.(Tₖ.Value),
+            Eʳₖ = Energy_FermiGas.(aₖ, Tₖ.Value)
+        )
     elseif evaporation_cs_type .== "VARIABLE"
-        αₖ_L, αₖ_H = DSE_eq_output[5], DSE_eq_output[6]
+        αₖ = DSE_eq_output[3]
         Output_datafile = DataFrame(
-            A = vcat(Tₖ_L.A, Tₖ_H.A), 
-            Z = vcat(Tₖ_L.Z, Tₖ_H.Z), 
-            TKE = vcat(Tₖ_L.TKE, Tₖ_H.TKE), 
-            No_Sequence = vcat(Tₖ_L.NoSeq, Tₖ_H.NoSeq), 
-            Tₖ = vcat(Tₖ_L.Value, Tₖ_H.Value), 
-            aₖ = vcat(aₖ_L, aₖ_H), 
-            αₖ = vcat(αₖ_L, αₖ_H),
-            Avg_εₖ = Average_neutron_energy.(vcat(αₖ_L, αₖ_H), vcat(Tₖ_L.Value, Tₖ_H.Value)),
-            Eʳₖ = Energy_FermiGas.(vcat(aₖ_L, aₖ_H), vcat(Tₖ_L.Value, Tₖ_H.Value))
-            )
+            A = Tₖ.A, 
+            Z = Tₖ.Z, 
+            TKE = Tₖ.TKE, 
+            No_Sequence = Tₖ.NoSeq, 
+            Tₖ = Tₖ.Value, 
+            aₖ = aₖ,
+            αₖ = αₖ,
+            Avg_εₖ = Average_neutron_energy.(αₖ, Tₖ.Value),
+            Eʳₖ = Energy_FermiGas.(aₖ, Tₖ.Value)
+        )
     end
     return Output_datafile
 end
