@@ -42,7 +42,7 @@ function TXE_partitioning(A_0, Z_0, A_H_min, A_H_max, Eₙ, fragmdomain, dΔE_de
                                             push!(E_excit.TKE, TKE)
                                             push!(E_excit.Value, E_excit_H)
                                         end
-                                        if A_L != A_H && E_excit_L > Sₙ_L
+                                        if A_L != A_H_min && E_excit_L > Sₙ_L
                                             push!(E_excit.A, A_L)
                                             push!(E_excit.Z, Z_L)
                                             push!(E_excit.TKE, TKE)
@@ -85,7 +85,7 @@ function TXE_partitioning(A_0, Z_0, A_H_min, A_H_max, Eₙ, fragmdomain, dRatio,
                                     push!(E_excit.TKE, TKE)
                                     push!(E_excit.Value, E_excit_H)
                                 end
-                                if A_L != A_H && E_excit_L > Sₙ_L
+                                if A_L != A_H_min && E_excit_L > Sₙ_L
                                     push!(E_excit.A, A_L)
                                     push!(E_excit.Z, Z_L)
                                     push!(E_excit.TKE, TKE)
@@ -128,7 +128,7 @@ function TXE_partitioning(A_0, Z_0, A_H_min, A_H_max, Eₙ, fragmdomain, tkerang
                                 push!(E_excit.TKE, TKE)
                                 push!(E_excit.Value, E_excit_H)
                             end
-                            if A_L != A_H && E_excit_L > Sₙ_L
+                            if A_L != A_H_min && E_excit_L > Sₙ_L
                                 push!(E_excit.A, A_L)
                                 push!(E_excit.Z, Z_L)
                                 push!(E_excit.TKE, TKE)

@@ -38,7 +38,7 @@ function DSE_equation_solver_CONSTANT_cs(A_0, Z_0, A_H_min, A_H_max, fragmdomain
                         a_k_H = density_parameter(density_parameter_type, A_H - k_H, Z_H, density_parameter_datafile)
                     end
                 end
-                if A_L != A_H
+                if A_L != A_H_min
                     if isassigned(E_excitation.Value[(E_excitation.A .== A_L) .& (E_excitation.Z .== Z_L) .& (E_excitation.TKE .== TKE)], 1)
                         Eᵣ_k_last_L = E_excitation.Value[(E_excitation.A .== A_L) .& (E_excitation.Z .== Z_L) .& (E_excitation.TKE .== TKE)][1]
                         Sₙ_k_last_L = Sₙ_L
@@ -54,7 +54,7 @@ function DSE_equation_solver_CONSTANT_cs(A_0, Z_0, A_H_min, A_H_max, fragmdomain
                             push!(Tₖ_L.NoSeq, k_L)
                             #Advance the sequence one step forward to be verified by the while loop
                             Eᵣ_k_last_L = a_k_L * T_k_L^2
-                            Sₙ_k_last_L = Separation_energy(1, 0, A_L - k_L, Z_H, dm)[1]
+                            Sₙ_k_last_L = Separation_energy(1, 0, A_L - k_L, Z_L, dm)[1]
                             k_L += 1
                             a_k_L = density_parameter(density_parameter_type, A_L - k_L, Z_L, density_parameter_datafile)
                         end
@@ -103,7 +103,7 @@ function DSE_equation_solver_VARIABLE_cs(A_0, Z_0, A_H_min, A_H_max, fragmdomain
                         a_k_H = density_parameter(density_parameter_type, A_H - k_H, Z_H, density_parameter_datafile)
                     end
                 end
-                if A_L != A_H
+                if A_L != A_H_min
                     if isassigned(E_excitation.Value[(E_excitation.A .== A_L) .& (E_excitation.Z .== Z_L) .& (E_excitation.TKE .== TKE)], 1)
                         Eᵣ_k_last_L = E_excitation.Value[(E_excitation.A .== A_L) .& (E_excitation.Z .== Z_L) .& (E_excitation.TKE .== TKE)][1]
                         Sₙ_k_last_L = Sₙ_L
@@ -120,7 +120,7 @@ function DSE_equation_solver_VARIABLE_cs(A_0, Z_0, A_H_min, A_H_max, fragmdomain
                             push!(Tₖ_L.NoSeq, k_L)
                             #Advance the sequence one step forward to be verified by the while loop
                             Eᵣ_k_last_L = a_k_L * T_k_L^2
-                            Sₙ_k_last_L = Separation_energy(1, 0, A_L - k_L, Z_H, dm)[1]
+                            Sₙ_k_last_L = Separation_energy(1, 0, A_L - k_L, Z_L, dm)[1]
                             k_L += 1
                             a_k_L = density_parameter(density_parameter_type, A_L - k_L, Z_L, density_parameter_datafile)
                         end

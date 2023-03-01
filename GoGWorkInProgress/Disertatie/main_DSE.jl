@@ -19,7 +19,6 @@ include("dse_eq_solvers.jl")
 cd(@__DIR__)
 
 println("*begin DSE computation")
-#Begin program execution
 
 println("*building fragmentation domain")
 fragmdomain = Fragmentation_domain(A₀, Z₀, No_ZperA, A_H_min, A_H_max, isobaric_distribution_datafile)
@@ -34,4 +33,4 @@ println("*preparing output datafile")
 Output_datafile = Construct_main_output(DSE_eq_output, evaporation_cs_type)
 CSV.write("output_data/$output_filename", Output_datafile, delim=' ')
 
-println("*program execution successful!")
+println("*main program execution successful!")

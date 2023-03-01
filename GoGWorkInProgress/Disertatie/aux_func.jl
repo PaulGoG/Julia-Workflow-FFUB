@@ -235,10 +235,29 @@ end
 function Construct_main_output(DSE_eq_output, evaporation_cs_type)
     Tₖ_L, Tₖ_H, aₖ_L, aₖ_H = DSE_eq_output[1], DSE_eq_output[2], DSE_eq_output[3], DSE_eq_output[4]
     if evaporation_cs_type .== "CONSTANT"
-        Output_datafile = DataFrame(A = vcat(Tₖ_L.A, Tₖ_H.A), Z = vcat(Tₖ_L.Z, Tₖ_H.Z), TKE = vcat(Tₖ_L.TKE, Tₖ_H.TKE), No_Sequence = vcat(Tₖ_L.NoSeq, Tₖ_H.NoSeq), Tₖ = vcat(Tₖ_L.Value, Tₖ_H.Value), aₖ = vcat(aₖ_L, aₖ_H))
+        Output_datafile = DataFrame(
+            A = vcat(Tₖ_L.A, Tₖ_H.A), 
+            Z = vcat(Tₖ_L.Z, Tₖ_H.Z), 
+            TKE = vcat(Tₖ_L.TKE, Tₖ_H.TKE), 
+            No_Sequence = vcat(Tₖ_L.NoSeq, Tₖ_H.NoSeq), 
+            Tₖ = vcat(Tₖ_L.Value, Tₖ_H.Value), 
+            aₖ = vcat(aₖ_L, aₖ_H),
+            Avg_εₖ = Average_neutron_energy.(vcat(Tₖ_L.Value, Tₖ_H.Value)),
+            Eʳₖ = Energy_FermiGas.(vcat(aₖ_L, aₖ_H), vcat(Tₖ_L.Value, Tₖ_H.Value))
+            )
     elseif evaporation_cs_type .== "VARIABLE"
         αₖ_L, αₖ_H = DSE_eq_output[5], DSE_eq_output[6]
-        Output_datafile = DataFrame(A = vcat(Tₖ_L.A, Tₖ_H.A), Z = vcat(Tₖ_L.Z, Tₖ_H.Z), TKE = vcat(Tₖ_L.TKE, Tₖ_H.TKE), No_Sequence = vcat(Tₖ_L.NoSeq, Tₖ_H.NoSeq), Tₖ = vcat(Tₖ_L.Value, Tₖ_H.Value), aₖ = vcat(aₖ_L, aₖ_H), αₖ = vcat(αₖ_L, αₖ_H))
+        Output_datafile = DataFrame(
+            A = vcat(Tₖ_L.A, Tₖ_H.A), 
+            Z = vcat(Tₖ_L.Z, Tₖ_H.Z), 
+            TKE = vcat(Tₖ_L.TKE, Tₖ_H.TKE), 
+            No_Sequence = vcat(Tₖ_L.NoSeq, Tₖ_H.NoSeq), 
+            Tₖ = vcat(Tₖ_L.Value, Tₖ_H.Value), 
+            aₖ = vcat(aₖ_L, aₖ_H), 
+            αₖ = vcat(αₖ_L, αₖ_H),
+            Avg_εₖ = Average_neutron_energy.(vcat(αₖ_L, αₖ_H), vcat(Tₖ_L.Value, Tₖ_H.Value)),
+            Eʳₖ = Energy_FermiGas.(vcat(aₖ_L, aₖ_H), vcat(Tₖ_L.Value, Tₖ_H.Value))
+            )
     end
     return Output_datafile
 end
