@@ -163,7 +163,7 @@ function Fragmentation_domain(A_0, Z_0, NoZperA, A_H_min, A_H_max, dpAZ)
             push!(fragmdomain.A, A_H)
             push!(fragmdomain.Z, Z_H)
             push!(fragmdomain.Value, p_A_Z(Z_H, Zₚ, RMS))
-            if A_L != A_H
+            if A_L != A_H_min
                 Z_L = Z_0 - Z_H
                 push!(fragmdomain.A, A_L)
                 push!(fragmdomain.Z, Z_L)

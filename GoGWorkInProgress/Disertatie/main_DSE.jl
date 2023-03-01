@@ -34,3 +34,15 @@ Output_datafile = Construct_main_output(DSE_eq_output, evaporation_cs_type)
 CSV.write("output_data/$output_filename", Output_datafile, delim=' ')
 
 println("*main program execution successful!")
+
+# Dirty code
+
+function Sequence_Average(Output_datafile)
+    avgval = Distribution(Int[], Int[], Float64[], Int[], Float64[], Float64[])
+    for A in first(Output_datafile.A):last(Output_datafile.A)
+        for Z in first(Output_datafile.Z[Output_datafile.A .== A]):last(Output_datafile.Z[Output_datafile.A .== A])
+
+        end
+    end
+    return avgval
+end
