@@ -16,12 +16,12 @@ Z₀ = 92
 
 #Heavy fission fragment range 
 A_H_min = 118
-A_H_max = 160
+A_H_max = 158
 
 #Total Kinetic Energy range and step in MeV
-TKE_min = 100.0
-TKE_max = 200.0
-TKE_step = 1.0
+TKE_min = 120.0
+TKE_max = 121.0
+TKE_step = 2.0
 
 #=
 Fission type: 
@@ -70,18 +70,19 @@ No_ZperA = 5
 #=
 Total Excitation Energy partitioning method:
 MSCZ for Modelling at scission
-PARAM for file-provided partitioning ratios
+PARAM for file-provided partitioning ratios by segments
 RT for constant T_L/T_H provided by user when prompted by the program
 
 !Necessary data files must be provided in each case!: 
 Extra deformation energies for MSCZ
-Partitioning ratios for PARAM
+Segment points in Vector of Tuples for PARAM
 =#
-txe_partitioning_type = "MSCZ"
+txe_partitioning_type = "PARAM"
 txe_partitioning_filename = "EXTRADEF.IN"
 txe_partitioning_header = ["A", "Z", "Value"]
 txe_partitioning_delimiter = ' '
 txe_partitioning_firstdataline = 2
+txe_partitioning_segmentpoints = [(118, 0.5), (160, 0.5)]
 
 #= 
 Yield-averaged outputs YES or NO selector

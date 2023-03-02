@@ -86,8 +86,7 @@ if txe_partitioning_type == "MSCZ"
     txe_partitioning_datafile = CSV.read(txe_partitioning_filename, DataFrame; delim = txe_partitioning_delimiter, ignorerepeated = true, header = txe_partitioning_header, skipto = txe_partitioning_firstdataline)
     println("reading $txe_partitioning_filename done!")
 elseif txe_partitioning_type == "PARAM"
-    txe_partitioning_datafile = CSV.read(txe_partitioning_filename, DataFrame; delim = txe_partitioning_delimiter, ignorerepeated = true, header = txe_partitioning_header, skipto = txe_partitioning_firstdataline)
-    println("reading $txe_partitioning_filename done!")
+    txe_partitioning_datafile = txe_partitioning_segmentpoints
 end
 
 if secondary_outputs == "YES"

@@ -78,17 +78,16 @@ if txe_partitioning_type != "MSCZ" && txe_partitioning_type != "PARAM" && txe_pa
     error("$txe_partitioning_type is not a valid input for txe_partitioning_type!")
 end
 
-if txe_partitioning_type != "RT"
+if txe_partitioning_type == "MSCZ"
     if !isfile(txe_partitioning_filename)
         error("$txe_partitioning_filename does not exist at input_data/  PATH!")
     end
-end
-
-if isassigned(filter(x -> !in(x, ("A", "Z", "Value")), txe_partitioning_header), 1)
-    error(
-    "txe_partitioning_header contains invalid fields: $(filter(x -> !in(x, ("A", "Z", "Value")), txe_partitioning_header));
-    allowed header names list: A, Z, Value"
-    )
+    if isassigned(filter(x -> !in(x, ("A", "Z", "Value")), txe_partitioning_header), 1)
+        error(
+        "txe_partitioning_header contains invalid fields: $(filter(x -> !in(x, ("A", "Z", "Value")), txe_partitioning_header));
+        allowed header names list: A, Z, Value"
+        )
+    end
 end
 
 if secondary_outputs != "YES" && secondary_outputs != "NO"

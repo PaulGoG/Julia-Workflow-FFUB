@@ -32,10 +32,13 @@ println("*preparing output datafile")
 Output_datafile = Construct_main_output(DSE_eq_output, evaporation_cs_type)
 CSV.write("output_data/$output_filename", Output_datafile, delim=' ')
 
+E_excit = DataFrame(A = E_excitation.A, Z = E_excitation.Z, TKE = E_excitation.TKE, E = E_excitation.Value)
+CSV.write("output_data/E_excit.OUT", E_excit, delim=' ')
 println("*main program execution successful!")
 
-ν_A_Z_TKE = Neutron_multiplicity_A_Z_TKE(Output_datafile);
+#ν_A_Z_TKE = Neutron_multiplicity_A_Z_TKE(Output_datafile);
 
+#=
 T_A_Z_TKE = SeqAvg_A_Z_TKE(DataFrame(
     A = Output_datafile.A,
     Z = Output_datafile.Z,
@@ -43,3 +46,4 @@ T_A_Z_TKE = SeqAvg_A_Z_TKE(DataFrame(
     No_Sequence = Output_datafile.No_Sequence,
     Value = Output_datafile.Tₖ
 ));
+=#
