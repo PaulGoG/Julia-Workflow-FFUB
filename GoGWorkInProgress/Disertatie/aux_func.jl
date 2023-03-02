@@ -44,15 +44,6 @@ if evaporation_cs_type == "VARIABLE"
     const C_α = (π*ħc)^2 /(aₘ*amu)
 end
 
-if txe_partitioning_type == "RT"
-    println("Provide input value for R_T = T_L/T_H for fission fragments at total acceleration in Fermi Gas regime...")
-    println(' ')
-    print("R_T = ")
-    const R_T² = parse(Float64, readline())^2
-    println(' ')
-    txe_partitioning_datafile = DataFrame
-end
-
 println("*reading data files")
 #Read input data files as DataFrames
 dmass_excess = CSV.read(mass_excess_filename, DataFrame; delim = mass_excess_delimiter, ignorerepeated = true, header = mass_excess_header, skipto = mass_excess_firstdataline)
@@ -85,7 +76,7 @@ end
 if txe_partitioning_type == "MSCZ"
     txe_partitioning_datafile = CSV.read(txe_partitioning_filename, DataFrame; delim = txe_partitioning_delimiter, ignorerepeated = true, header = txe_partitioning_header, skipto = txe_partitioning_firstdataline)
     println("reading $txe_partitioning_filename done!")
-elseif txe_partitioning_type == "PARAM"
+else
     txe_partitioning_datafile = txe_partitioning_segmentpoints
 end
 
@@ -176,7 +167,7 @@ function Fragmentation_domain(A_0, Z_0, NoZperA, A_H_min, A_H_max, dpAZ)
     end
     #Sort by mass number in ascending order
     aux_A = sort(fragmdomain.A)
-    aux_Z = [sort(fragmdomain.Z[fragmdomain.A .== A]) for A in first(aux_A):last(aux_A)]
+    aux_Z = [sort(fragmdomain.Z[fragmdomain.A .== A]) for A in unique(aux_A)]
     aux_Z = reduce(vcat, aux_Z)
     aux_Value = zeros(length(fragmdomain.Value))
     for index in eachindex(aux_A)
@@ -191,7 +182,7 @@ function Fragmentation_domain(A_0, Z_0, NoZperA, A_H_min, A_H_max, dpAZ)
 end
 #Energy in Fermi Gas regime
 function Energy_FermiGas(a::Float64, T::Float64)      
-    return a*T^2
+    return a *T^2
 end
 #Function bodies for neutron spectrum and average neutron energy for a given sequence
 if evaporation_cs_type == "CONSTANT"
@@ -209,8 +200,8 @@ elseif evaporation_cs_type == "VARIABLE"
         return T*(2*sqrt(T) + α*3*sqrt(π)/4) /(sqrt(T) + α*sqrt(π)/2)
     end
 end
-#Prepares and writes the output file
-function Construct_main_output(DSE_eq_output, evaporation_cs_type)
+#Processing raw DSE eq output
+function Process_main_output(DSE_eq_output, evaporation_cs_type)
     Tₖ, aₖ = DSE_eq_output[1], DSE_eq_output[2]
     if evaporation_cs_type .== "CONSTANT"
         Output_datafile = DataFrame(
@@ -232,19 +223,22 @@ function Construct_main_output(DSE_eq_output, evaporation_cs_type)
             No_Sequence = Tₖ.NoSeq, 
             Tₖ = Tₖ.Value, 
             aₖ = aₖ,
-            αₖ = αₖ,
-            Avg_εₖ = Average_neutron_energy.(αₖ, Tₖ.Value),
-            Eʳₖ = Energy_FermiGas.(aₖ, Tₖ.Value)
+            αₖ = αₖ
         )
     end
     return Output_datafile
 end
+#Writing main raw output file
+function Write_seq_output()
+    #Work in progress
+    #CSV.write("output_data/$output_filename", Output_datafile, delim=' ')
+end
 #Neutron multiplicity from raw output data
 function Neutron_multiplicity_A_Z_TKE(output)
     ν = Distribution(Int[], Int[], Float64[], Int[], Float64[], Float64[])
-    for A in first(output.A):last(output.A)
-        for Z in first(output.Z[output.A .== A]):last(output.Z[output.A .== A])
-            for TKE in first(output.TKE[(output.A .== A) .& (output.Z .== Z)]):last(output.TKE[(output.A .== A) .& (output.Z .== Z)])
+    for A in unique(output.A)
+        for Z in unique(output.Z[output.A .== A])
+            for TKE in unique(output.TKE[(output.A .== A) .& (output.Z .== Z)])
                 push!(ν.A, A)
                 push!(ν.Z, Z)
                 push!(ν.TKE, TKE)
@@ -257,9 +251,9 @@ end
 #Average raw output data over emission sequences
 function SeqAvg_A_Z_TKE(output)
     avg = Distribution(Int[], Int[], Float64[], Int[], Float64[], Float64[])
-    for A in first(output.A):last(output.A)
-        for Z in first(output.Z[output.A .== A]):last(output.Z[output.A .== A])
-            for TKE in first(output.TKE[(output.A .== A) .& (output.Z .== Z)]):last(output.TKE[(output.A .== A) .& (output.Z .== Z)])
+    for A in unique(output.A)
+        for Z in unique(output.Z[output.A .== A])
+            for TKE in unique(output.TKE[(output.A .== A) .& (output.Z .== Z)])
                 push!(avg.A, A)
                 push!(avg.Z, Z)
                 push!(avg.TKE, TKE)

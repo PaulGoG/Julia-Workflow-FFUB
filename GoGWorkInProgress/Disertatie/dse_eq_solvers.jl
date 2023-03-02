@@ -6,31 +6,29 @@ constant and variable neutron evaporation cross section types.
 function DSE_equation_solver_CONSTANT_cs(fragmdomain, E_excitation, tkerange, density_parameter_type, density_parameter_datafile, dm)
     Tₖ = Distribution(Int[], Int[], Float64[], Int[], Float64[], Float64[])
     aₖ = Float64[]
-    for A in first(fragmdomain.A):last(fragmdomain.A)
+    for A in unique(fragmdomain.A)
         for Z in fragmdomain.Z[fragmdomain.A .== A]
             Sₙ = Separation_energy(1, 0, A, Z, dm)[1]
             a_1 = density_parameter(density_parameter_type, A - 1, Z, density_parameter_datafile)
             if !isnan(a_1)
-                for TKE in tkerange
-                    if isassigned(E_excitation.Value[(E_excitation.A .== A) .& (E_excitation.Z .== Z) .& (E_excitation.TKE .== TKE)], 1)
-                        Eᵣ_k_last = E_excitation.Value[(E_excitation.A .== A) .& (E_excitation.Z .== Z) .& (E_excitation.TKE .== TKE)][1]
-                        Sₙ_k_last = Sₙ
-                        a_k = a_1
-                        k = 1
-                        while Eᵣ_k_last > Sₙ_k_last
-                            T_k = (sqrt(1 + a_k * (Eᵣ_k_last - Sₙ_k_last)) - 1)/a_k
-                            push!(Tₖ.A, A)
-                            push!(Tₖ.Z, Z)
-                            push!(Tₖ.TKE, TKE)
-                            push!(Tₖ.Value, T_k)
-                            push!(aₖ, a_k)
-                            push!(Tₖ.NoSeq, k)
-                            #Advance the sequence one step forward to be verified by the while loop
-                            Eᵣ_k_last = a_k *T_k^2
-                            Sₙ_k_last = Separation_energy(1, 0, A - k, Z, dm)[1]
-                            k += 1
-                            a_k = density_parameter(density_parameter_type, A - k, Z, density_parameter_datafile)
-                        end
+                for TKE in E_excitation.TKE[(E_excitation.A .== A) .& (E_excitation.Z .== Z)]
+                    Eᵣ_k_last = E_excitation.Value[(E_excitation.A .== A) .& (E_excitation.Z .== Z) .& (E_excitation.TKE .== TKE)][1]
+                    Sₙ_k_last = Sₙ
+                    a_k = a_1
+                    k = 1
+                    while Eᵣ_k_last > Sₙ_k_last
+                        T_k = (sqrt(1 + a_k * (Eᵣ_k_last - Sₙ_k_last)) - 1)/a_k
+                        push!(Tₖ.A, A)
+                        push!(Tₖ.Z, Z)
+                        push!(Tₖ.TKE, TKE)
+                        push!(Tₖ.Value, T_k)
+                        push!(aₖ, a_k)
+                        push!(Tₖ.NoSeq, k)
+                        #Advance the sequence one step forward to be verified by the while loop
+                        Eᵣ_k_last = a_k *T_k^2
+                        Sₙ_k_last = Separation_energy(1, 0, A - k, Z, dm)[1]
+                        k += 1
+                        a_k = density_parameter(density_parameter_type, A - k, Z, density_parameter_datafile)
                     end
                 end  
             end          
@@ -75,27 +73,25 @@ function DSE_equation_solver_VARIABLE_cs(fragmdomain, E_excitation, tkerange, de
             Sₙ = Separation_energy(1, 0, A, Z, dm)[1]
             a_1 = density_parameter(density_parameter_type, A - 1, Z, density_parameter_datafile)
             if !isnan(a_1)
-                for TKE in tkerange
-                    if isassigned(E_excitation.Value[(E_excitation.A .== A) .& (E_excitation.Z .== Z) .& (E_excitation.TKE .== TKE)], 1)
-                        Eᵣ_k_last = E_excitation.Value[(E_excitation.A .== A) .& (E_excitation.Z .== Z) .& (E_excitation.TKE .== TKE)][1]
-                        Sₙ_k_last = Sₙ
-                        a_k = a_1
-                        k = 1
-                        while Eᵣ_k_last > Sₙ_k_last
-                            T_k, α_k = Solve_transcendental_eq(Eᵣ_k_last, Sₙ_k_last, a_k, A, k)
-                            push!(Tₖ.A, A)
-                            push!(Tₖ.Z, Z)
-                            push!(Tₖ.TKE, TKE)
-                            push!(Tₖ.Value, T_k)
-                            push!(aₖ, a_k)
-                            push!(αₖ, α_k)
-                            push!(Tₖ.NoSeq, k)
-                            #Advance the sequence one step forward to be verified by the while loop
-                            Eᵣ_k_last = a_k *T_k^2
-                            Sₙ_k_last = Separation_energy(1, 0, A - k, Z, dm)[1]
-                            k += 1
-                            a_k = density_parameter(density_parameter_type, A - k, Z, density_parameter_datafile)
-                        end
+                for TKE in E_excitation.TKE[(E_excitation.A .== A) .& (E_excitation.Z .== Z)]
+                    Eᵣ_k_last = E_excitation.Value[(E_excitation.A .== A) .& (E_excitation.Z .== Z) .& (E_excitation.TKE .== TKE)][1]
+                    Sₙ_k_last = Sₙ
+                    a_k = a_1
+                    k = 1
+                    while Eᵣ_k_last > Sₙ_k_last
+                        T_k, α_k = Solve_transcendental_eq(Eᵣ_k_last, Sₙ_k_last, a_k, A, k)
+                        push!(Tₖ.A, A)
+                        push!(Tₖ.Z, Z)
+                        push!(Tₖ.TKE, TKE)
+                        push!(Tₖ.Value, T_k)
+                        push!(aₖ, a_k)
+                        push!(αₖ, α_k)
+                        push!(Tₖ.NoSeq, k)
+                        #Advance the sequence one step forward to be verified by the while loop
+                        Eᵣ_k_last = a_k *T_k^2
+                        Sₙ_k_last = Separation_energy(1, 0, A - k, Z, dm)[1]
+                        k += 1
+                        a_k = density_parameter(density_parameter_type, A - k, Z, density_parameter_datafile)
                     end
                 end  
             end          

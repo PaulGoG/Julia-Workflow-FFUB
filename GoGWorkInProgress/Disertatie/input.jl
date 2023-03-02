@@ -19,9 +19,9 @@ A_H_min = 118
 A_H_max = 158
 
 #Total Kinetic Energy range and step in MeV
-TKE_min = 120.0
-TKE_max = 121.0
-TKE_step = 2.0
+TKE_min = 140.0
+TKE_max = 180.0
+TKE_step = 5.0
 
 #=
 Fission type: 
@@ -77,12 +77,12 @@ RT for constant T_L/T_H provided by user when prompted by the program
 Extra deformation energies for MSCZ
 Segment points in Vector of Tuples for PARAM
 =#
-txe_partitioning_type = "PARAM"
+txe_partitioning_type = "RT"
 txe_partitioning_filename = "EXTRADEF.IN"
 txe_partitioning_header = ["A", "Z", "Value"]
 txe_partitioning_delimiter = ' '
 txe_partitioning_firstdataline = 2
-txe_partitioning_segmentpoints = [(118, 0.5), (160, 0.5)]
+txe_partitioning_segmentpoints = [(118, 1.2), (160, 1.2)]
 
 #= 
 Yield-averaged outputs YES or NO selector
@@ -94,4 +94,4 @@ yield_distribution_delimiter = ' '
 yield_distribution_firstdataline = 2
 
 #Main output file name
-output_filename = "main_DSE_$(No_ZperA)ZA_$(density_parameter_type)_$(evaporation_cs_type)_$(txe_partitioning_type).OUT"
+output_filename = "main_DSE_$(No_ZperA)ZA_$(txe_partitioning_type).OUT"

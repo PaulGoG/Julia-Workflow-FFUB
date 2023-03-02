@@ -29,16 +29,13 @@ println("*solving DSE energy conservation equations")
 DSE_eq_output = DSE_equation_solver(evaporation_cs_type, fragmdomain, E_excitation, tkerange, density_parameter_type, density_parameter_datafile, dmass_excess)
 
 println("*preparing output datafile")
-Output_datafile = Construct_main_output(DSE_eq_output, evaporation_cs_type)
-CSV.write("output_data/$output_filename", Output_datafile, delim=' ')
+Raw_output_datafile = Process_main_output(DSE_eq_output, evaporation_cs_type)
 
-#E_excit = DataFrame(A = E_excitation.A, Z = E_excitation.Z, TKE = E_excitation.TKE, E = E_excitation.Value)
-#CSV.write("output_data/E_excit.OUT", E_excit, delim=' ')
 println("*main program execution successful!")
 
-#ν_A_Z_TKE = Neutron_multiplicity_A_Z_TKE(Output_datafile);
-
 #=
+ν_A_Z_TKE = Neutron_multiplicity_A_Z_TKE(Output_datafile);
+
 T_A_Z_TKE = SeqAvg_A_Z_TKE(DataFrame(
     A = Output_datafile.A,
     Z = Output_datafile.Z,
