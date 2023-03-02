@@ -210,9 +210,7 @@ function Process_main_output(DSE_eq_output, evaporation_cs_type)
             TKE = Tₖ.TKE, 
             No_Sequence = Tₖ.NoSeq, 
             Tₖ = Tₖ.Value, 
-            aₖ = aₖ,
-            Avg_εₖ = Average_neutron_energy.(Tₖ.Value),
-            Eʳₖ = Energy_FermiGas.(aₖ, Tₖ.Value)
+            aₖ = aₖ
         )
     elseif evaporation_cs_type .== "VARIABLE"
         αₖ = DSE_eq_output[3]
@@ -228,9 +226,19 @@ function Process_main_output(DSE_eq_output, evaporation_cs_type)
     end
     return Output_datafile
 end
-#Writing main raw output file
-function Write_seq_output()
-    #Work in progress
+#Writing main output file
+function Write_seq_output(Processed_raw_output)
+    for A in unique(Processed_raw_output.A)
+        for Z in unique(Processed_raw_output.Z[Processed_raw_output.A .== A])
+            for TKE in unique(Processed_raw_output.TKE[(Processed_raw_output.A .== A) .& (Processed_raw_output.Z .== Z)])
+                #Write A Z TKE TXE E* a Sₙ on line
+                for K in unique(Processed_raw_output.No_Sequence[(Processed_raw_output.A .== A) .& (Processed_raw_output.Z .== Z) .& (Processed_raw_output.TKE .== TKE)])
+                    #Write T_K, a_k, Er_K, <ε>_K, Sₙ_K on lines for each seq
+                end
+            end
+        end
+    end
+    #Work in progress!
     #CSV.write("output_data/$output_filename", Output_datafile, delim=' ')
 end
 #Neutron multiplicity from raw output data

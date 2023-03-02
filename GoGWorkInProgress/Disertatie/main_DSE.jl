@@ -30,10 +30,13 @@ DSE_eq_output = DSE_equation_solver(evaporation_cs_type, fragmdomain, E_excitati
 
 println("*preparing output datafile")
 Raw_output_datafile = Process_main_output(DSE_eq_output, evaporation_cs_type)
+#Write_seq_output(Raw_output_datafile, evaporation_cs_type)
 
 println("*main program execution successful!")
 
 #=
+Fisiere separate de output post-mediere pe secvente!
+
 ν_A_Z_TKE = Neutron_multiplicity_A_Z_TKE(Output_datafile);
 
 T_A_Z_TKE = SeqAvg_A_Z_TKE(DataFrame(

@@ -7,8 +7,9 @@ deformation energy at scission and deformation energy at total acceleration of t
 
 2. Partitioning ratios are provided via parametrization by segments
 
-3. Constant temperature ratio R_T = T_L/T_H for fragments at total acceleration in Fermi Gas regime
+3. Temperature ratio R_T = T_L/T_H for fragments at total acceleration in Fermi Gas regime provided via parametrization by segments
 =#
+#Modelling at scission
 function TXE_partitioning(A_0, Z_0, A_H_min, A_H_max, Eₙ, fragmdomain, dΔE_def, tkerange, density_parameter_type, density_parameter_datafile, dm)
     E_excit = Distribution(Int[], Int[], Float64[], Int[], Float64[], Float64[])
     Sₙ = Separation_energy(1, 0, A_0, Z_0, dm)
@@ -73,14 +74,15 @@ function TXE_partitioning(A_0, Z_0, A_H_min, A_H_max, Eₙ, fragmdomain, dΔE_de
         error("Neutron separation energy for fissionant nucleus ($(A_0),$(Z_0)) could not be calculated!")
     end
 end
-function TXE_partitioning(A_0, Z_0, A_H_min, A_H_max, Eₙ, fragmdomain, Points ::Vector{Tuple{Int64, Float64}}, tkerange, dm)
+#Direct partitioning ratio by segments
+function TXE_partitioning(A_0, Z_0, A_H_min, A_H_max, Eₙ, fragmdomain, Points::Vector{Tuple{Int64, Float64}}, tkerange, dm)
     E_excit = Distribution(Int[], Int[], Float64[], Int[], Float64[], Float64[])
     Sₙ = Separation_energy(1, 0, A_0, Z_0, dm)
     if !isnan(Sₙ[1])
         for A_H in A_H_min:A_H_max
             A_L = A_0 - A_H
             Ratio = Segments_TXE_partitioning(Points, A_H)
-            if !isnan(Ratio)
+            if !isnan(Ratio) && Ratio <= 1
                 for Z_H in fragmdomain.Z[fragmdomain.A .== A_H]
                     Z_L = Z_0 - Z_H
                     Q = Q_value_released(A_0, Z_0, A_H, Z_H, dm)
@@ -128,37 +130,29 @@ function TXE_partitioning(A_0, Z_0, A_H_min, A_H_max, Eₙ, fragmdomain, Points 
         error("Neutron separation energy for fissionant nucleus ($(A_0),$(Z_0)) could not be calculated!")
     end
 end
-function TXE_partitioning(A_0, Z_0, A_H_min, A_H_max, Eₙ, fragmdomain, Points ::Vector{Tuple{Int64, Float64}}, tkerange, density_parameter_type, density_parameter_datafile, dm)
+#R_T provided by segments
+function TXE_partitioning(A_0, Z_0, A_H_min, A_H_max, Eₙ, fragmdomain, Points::Vector{Tuple{Int64, Float64}}, tkerange, density_parameter_type, density_parameter_datafile, dm)
     E_excit = Distribution(Int[], Int[], Float64[], Int[], Float64[], Float64[])
     Sₙ = Separation_energy(1, 0, A_0, Z_0, dm)
     if !isnan(Sₙ[1])
         for A_H in A_H_min:A_H_max
             A_L = A_0 - A_H
             R_T = Segments_TXE_partitioning(Points, A_H)
-            for Z_H in fragmdomain.Z[fragmdomain.A .== A_H]
-                Z_L = Z_0 - Z_H
-                Q = Q_value_released(A_0, Z_0, A_H, Z_H, dm)
-                a_L = density_parameter(density_parameter_type, A_L, Z_L, density_parameter_datafile)
-                a_H = density_parameter(density_parameter_type, A_H, Z_H, density_parameter_datafile)
-                if !isnan(Q[1]) && !isnan(a_L) && !isnan(a_H)
-                    r = a_L/a_H
-                    Ratio = 1/(1 + r *R_T^2)
-                    for TKE in tkerange
-                        TXE = Total_excitation_energy(Q[1], Q[2], TKE, 0.0, Sₙ[1], Sₙ[2], Eₙ)[1]
-                        if TXE > 0 
-                            E_excit_H = TXE *Ratio
-                            E_excit_L = TXE - E_excit_H
-                            if A_L != A_H
-                                push!(E_excit.A, A_H)
-                                push!(E_excit.Z, Z_H)
-                                push!(E_excit.TKE, TKE)
-                                push!(E_excit.Value, E_excit_H)
-                                push!(E_excit.A, A_L)
-                                push!(E_excit.Z, Z_L)
-                                push!(E_excit.TKE, TKE)
-                                push!(E_excit.Value, E_excit_L)
-                            elseif Z_L != Z_H
-                                if !isassigned(E_excit.Value[(E_excit.A .== A_H) .& (E_excit.Z .== Z_H) .& (E_excit.TKE .== TKE)], 1)
+            if isnan!(R_T)
+                for Z_H in fragmdomain.Z[fragmdomain.A .== A_H]
+                    Z_L = Z_0 - Z_H
+                    Q = Q_value_released(A_0, Z_0, A_H, Z_H, dm)
+                    a_L = density_parameter(density_parameter_type, A_L, Z_L, density_parameter_datafile)
+                    a_H = density_parameter(density_parameter_type, A_H, Z_H, density_parameter_datafile)
+                    if !isnan(Q[1]) && !isnan(a_L) && !isnan(a_H)
+                        r = a_L/a_H
+                        Ratio = 1/(1 + r *R_T^2)
+                        for TKE in tkerange
+                            TXE = Total_excitation_energy(Q[1], Q[2], TKE, 0.0, Sₙ[1], Sₙ[2], Eₙ)[1]
+                            if TXE > 0 
+                                E_excit_H = TXE *Ratio
+                                E_excit_L = TXE - E_excit_H
+                                if A_L != A_H
                                     push!(E_excit.A, A_H)
                                     push!(E_excit.Z, Z_H)
                                     push!(E_excit.TKE, TKE)
@@ -167,12 +161,23 @@ function TXE_partitioning(A_0, Z_0, A_H_min, A_H_max, Eₙ, fragmdomain, Points 
                                     push!(E_excit.Z, Z_L)
                                     push!(E_excit.TKE, TKE)
                                     push!(E_excit.Value, E_excit_L)
+                                elseif Z_L != Z_H
+                                    if !isassigned(E_excit.Value[(E_excit.A .== A_H) .& (E_excit.Z .== Z_H) .& (E_excit.TKE .== TKE)], 1)
+                                        push!(E_excit.A, A_H)
+                                        push!(E_excit.Z, Z_H)
+                                        push!(E_excit.TKE, TKE)
+                                        push!(E_excit.Value, E_excit_H)
+                                        push!(E_excit.A, A_L)
+                                        push!(E_excit.Z, Z_L)
+                                        push!(E_excit.TKE, TKE)
+                                        push!(E_excit.Value, E_excit_L)
+                                    end
+                                else
+                                    push!(E_excit.A, A_H)
+                                    push!(E_excit.Z, Z_H)
+                                    push!(E_excit.TKE, TKE)
+                                    push!(E_excit.Value, TXE/2)
                                 end
-                            else
-                                push!(E_excit.A, A_H)
-                                push!(E_excit.Z, Z_H)
-                                push!(E_excit.TKE, TKE)
-                                push!(E_excit.Value, TXE/2)
                             end
                         end
                     end
