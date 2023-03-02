@@ -83,5 +83,14 @@ txe_partitioning_header = ["A", "Z", "Value"]
 txe_partitioning_delimiter = ' '
 txe_partitioning_firstdataline = 2
 
+#= 
+Yield-averaged outputs YES or NO selector
+=#
+secondary_outputs = "NO"
+yield_distribution_filename = "U5YATKE.SRE"
+yield_distribution_header = ["A", "TKE", "Value", "σ"]
+yield_distribution_delimiter = ' '
+yield_distribution_firstdataline = 2
+
 #Main output file name
-output_filename = "DSE_$(No_ZperA)ZA_$(isobaric_distribution_type)_pAZ_$(density_parameter_type)_a_$(evaporation_cs_type)_cs_$(txe_partitioning_type)_partitioning.OUT"
+output_filename = "main_DSE_$(No_ZperA)ZA_$(density_parameter_type)_$(evaporation_cs_type)_$(txe_partitioning_type).OUT"

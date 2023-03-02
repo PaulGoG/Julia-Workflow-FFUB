@@ -1,4 +1,4 @@
-#Function bodies and definitions used in the main program
+#Function bodies and definitions used in the main part of the DSE
 #####
 #Load Julia packages
 using DataFrames, CSV
@@ -88,6 +88,10 @@ if txe_partitioning_type == "MSCZ"
 elseif txe_partitioning_type == "PARAM"
     txe_partitioning_datafile = CSV.read(txe_partitioning_filename, DataFrame; delim = txe_partitioning_delimiter, ignorerepeated = true, header = txe_partitioning_header, skipto = txe_partitioning_firstdataline)
     println("reading $txe_partitioning_filename done!")
+end
+
+if secondary_outputs == "YES"
+    include("secondary_outputs.jl")
 end
 #Function bodies
 #Isobaric charge distribution p(Z,A)

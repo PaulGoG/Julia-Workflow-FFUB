@@ -34,7 +34,7 @@ CSV.write("output_data/$output_filename", Output_datafile, delim=' ')
 
 println("*main program execution successful!")
 
-ν_A_Z_TKE = Neutron_multiplicity_A_Z_TKE(Output_datafile)
+ν_A_Z_TKE = Neutron_multiplicity_A_Z_TKE(Output_datafile);
 
 T_A_Z_TKE = SeqAvg_A_Z_TKE(DataFrame(
     A = Output_datafile.A,
@@ -42,4 +42,4 @@ T_A_Z_TKE = SeqAvg_A_Z_TKE(DataFrame(
     TKE = Output_datafile.TKE,
     No_Sequence = Output_datafile.No_Sequence,
     Value = Output_datafile.Tₖ
-))
+));

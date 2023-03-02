@@ -90,3 +90,19 @@ if isassigned(filter(x -> !in(x, ("A", "Z", "Value")), txe_partitioning_header),
     allowed header names list: A, Z, Value"
     )
 end
+
+if secondary_outputs != "YES" && secondary_outputs != "NO"
+    error("$secondary_outputs is not a valid input for secondary_outputs")
+end
+
+if secondary_outputs == "YES"
+    if !isfile(yield_distribution_filename)
+        error("$yield_distribution_filename does not exist at input_data/  PATH!")
+    end
+    if isassigned(filter(x -> !in(x, ("A", "TKE", "Value", "σ")), yield_distribution_header), 1)
+        error(
+        "yield_distribution_header contains invalid fields: $(filter(x -> !in(x, ("A", "TKE", "Value", "σ")), yield_distribution_header));
+        allowed header names list: A, TKE, Value, σ"
+        )
+    end
+end
