@@ -8,7 +8,9 @@ println("reading $yield_distribution_filename done!")
 
 #Outputs useful yield distribution formats for the program
 function Process_yield_data(fragmdomain, dY)
-    
+    #Check for σ
+    #Check for A_H vs Whole A domain
+    #Output all Necessary Y: Y(A,Z,TKE) for calculations and Y(A), Y(Z), Y(N), Y(TKE) for outputs and averaging
 end
 
 if isassigned(dY.A[dY.A .< A₀/2], 1)
