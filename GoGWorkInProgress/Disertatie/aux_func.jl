@@ -236,3 +236,34 @@ function Construct_main_output(DSE_eq_output, evaporation_cs_type)
     end
     return Output_datafile
 end
+#Neutron multiplicity from raw output data
+function Neutron_multiplicity_A_Z_TKE(output)
+    ν = Distribution(Int[], Int[], Float64[], Int[], Float64[], Float64[])
+    for A in first(output.A):last(output.A)
+        for Z in first(output.Z[output.A .== A]):last(output.Z[output.A .== A])
+            for TKE in first(output.TKE[(output.A .== A) .& (output.Z .== Z)]):last(output.TKE[(output.A .== A) .& (output.Z .== Z)])
+                push!(ν.A, A)
+                push!(ν.Z, Z)
+                push!(ν.TKE, TKE)
+                push!(ν.Value, last(output.No_Sequence[(output.A .== A) .& (output.Z .== Z) .& (output.TKE .== TKE)]))
+            end
+        end
+    end
+    return ν
+end
+#Average raw output data over emission sequences
+function SeqAvg_A_Z_TKE(output)
+    avg = Distribution(Int[], Int[], Float64[], Int[], Float64[], Float64[])
+    for A in first(output.A):last(output.A)
+        for Z in first(output.Z[output.A .== A]):last(output.Z[output.A .== A])
+            for TKE in first(output.TKE[(output.A .== A) .& (output.Z .== Z)]):last(output.TKE[(output.A .== A) .& (output.Z .== Z)])
+                push!(avg.A, A)
+                push!(avg.Z, Z)
+                push!(avg.TKE, TKE)
+                n = last(output.No_Sequence[(output.A .== A) .& (output.Z .== Z) .& (output.TKE .== TKE)])
+                push!(avg.Value, sum(output.Value[(output.A .== A) .& (output.Z .== Z) .& (output.TKE .== TKE)])/n)
+            end
+        end
+    end
+    return avg
+end

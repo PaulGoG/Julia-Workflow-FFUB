@@ -33,3 +33,13 @@ Output_datafile = Construct_main_output(DSE_eq_output, evaporation_cs_type)
 CSV.write("output_data/$output_filename", Output_datafile, delim=' ')
 
 println("*main program execution successful!")
+
+ν_A_Z_TKE = Neutron_multiplicity_A_Z_TKE(Output_datafile)
+
+T_A_Z_TKE = SeqAvg_A_Z_TKE(DataFrame(
+    A = Output_datafile.A,
+    Z = Output_datafile.Z,
+    TKE = Output_datafile.TKE,
+    No_Sequence = Output_datafile.No_Sequence,
+    Value = Output_datafile.Tₖ
+))
