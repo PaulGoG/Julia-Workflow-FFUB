@@ -26,24 +26,30 @@ println("*partitioning Total Excitation Energy")
 E_excitation = TXE_partitioning(txe_partitioning_type, A₀, Z₀, A_H_min, A_H_max, Eₙ, fragmdomain, txe_partitioning_datafile, tkerange, density_parameter_type, density_parameter_datafile, dmass_excess)
 
 println("*solving DSE energy conservation equations")
-DSE_eq_output = DSE_equation_solver(evaporation_cs_type, fragmdomain, E_excitation, tkerange, density_parameter_type, density_parameter_datafile, dmass_excess)
+DSE_eq_output = DSE_equation_solver(evaporation_cs_type, E_excitation, density_parameter_type, density_parameter_datafile, dmass_excess)
 
 println("*preparing output datafile")
 Raw_output_datafile = Process_main_output(DSE_eq_output, evaporation_cs_type)
-#Write_seq_output(Raw_output_datafile, evaporation_cs_type)
+
+println("*writing output to file")
+Write_seq_output(A₀, Z₀, No_ZperA, Eₙ, E_excitation, Raw_output_datafile, density_parameter_type, density_parameter_datafile, evaporation_cs_type, dmass_excess)
 
 println("*main program execution successful!")
 
-#=
-Fisiere separate de output post-mediere pe secvente!
 
-ν_A_Z_TKE = Neutron_multiplicity_A_Z_TKE(Output_datafile);
+#=
+ν_A_Z_TKE = Neutron_multiplicity_A_Z_TKE(DataFrame(
+    A = Raw_output_datafile.A,
+    Z = Raw_output_datafile.Z,
+    TKE = Raw_output_datafile.TKE,
+    No_Sequence = Raw_output_datafile.No_Sequence
+))
 
 T_A_Z_TKE = SeqAvg_A_Z_TKE(DataFrame(
-    A = Output_datafile.A,
-    Z = Output_datafile.Z,
-    TKE = Output_datafile.TKE,
-    No_Sequence = Output_datafile.No_Sequence,
-    Value = Output_datafile.Tₖ
-));
+    A = Raw_output_datafile.A,
+    Z = Raw_output_datafile.Z,
+    TKE = Raw_output_datafile.TKE,
+    No_Sequence = Raw_output_datafile.No_Sequence,
+    Value = Raw_output_datafile.Tₖ
+))
 =#

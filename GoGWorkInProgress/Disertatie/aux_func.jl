@@ -9,16 +9,16 @@ struct Distribution{T1 <: Vector{Int}, T2 <: Vector{Float64}} <: AbstractDistrib
     A::T1
     Z::T1
     TKE::T2
-    NoSeq::T1
-    Value::T2
+    No_Sequence::T1
+    Value
     σ::T2
 end
 struct Distribution_unidym{T <: Vector{Float64}} <: AbstractDistribution
-    Index::T
+    Argument
     Value::T
     σ::T
 end
-struct Energy_spectrum{T <: Vector{Float64}} <: AbstractDistribution
+struct Neutron_spectrum{T <: Vector{Float64}} <: AbstractDistribution
     ε::T
     Value::T
 end
@@ -204,69 +204,95 @@ end
 function Process_main_output(DSE_eq_output, evaporation_cs_type)
     Tₖ, aₖ = DSE_eq_output[1], DSE_eq_output[2]
     if evaporation_cs_type .== "CONSTANT"
-        Output_datafile = DataFrame(
+        Datafile = DataFrame(
             A = Tₖ.A, 
             Z = Tₖ.Z, 
             TKE = Tₖ.TKE, 
-            No_Sequence = Tₖ.NoSeq, 
+            No_Sequence = Tₖ.No_Sequence, 
             Tₖ = Tₖ.Value, 
             aₖ = aₖ
         )
     elseif evaporation_cs_type .== "VARIABLE"
         αₖ = DSE_eq_output[3]
-        Output_datafile = DataFrame(
+        Datafile = DataFrame(
             A = Tₖ.A, 
             Z = Tₖ.Z, 
             TKE = Tₖ.TKE, 
-            No_Sequence = Tₖ.NoSeq, 
+            No_Sequence = Tₖ.No_Sequence, 
             Tₖ = Tₖ.Value, 
             aₖ = aₖ,
             αₖ = αₖ
         )
     end
-    return Output_datafile
+    return Datafile
 end
 #Writing main output file
-function Write_seq_output(Processed_raw_output)
-    for A in unique(Processed_raw_output.A)
-        for Z in unique(Processed_raw_output.Z[Processed_raw_output.A .== A])
-            for TKE in unique(Processed_raw_output.TKE[(Processed_raw_output.A .== A) .& (Processed_raw_output.Z .== Z)])
-                #Write A Z TKE TXE E* a Sₙ on line
-                for K in unique(Processed_raw_output.No_Sequence[(Processed_raw_output.A .== A) .& (Processed_raw_output.Z .== Z) .& (Processed_raw_output.TKE .== TKE)])
-                    #Write T_K, a_k, Er_K, <ε>_K, Sₙ_K on lines for each seq
+function Write_seq_output(A_0, Z_0, No_ZperA, Eₙ, E_excitation, Processed_raw_output, density_parameter_type, density_parameter_datafile, evaporation_cs_type, dm)
+    Sₙ = Separation_energy(1, 0, A_0, Z_0, dm)
+    open("output_data/main_DSE.OUT", "w") do file
+        write(file, "A₀=$A_0, Z₀=$Z_0, NoZperA=$No_ZperA\n")
+        write(file, "===================================\n\n")
+        for A in unique(Processed_raw_output.A)
+            for Z in unique(Processed_raw_output.Z[Processed_raw_output.A .== A])
+                for TKE in unique(Processed_raw_output.TKE[(Processed_raw_output.A .== A) .& (Processed_raw_output.Z .== Z)])
+                    Q = Q_value_released(A_0, Z_0, A, Z, dm)
+                    TXE = Total_excitation_energy(Q[1], Q[2], TKE, 0.0, Sₙ[1], Sₙ[2], Eₙ)[1]
+                    E_excit = E_excitation.Value[(E_excitation.A .== A) .& (E_excitation.Z .== Z) .& (E_excitation.TKE .== TKE)][1]
+                    a = density_parameter(density_parameter_type, A, Z, density_parameter_datafile)
+                    S = Separation_energy(1, 0, A, Z, dm)[1]
+                    write(file, "A=$A, Z=$Z, TKE=$TKE, TXE=$TXE, E*=$E_excit, a=$a, Sₙ=$S\n")
+                    for k in unique(Processed_raw_output.No_Sequence[(Processed_raw_output.A .== A) .& (Processed_raw_output.Z .== Z) .& (Processed_raw_output.TKE .== TKE)])
+                        write(file, "Sequence number = $k\n")
+                        T_k = Processed_raw_output.Tₖ[(Processed_raw_output.A .== A) .& (Processed_raw_output.Z .== Z) .& (Processed_raw_output.TKE .== TKE) .& (Processed_raw_output.No_Sequence .== k)][1]
+                        write(file, "T_$k=$T_k, ")
+                        a_k = Processed_raw_output.aₖ[(Processed_raw_output.A .== A) .& (Processed_raw_output.Z .== Z) .& (Processed_raw_output.TKE .== TKE) .& (Processed_raw_output.No_Sequence .== k)][1]
+                        Eᵣ_k = Energy_FermiGas(a_k, T_k)
+                        write(file, "Eᵣ_$k=$Eᵣ_k, ")
+                        if evaporation_cs_type == "CONSTANT"
+                            avgε_k = Average_neutron_energy(T_k)
+                            write(file, "<ε>_$k=$avgε_k, ")
+                        elseif evaporation_cs_type == "VARIABLE"
+                            α_k = Processed_raw_output.αₖ[(Processed_raw_output.A .== A) .& (Processed_raw_output.Z .== Z) .& (Processed_raw_output.TKE .== TKE) .& (Processed_raw_output.No_Sequence .== k)][1]
+                            avgε_k = Average_neutron_energy(α_k, T_k)
+                            write(file, "<ε>_$k=$avgε_k, ")
+                        end
+                        write(file, "a_$k=$a_k, ")
+                        S_k = Separation_energy(1, 0, A-k, Z, dm)[1]
+                        write(file, "Sₙ_$k=$S_k\n")
+                    end
+                    write(file, '\n')
                 end
             end
         end
+        write(file, "===================================")
     end
-    #Work in progress!
-    #CSV.write("output_data/$output_filename", Output_datafile, delim=' ')
 end
 #Neutron multiplicity from raw output data
-function Neutron_multiplicity_A_Z_TKE(output)
+function Neutron_multiplicity_A_Z_TKE(output_df_A_Z_TKE_NoSequence::DataFrame)
     ν = Distribution(Int[], Int[], Float64[], Int[], Float64[], Float64[])
-    for A in unique(output.A)
-        for Z in unique(output.Z[output.A .== A])
-            for TKE in unique(output.TKE[(output.A .== A) .& (output.Z .== Z)])
+    for A in unique(output_df_A_Z_TKE_NoSequence.A)
+        for Z in unique(output_df_A_Z_TKE_NoSequence.Z[output_df_A_Z_TKE_NoSequence.A .== A])
+            for TKE in unique(output_df_A_Z_TKE_NoSequence.TKE[(output_df_A_Z_TKE_NoSequence.A .== A) .& (output_df_A_Z_TKE_NoSequence.Z .== Z)])
                 push!(ν.A, A)
                 push!(ν.Z, Z)
                 push!(ν.TKE, TKE)
-                push!(ν.Value, last(output.No_Sequence[(output.A .== A) .& (output.Z .== Z) .& (output.TKE .== TKE)]))
+                push!(ν.Value, last(output_df_A_Z_TKE_NoSequence.No_Sequence[(output_df_A_Z_TKE_NoSequence.A .== A) .& (output_df_A_Z_TKE_NoSequence.Z .== Z) .& (output_df_A_Z_TKE_NoSequence.TKE .== TKE)]))
             end
         end
     end
     return ν
 end
 #Average raw output data over emission sequences
-function SeqAvg_A_Z_TKE(output)
+function SeqAvg_A_Z_TKE(output_df_A_Z_TKE_NoSequence_Value::DataFrame)
     avg = Distribution(Int[], Int[], Float64[], Int[], Float64[], Float64[])
-    for A in unique(output.A)
-        for Z in unique(output.Z[output.A .== A])
-            for TKE in unique(output.TKE[(output.A .== A) .& (output.Z .== Z)])
+    for A in unique(output_df_A_Z_TKE_NoSequence_Value.A)
+        for Z in unique(output_df_A_Z_TKE_NoSequence_Value.Z[output_df_A_Z_TKE_NoSequence_Value.A .== A])
+            for TKE in unique(output_df_A_Z_TKE_NoSequence_Value.TKE[(output_df_A_Z_TKE_NoSequence_Value.A .== A) .& (output_df_A_Z_TKE_NoSequence_Value.Z .== Z)])
                 push!(avg.A, A)
                 push!(avg.Z, Z)
                 push!(avg.TKE, TKE)
-                n = last(output.No_Sequence[(output.A .== A) .& (output.Z .== Z) .& (output.TKE .== TKE)])
-                push!(avg.Value, sum(output.Value[(output.A .== A) .& (output.Z .== Z) .& (output.TKE .== TKE)])/n)
+                n = last(output_df_A_Z_TKE_NoSequence_Value.No_Sequence[(output_df_A_Z_TKE_NoSequence_Value.A .== A) .& (output_df_A_Z_TKE_NoSequence_Value.Z .== Z) .& (output_df_A_Z_TKE_NoSequence_Value.TKE .== TKE)])
+                push!(avg.Value, sum(output_df_A_Z_TKE_NoSequence_Value.Value[(output_df_A_Z_TKE_NoSequence_Value.A .== A) .& (output_df_A_Z_TKE_NoSequence_Value.Z .== Z) .& (output_df_A_Z_TKE_NoSequence_Value.TKE .== TKE)])/n)
             end
         end
     end

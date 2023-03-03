@@ -138,7 +138,7 @@ function TXE_partitioning(A_0, Z_0, A_H_min, A_H_max, Eₙ, fragmdomain, Points:
         for A_H in A_H_min:A_H_max
             A_L = A_0 - A_H
             R_T = Segments_TXE_partitioning(Points, A_H)
-            if isnan!(R_T)
+            if !isnan(R_T)
                 for Z_H in fragmdomain.Z[fragmdomain.A .== A_H]
                     Z_L = Z_0 - Z_H
                     Q = Q_value_released(A_0, Z_0, A_H, Z_H, dm)

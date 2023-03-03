@@ -3,11 +3,11 @@ Function bodies for solving the DSE conservation equations coresponding to
 constant and variable neutron evaporation cross section types.
 =#
 #####
-function DSE_equation_solver_CONSTANT_cs(fragmdomain, E_excitation, tkerange, density_parameter_type, density_parameter_datafile, dm)
+function DSE_equation_solver_CONSTANT_cs(E_excitation, density_parameter_type, density_parameter_datafile, dm)
     Tₖ = Distribution(Int[], Int[], Float64[], Int[], Float64[], Float64[])
     aₖ = Float64[]
-    for A in unique(fragmdomain.A)
-        for Z in fragmdomain.Z[fragmdomain.A .== A]
+    for A in unique(E_excitation.A)
+        for Z in unique(E_excitation.Z[E_excitation.A .== A])
             Sₙ = Separation_energy(1, 0, A, Z, dm)[1]
             a_1 = density_parameter(density_parameter_type, A - 1, Z, density_parameter_datafile)
             if !isnan(a_1)
@@ -23,7 +23,7 @@ function DSE_equation_solver_CONSTANT_cs(fragmdomain, E_excitation, tkerange, de
                         push!(Tₖ.TKE, TKE)
                         push!(Tₖ.Value, T_k)
                         push!(aₖ, a_k)
-                        push!(Tₖ.NoSeq, k)
+                        push!(Tₖ.No_Sequence, k)
                         #Advance the sequence one step forward to be verified by the while loop
                         Eᵣ_k_last = a_k *T_k^2
                         Sₙ_k_last = Separation_energy(1, 0, A - k, Z, dm)[1]
@@ -64,12 +64,12 @@ function Solve_transcendental_eq(Eᵣ_k_last, Sₙ_k_last, a_k, A, k)
     T_k = find_zero(f, 1.0)
     return T_k, αₖ
 end
-function DSE_equation_solver_VARIABLE_cs(fragmdomain, E_excitation, tkerange, density_parameter_type, density_parameter_datafile, dm)
+function DSE_equation_solver_VARIABLE_cs(E_excitation, density_parameter_type, density_parameter_datafile, dm)
     Tₖ = Distribution(Int[], Int[], Float64[], Int[], Float64[], Float64[])
     aₖ = Float64[]
     αₖ = Float64[]
-    for A in first(fragmdomain.A):last(fragmdomain.A)
-        for Z in fragmdomain.Z[fragmdomain.A .== A]
+    for A in unique(E_excitation.A)
+        for Z in unique(E_excitation.Z[E_excitation.A .== A])
             Sₙ = Separation_energy(1, 0, A, Z, dm)[1]
             a_1 = density_parameter(density_parameter_type, A - 1, Z, density_parameter_datafile)
             if !isnan(a_1)
@@ -86,7 +86,7 @@ function DSE_equation_solver_VARIABLE_cs(fragmdomain, E_excitation, tkerange, de
                         push!(Tₖ.Value, T_k)
                         push!(aₖ, a_k)
                         push!(αₖ, α_k)
-                        push!(Tₖ.NoSeq, k)
+                        push!(Tₖ.No_Sequence, k)
                         #Advance the sequence one step forward to be verified by the while loop
                         Eᵣ_k_last = a_k *T_k^2
                         Sₙ_k_last = Separation_energy(1, 0, A - k, Z, dm)[1]
@@ -99,11 +99,11 @@ function DSE_equation_solver_VARIABLE_cs(fragmdomain, E_excitation, tkerange, de
     end
     return Tₖ, aₖ, αₖ
 end
-function DSE_equation_solver(evaporation_cs_type, fragmdomain, E_excitation, tkerange, density_parameter_type, density_parameter_datafile, dm)
+function DSE_equation_solver(evaporation_cs_type, E_excitation, density_parameter_type, density_parameter_datafile, dm)
     if evaporation_cs_type == "CONSTANT"
-        DSE_Output = DSE_equation_solver_CONSTANT_cs(fragmdomain, E_excitation, tkerange, density_parameter_type, density_parameter_datafile, dm)
+        DSE_Output = DSE_equation_solver_CONSTANT_cs(E_excitation, density_parameter_type, density_parameter_datafile, dm)
     elseif evaporation_cs_type == "VARIABLE"
-        DSE_Output = DSE_equation_solver_VARIABLE_cs(fragmdomain, E_excitation, tkerange, density_parameter_type, density_parameter_datafile, dm)
+        DSE_Output = DSE_equation_solver_VARIABLE_cs(E_excitation, density_parameter_type, density_parameter_datafile, dm)
     end
     return DSE_Output
 end
