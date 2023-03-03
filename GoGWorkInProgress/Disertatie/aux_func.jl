@@ -230,8 +230,8 @@ end
 function Write_seq_output(A_0, Z_0, No_ZperA, Eₙ, E_excitation, Processed_raw_output, density_parameter_type, density_parameter_datafile, evaporation_cs_type, dm)
     Sₙ = Separation_energy(1, 0, A_0, Z_0, dm)
     open("output_data/main_DSE.OUT", "w") do file
-        write(file, "A₀=$A_0, Z₀=$Z_0, NoZperA=$No_ZperA\n")
-        write(file, "===================================\n\n")
+        write(file, "(A₀ = $A_0, Z₀ = $Z_0), $No_ZperA ZperA\n") #To add more details about simulation!
+        write(file, "===========================================================================================================================================================\n\n")
         for A in unique(Processed_raw_output.A)
             for Z in unique(Processed_raw_output.Z[Processed_raw_output.A .== A])
                 for TKE in unique(Processed_raw_output.TKE[(Processed_raw_output.A .== A) .& (Processed_raw_output.Z .== Z)])
@@ -240,31 +240,31 @@ function Write_seq_output(A_0, Z_0, No_ZperA, Eₙ, E_excitation, Processed_raw_
                     E_excit = E_excitation.Value[(E_excitation.A .== A) .& (E_excitation.Z .== Z) .& (E_excitation.TKE .== TKE)][1]
                     a = density_parameter(density_parameter_type, A, Z, density_parameter_datafile)
                     S = Separation_energy(1, 0, A, Z, dm)[1]
-                    write(file, "A=$A, Z=$Z, TKE=$TKE, TXE=$TXE, E*=$E_excit, a=$a, Sₙ=$S\n")
+                    write(file, "Fission fragment: | A = $A | Z = $Z | TKE = $TKE | TXE = $TXE | a = $a | E* = $E_excit | Sₙ = $S |\n")
                     for k in unique(Processed_raw_output.No_Sequence[(Processed_raw_output.A .== A) .& (Processed_raw_output.Z .== Z) .& (Processed_raw_output.TKE .== TKE)])
-                        write(file, "Sequence number = $k\n")
+                        write(file, "*Emission sequence $k:\n")
                         T_k = Processed_raw_output.Tₖ[(Processed_raw_output.A .== A) .& (Processed_raw_output.Z .== Z) .& (Processed_raw_output.TKE .== TKE) .& (Processed_raw_output.No_Sequence .== k)][1]
-                        write(file, "T_$k=$T_k, ")
+                        write(file, "| T = $T_k | ")
                         a_k = Processed_raw_output.aₖ[(Processed_raw_output.A .== A) .& (Processed_raw_output.Z .== Z) .& (Processed_raw_output.TKE .== TKE) .& (Processed_raw_output.No_Sequence .== k)][1]
+                        write(file, "a = $a_k | ")
                         Eᵣ_k = Energy_FermiGas(a_k, T_k)
-                        write(file, "Eᵣ_$k=$Eᵣ_k, ")
+                        write(file, "Eʳ = $Eᵣ_k | ")
+                        S_k = Separation_energy(1, 0, A-k, Z, dm)[1]
+                        write(file, "Sₙ = $S_k | ")
                         if evaporation_cs_type == "CONSTANT"
                             avgε_k = Average_neutron_energy(T_k)
-                            write(file, "<ε>_$k=$avgε_k, ")
+                            write(file, "<ε> = $avgε_k |\n")
                         elseif evaporation_cs_type == "VARIABLE"
                             α_k = Processed_raw_output.αₖ[(Processed_raw_output.A .== A) .& (Processed_raw_output.Z .== Z) .& (Processed_raw_output.TKE .== TKE) .& (Processed_raw_output.No_Sequence .== k)][1]
                             avgε_k = Average_neutron_energy(α_k, T_k)
-                            write(file, "<ε>_$k=$avgε_k, ")
+                            write(file, "<ε> = $avgε_k |\n")
                         end
-                        write(file, "a_$k=$a_k, ")
-                        S_k = Separation_energy(1, 0, A-k, Z, dm)[1]
-                        write(file, "Sₙ_$k=$S_k\n")
                     end
-                    write(file, '\n')
+                    write(file, "-----------------------------------------------------------------------------------------------------------------------------------------------------------\n")
                 end
             end
         end
-        write(file, "===================================")
+        write(file, "===========================================================================================================================================================")
     end
 end
 #Neutron multiplicity from raw output data

@@ -36,7 +36,6 @@ Write_seq_output(A₀, Z₀, No_ZperA, Eₙ, E_excitation, Raw_output_datafile, 
 
 println("*main program execution successful!")
 
-
 #=
 ν_A_Z_TKE = Neutron_multiplicity_A_Z_TKE(DataFrame(
     A = Raw_output_datafile.A,
