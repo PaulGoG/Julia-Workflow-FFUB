@@ -25,7 +25,7 @@ function DSE_equation_solver_CONSTANT_cs(E_excitation, density_parameter_type, d
                         push!(aₖ, a_k)
                         push!(Tₖ.No_Sequence, k)
                         #Advance the sequence one step forward to be verified by the while loop
-                        Eᵣ_k_last = a_k *T_k^2
+                        Eᵣ_k_last = Energy_FermiGas(a_k, T_k)
                         Sₙ_k_last = Separation_energy(1, 0, A - k, Z, dm)[1]
                         k += 1
                         a_k = density_parameter(density_parameter_type, A - k, Z, density_parameter_datafile)
@@ -88,7 +88,7 @@ function DSE_equation_solver_VARIABLE_cs(E_excitation, density_parameter_type, d
                         push!(αₖ, α_k)
                         push!(Tₖ.No_Sequence, k)
                         #Advance the sequence one step forward to be verified by the while loop
-                        Eᵣ_k_last = a_k *T_k^2
+                        Eᵣ_k_last = Energy_FermiGas(a_k, T_k)
                         Sₙ_k_last = Separation_energy(1, 0, A - k, Z, dm)[1]
                         k += 1
                         a_k = density_parameter(density_parameter_type, A - k, Z, density_parameter_datafile)

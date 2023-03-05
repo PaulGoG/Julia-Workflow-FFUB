@@ -70,12 +70,12 @@ No_ZperA = 1
 #=
 Total Excitation Energy partitioning method:
 MSCZ for Modelling at scission
-PARAM for file-provided partitioning ratios by segments
-RT for constant T_L/T_H provided by user when prompted by the program
+PARAM for file-provided partitioning ratios E*_H/TXE via segments
+RT(A_H) for T_L/T_H ratio provided by user via segments
 
 !Necessary data files must be provided in each case!: 
 Extra deformation energies for MSCZ
-Segment points in Vector of Tuples for PARAM
+Segment points in Vector of Tuples for PARAM & RT
 =#
 txe_partitioning_type = "RT"
 txe_partitioning_filename = "EXTRADEF.IN"
@@ -87,11 +87,8 @@ txe_partitioning_segmentpoints = [(118, 1.2), (160, 1.2)]
 #= 
 Yield-averaged outputs YES or NO selector
 =#
-secondary_outputs = "NO"
+secondary_outputs = "YES"
 yield_distribution_filename = "U5YATKE.SRE"
 yield_distribution_header = ["A", "TKE", "Value", "σ"]
 yield_distribution_delimiter = ' '
 yield_distribution_firstdataline = 2
-
-#Main output file name
-output_filename = "main_DSE_$(No_ZperA)ZA_$(txe_partitioning_type).OUT"

@@ -32,7 +32,7 @@ println("*preparing output datafile")
 Raw_output_datafile = Process_main_output(DSE_eq_output, evaporation_cs_type)
 
 println("*writing output to file")
-Write_seq_output(A₀, Z₀, No_ZperA, Eₙ, E_excitation, Raw_output_datafile, density_parameter_type, density_parameter_datafile, evaporation_cs_type, dmass_excess)
+Write_seq_output(A₀, Z₀, A_H_min, A_H_max, No_ZperA, Eₙ, tkerange, fragmdomain, E_excitation, Raw_output_datafile, density_parameter_type, density_parameter_datafile, evaporation_cs_type, mass_excess_filename, txe_partitioning_type, dmass_excess)
 
 println("*main program execution successful!")
 

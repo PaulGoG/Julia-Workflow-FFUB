@@ -105,7 +105,3 @@ if secondary_outputs == "YES"
         )
     end
 end
-
-if !isdir("output_data/")
-    mkdir("output_data/")
-end
