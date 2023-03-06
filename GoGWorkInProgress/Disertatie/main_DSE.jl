@@ -36,6 +36,8 @@ Write_seq_output(A₀, Z₀, A_H_min, A_H_max, No_ZperA, Eₙ, tkerange, fragmdo
 
 println("*main program execution successful!")
 
+y_A_Z_TKE = Process_yield_data(A₀, fragmdomain, dY)
+
 #=
 ν_A_Z_TKE = Neutron_multiplicity_A_Z_TKE(DataFrame(
     A = Raw_output_datafile.A,
