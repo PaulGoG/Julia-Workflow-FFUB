@@ -81,7 +81,8 @@ else
 end
 
 if secondary_outputs == "YES"
-    include("secondary_outputs.jl")
+    dY = CSV.read(yield_distribution_filename, DataFrame; delim = yield_distribution_delimiter, ignorerepeated = true, header = yield_distribution_header, skipto = yield_distribution_firstdataline)
+    println("reading $yield_distribution_filename done!")
 end
 #Function bodies
 #Isobaric charge distribution p(Z,A)
@@ -185,20 +186,17 @@ function Energy_FermiGas(a::Float64, T::Float64)
     return a *T^2
 end
 #Function bodies for neutron spectrum and average neutron energy for a given sequence
-if evaporation_cs_type == "CONSTANT"
-    function Neutron_spectrum(ε::Float64, T::Float64)
-        return ε*exp(-ε/T)/T^2
-    end
-    function Average_neutron_energy(T::Float64)
-        return 2*T
-    end
-elseif evaporation_cs_type == "VARIABLE"
-    function Neutron_spectrum(ε::Float64, α::Float64, T::Float64)
-        (ε + α*sqrt(ε))*exp(-ε/T) /((sqrt(T) +α*sqrt(π)/2) *T^(3/2))
-    end
-    function Average_neutron_energy(α::Float64, T::Float64)
-        return T*(2*sqrt(T) + α*3*sqrt(π)/4) /(sqrt(T) + α*sqrt(π)/2)
-    end
+function Neutron_spectrum(ε::Float64, T::Float64)
+    return ε*exp(-ε/T)/T^2
+end
+function Average_neutron_energy(T::Float64)
+    return 2*T
+end
+function Neutron_spectrum(ε::Float64, α::Float64, T::Float64)
+    (ε + α*sqrt(ε))*exp(-ε/T) /((sqrt(T) +α*sqrt(π)/2) *T^(3/2))
+end
+function Average_neutron_energy(α::Float64, T::Float64)
+    return T*(2*sqrt(T) + α*3*sqrt(π)/4) /(sqrt(T) + α*sqrt(π)/2)
 end
 #Processing raw DSE eq output
 function Process_main_output(DSE_eq_output, evaporation_cs_type)
@@ -231,6 +229,7 @@ function Write_seq_output(A_0, Z_0, A_H_min, A_H_max, No_ZperA, Eₙ, tkerange, 
     if !isdir("output_data/")
         mkdir("output_data/")
     end
+    horizontal_delimiter = lpad('-', 159, '-')
     Sₙ = Separation_energy(1, 0, A_0, Z_0, dm)
     open("output_data/main_DSE.OUT", "w") do file
         write(file, "DSE main output file for the following input data:\n")
@@ -238,7 +237,7 @@ function Write_seq_output(A_0, Z_0, A_H_min, A_H_max, No_ZperA, Eₙ, tkerange, 
         write(file,"Heavy Fragment mass number ranges from $A_H_min to $A_H_max\n")
         write(file,"TKE ∈ $tkerange\n")
         write(file,"TXE partitioning method - $txe_partitioning_type\n")
-        write(file, "\n===========================================================================================================================================================\n")
+        write(file, "\n$horizontal_delimiter\n$horizontal_delimiter\n")
         for A in unique(Processed_raw_output.A)
             for Z in unique(Processed_raw_output.Z[Processed_raw_output.A .== A])
                 P_Z_A = fragmdomain.Value[(fragmdomain.A .== A) .& (fragmdomain.Z .== Z)][1]
@@ -275,9 +274,10 @@ function Write_seq_output(A_0, Z_0, A_H_min, A_H_max, No_ZperA, Eₙ, tkerange, 
                     end
                     write(file, '\n')
                 end
-                write(file, "-----------------------------------------------------------------------------------------------------------------------------------------------------------\n")
+                write(file, "$horizontal_delimiter\n")
             end
         end
+        write(file, horizontal_delimiter)
     end
 end
 #Neutron multiplicity from raw output data

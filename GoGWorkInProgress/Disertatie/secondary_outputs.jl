@@ -2,10 +2,7 @@
 This part of the program is optional. It reads the output of the main program and processes it so that
 it can be compared with experimental data (output data is averaged over experimental yield distributions)
 =#
-
-dY = CSV.read(yield_distribution_filename, DataFrame; delim = yield_distribution_delimiter, ignorerepeated = true, header = yield_distribution_header, skipto = yield_distribution_firstdataline)
-println("reading $yield_distribution_filename done!")
-
+#####
 #Compute Y(A,Z,TKE) form experimental Y(A,TKE) data
 function Process_yield_data(A_0, fragmdomain::Distribution, dY::DataFrame)
     y_A_Z_TKE = Distribution(Int[], Int[], Float64[], Int[], Float64[], Float64[])

@@ -14,6 +14,7 @@ include("aux_func.jl")
 include("density_parameters.jl")
 include("txe_partitioning.jl")
 include("dse_eq_solvers.jl")
+include("secondary_outputs.jl")
 
 #Revert relative PATH to project root folder
 cd(@__DIR__)
@@ -60,6 +61,22 @@ if secondary_outputs == "YES"
     Output = DataFrame(Aₚ = y_Z_Ap.A, Z = y_Z_Ap.Z, Y = y_Z_Ap.Value, σ = y_Z_Ap.σ)
     CSV.write("output_data/Y_Z_Ap.OUT", Output, writeheader=true, newline='\n', delim=' ')
 end
+
+#Testing for plots
+Grid = zeros(length(unique(y_Z_Ap.A)), length(unique(y_Z_Ap.Z)))
+i1 = 0
+for A in unique(y_Z_Ap.A)
+    i1 += 1
+    i2 = 1
+    for Z in unique(y_Z_Ap.Z)
+        if isassigned(y_Z_Ap.Value[(y_Z_Ap.A .== A) .& (y_Z_Ap.Z .== Z)], 1)
+            Grid[i1, i2] = y_Z_Ap.Value[(y_Z_Ap.A .== A) .& (y_Z_Ap.Z .== Z)][1]  
+        end
+        i2 += 1
+    end
+end
+using Plots
+surface(Grid')
 
 #=
 T_A_Z_TKE = SeqAvg_A_Z_TKE(DataFrame(
