@@ -86,11 +86,11 @@ end
 #Function bodies
 #Isobaric charge distribution p(Z,A)
 function p_A_Z(Z, Z_p, rms_A)
-    return 1/(sqrt(2*π) * rms_A) * exp(-(Z - Z_p)^2 /(2* rms_A^2))
+    return exp(-(Z - Z_p)^2 /(2 *rms_A^2)) /(sqrt(2*π) * rms_A)
 end
 #Compute the most probable charge for a given heavy fragment
-function Most_probable_charge(A, Z, A_H, ΔZ)
-    return A_H*Z/A + ΔZ
+function Most_probable_charge(A_0, Z_0, A_H, ΔZ)
+    return A_H*Z_0/A_0 + ΔZ
 end
 #Q_value energy in MeV released at fission of (A,Z) nucleus 
 function Q_value_released(A_0, Z_0, A_H, Z_H, dm)
@@ -234,9 +234,9 @@ function Write_seq_output(A_0, Z_0, A_H_min, A_H_max, No_ZperA, Eₙ, tkerange, 
     Sₙ = Separation_energy(1, 0, A_0, Z_0, dm)
     open("output_data/main_DSE.OUT", "w") do file
         write(file, "DSE main output file for the following input data:\n")
-        write(file,"(A₀ = $A_0, Z₀ = $Z_0), $fission_type fission, $No_ZperA Z per A, mass excess file - $mass_excess_filename\n")
-        write(file,"Heavy Fragment mass number range from $A_H_min to $A_H_max\n")
-        write(file,"TKE range ∈ $tkerange\n")
+        write(file,"(A₀ = $A_0, Z₀ = $Z_0), fission type $fission_type, $No_ZperA Z per A, mass excess file - $mass_excess_filename\n")
+        write(file,"Heavy Fragment mass number ranges from $A_H_min to $A_H_max\n")
+        write(file,"TKE ∈ $tkerange\n")
         write(file,"TXE partitioning method - $txe_partitioning_type\n")
         write(file, "\n===========================================================================================================================================================\n")
         for A in unique(Processed_raw_output.A)
@@ -245,28 +245,28 @@ function Write_seq_output(A_0, Z_0, A_H_min, A_H_max, No_ZperA, Eₙ, tkerange, 
                 Q = Q_value_released(A_0, Z_0, A, Z, dm)
                 a = density_parameter(density_parameter_type, A, Z, density_parameter_datafile)
                 S = Separation_energy(1, 0, A, Z, dm)[1]
-                write(file, "Fission fragment: A = $A Z = $Z p(Z,A) = $P_Z_A Q = $(Q[1]) a = $a Sₙ = $S\n\n")
+                write(file, "Fission fragment: A = $A / Z = $Z / p(Z,A) = $P_Z_A / Q = $(Q[1]) / a = $a / Sₙ = $S\n\n")
                 for TKE in unique(Processed_raw_output.TKE[(Processed_raw_output.A .== A) .& (Processed_raw_output.Z .== Z)])
                     TXE = Total_excitation_energy(Q[1], Q[2], TKE, 0.0, Sₙ[1], Sₙ[2], Eₙ)[1]
                     E_excit = E_excitation.Value[(E_excitation.A .== A) .& (E_excitation.Z .== Z) .& (E_excitation.TKE .== TKE)][1]
-                    write(file, "TKE = $TKE TXE = $TXE E* = $E_excit\n")
+                    write(file, "TKE = $TKE / TXE = $TXE / E* = $E_excit\n")
                     for k in unique(Processed_raw_output.No_Sequence[(Processed_raw_output.A .== A) .& (Processed_raw_output.Z .== Z) .& (Processed_raw_output.TKE .== TKE)])
                         write(file, "   *Emission sequence $k:\n   ")
                         T_k = Processed_raw_output.Tₖ[(Processed_raw_output.A .== A) .& (Processed_raw_output.Z .== Z) .& (Processed_raw_output.TKE .== TKE) .& (Processed_raw_output.No_Sequence .== k)][1]
                         write(file, "T = $T_k ")
                         a_k = Processed_raw_output.aₖ[(Processed_raw_output.A .== A) .& (Processed_raw_output.Z .== Z) .& (Processed_raw_output.TKE .== TKE) .& (Processed_raw_output.No_Sequence .== k)][1]
-                        write(file, "a = $a_k ")
+                        write(file, "/ a = $a_k ")
                         Eᵣ_k = Energy_FermiGas(a_k, T_k)
-                        write(file, "Eʳ = $Eᵣ_k ")
+                        write(file, "/ Eʳ = $Eᵣ_k ")
                         S_k = Separation_energy(1, 0, A-k, Z, dm)[1]
-                        write(file, "Sₙ = $S_k ")
+                        write(file, "/ Sₙ = $S_k ")
                         if evaporation_cs_type == "CONSTANT"
                             avgε_k = Average_neutron_energy(T_k)
-                            write(file, "<ε> = $avgε_k\n")
+                            write(file, "/ <ε> = $avgε_k\n")
                         elseif evaporation_cs_type == "VARIABLE"
                             α_k = Processed_raw_output.αₖ[(Processed_raw_output.A .== A) .& (Processed_raw_output.Z .== Z) .& (Processed_raw_output.TKE .== TKE) .& (Processed_raw_output.No_Sequence .== k)][1]
                             avgε_k = Average_neutron_energy(α_k, T_k)
-                            write(file, "<ε> = $avgε_k\n")
+                            write(file, "/ <ε> = $avgε_k\n")
                         end
                     end
                     write(file, '\n')

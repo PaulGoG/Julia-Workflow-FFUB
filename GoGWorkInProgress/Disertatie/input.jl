@@ -65,7 +65,7 @@ isobaric_distribution_firstdataline = 2
 #=
 Number of Z per A fragments considered
 =#
-No_ZperA = 1
+No_ZperA = 3
 
 #=
 Total Excitation Energy partitioning method:

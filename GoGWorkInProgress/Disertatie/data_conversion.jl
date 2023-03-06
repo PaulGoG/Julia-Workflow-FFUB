@@ -59,3 +59,29 @@ else error("raw data files row sizes do not match!")
 end
 =#
 #####
+#=
+    #Sorts data in ascending order for mass number
+    length_Y = length(y_A_Z_TKE.Value)
+    aux_A = sort(y_A_Z_TKE.A)
+    aux_Z = [y_A_Z_TKE.Z[y_A_Z_TKE.A .== A] for A in unique(aux_A)]
+    aux_Z = reduce(vcat, aux_Z)
+    aux_TKE = zeros(length_Y)
+    aux_Value = zeros(length_Y)
+    aux_σ = zeros(length_Y)
+    aux_index = 0
+    for index_fragmdomain in eachindex(fragmdomain.A)
+        for TKE in unique(y_A_Z_TKE.TKE[(y_A_Z_TKE.A .== fragmdomain.A[index_fragmdomain]) .& (y_A_Z_TKE.Z .== fragmdomain.Z[index_fragmdomain])])
+            aux_index += 1
+            aux_TKE[aux_index] = y_A_Z_TKE.TKE[(y_A_Z_TKE.A .== fragmdomain.A[index_fragmdomain]) .& (y_A_Z_TKE.Z .== fragmdomain.Z[index_fragmdomain]) .& (y_A_Z_TKE.TKE .== TKE)][1]
+            aux_Value[aux_index] = y_A_Z_TKE.Value[(y_A_Z_TKE.A .== fragmdomain.A[index_fragmdomain]) .& (y_A_Z_TKE.Z .== fragmdomain.Z[index_fragmdomain]) .& (y_A_Z_TKE.TKE .== TKE)][1]
+            aux_σ[aux_index] = y_A_Z_TKE.σ[(y_A_Z_TKE.A .== fragmdomain.A[index_fragmdomain]) .& (y_A_Z_TKE.Z .== fragmdomain.Z[index_fragmdomain]) .& (y_A_Z_TKE.TKE .== TKE)][1]
+        end
+    end
+    for index in 1:aux_index
+        y_A_Z_TKE.A[index] = aux_A[index]
+        y_A_Z_TKE.Z[index] = aux_Z[index]
+        y_A_Z_TKE.TKE[index] = aux_TKE[index]
+        y_A_Z_TKE.Value[index] = aux_Value[index]
+        y_A_Z_TKE.σ[index] = aux_σ[index]
+    end
+=#
