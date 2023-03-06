@@ -38,7 +38,6 @@ println("*main program execution successful!")
 
 y_A_Z_TKE = Process_yield_data(A₀, fragmdomain, dY)
 
-#=
 ν_A_Z_TKE = Neutron_multiplicity_A_Z_TKE(DataFrame(
     A = Raw_output_datafile.A,
     Z = Raw_output_datafile.Z,
@@ -53,4 +52,6 @@ T_A_Z_TKE = SeqAvg_A_Z_TKE(DataFrame(
     No_Sequence = Raw_output_datafile.No_Sequence,
     Value = Raw_output_datafile.Tₖ
 ))
-=#
+
+ν_A_TKE = Average_over_Z(ν_A_Z_TKE, fragmdomain)
+
