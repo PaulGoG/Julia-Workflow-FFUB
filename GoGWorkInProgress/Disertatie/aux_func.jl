@@ -251,22 +251,26 @@ function Write_seq_output(A_0, Z_0, A_H_min, A_H_max, No_ZperA, Eₙ, tkerange, 
                     E_excit = E_excitation.Value[(E_excitation.A .== A) .& (E_excitation.Z .== Z) .& (E_excitation.TKE .== TKE)][1]
                     write(file, "TKE = $TKE / TXE = $TXE / E* = $E_excit\n")
                     for k in unique(Processed_raw_output.No_Sequence[(Processed_raw_output.A .== A) .& (Processed_raw_output.Z .== Z) .& (Processed_raw_output.TKE .== TKE)])
-                        write(file, "   *Emission sequence $k:\n   ")
-                        T_k = Processed_raw_output.Tₖ[(Processed_raw_output.A .== A) .& (Processed_raw_output.Z .== Z) .& (Processed_raw_output.TKE .== TKE) .& (Processed_raw_output.No_Sequence .== k)][1]
-                        write(file, "T = $T_k ")
-                        a_k = Processed_raw_output.aₖ[(Processed_raw_output.A .== A) .& (Processed_raw_output.Z .== Z) .& (Processed_raw_output.TKE .== TKE) .& (Processed_raw_output.No_Sequence .== k)][1]
-                        write(file, "/ a = $a_k ")
-                        Eᵣ_k = Energy_FermiGas(a_k, T_k)
-                        write(file, "/ Eʳ = $Eᵣ_k ")
-                        S_k = Separation_energy(1, 0, A-k, Z, dm)[1]
-                        write(file, "/ Sₙ = $S_k ")
-                        if evaporation_cs_type == "CONSTANT"
-                            avgε_k = Average_neutron_energy(T_k)
-                            write(file, "/ <ε> = $avgε_k\n")
-                        elseif evaporation_cs_type == "VARIABLE"
-                            α_k = Processed_raw_output.αₖ[(Processed_raw_output.A .== A) .& (Processed_raw_output.Z .== Z) .& (Processed_raw_output.TKE .== TKE) .& (Processed_raw_output.No_Sequence .== k)][1]
-                            avgε_k = Average_neutron_energy(α_k, T_k)
-                            write(file, "/ <ε> = $avgε_k\n")
+                        if k > 0
+                            write(file, "   *Emission sequence $k:\n   ")
+                            T_k = Processed_raw_output.Tₖ[(Processed_raw_output.A .== A) .& (Processed_raw_output.Z .== Z) .& (Processed_raw_output.TKE .== TKE) .& (Processed_raw_output.No_Sequence .== k)][1]
+                            write(file, "T = $T_k ")
+                            a_k = Processed_raw_output.aₖ[(Processed_raw_output.A .== A) .& (Processed_raw_output.Z .== Z) .& (Processed_raw_output.TKE .== TKE) .& (Processed_raw_output.No_Sequence .== k)][1]
+                            write(file, "/ a = $a_k ")
+                            Eᵣ_k = Energy_FermiGas(a_k, T_k)
+                            write(file, "/ Eʳ = $Eᵣ_k ")
+                            S_k = Separation_energy(1, 0, A-k, Z, dm)[1]
+                            write(file, "/ Sₙ = $S_k ")
+                            if evaporation_cs_type == "CONSTANT"
+                                avgε_k = Average_neutron_energy(T_k)
+                                write(file, "/ <ε> = $avgε_k\n")
+                            elseif evaporation_cs_type == "VARIABLE"
+                                α_k = Processed_raw_output.αₖ[(Processed_raw_output.A .== A) .& (Processed_raw_output.Z .== Z) .& (Processed_raw_output.TKE .== TKE) .& (Processed_raw_output.No_Sequence .== k)][1]
+                                avgε_k = Average_neutron_energy(α_k, T_k)
+                                write(file, "/ <ε> = $avgε_k\n")
+                            end
+                        else
+                            write(file, "   *Fragment does not emit neutrons at current TKE!\n")
                         end
                     end
                     write(file, '\n')
@@ -297,11 +301,13 @@ function SeqAvg_A_Z_TKE(output_df_A_Z_TKE_NoSequence_Value::DataFrame)
     for A in unique(output_df_A_Z_TKE_NoSequence_Value.A)
         for Z in unique(output_df_A_Z_TKE_NoSequence_Value.Z[output_df_A_Z_TKE_NoSequence_Value.A .== A])
             for TKE in unique(output_df_A_Z_TKE_NoSequence_Value.TKE[(output_df_A_Z_TKE_NoSequence_Value.A .== A) .& (output_df_A_Z_TKE_NoSequence_Value.Z .== Z)])
-                push!(avg.A, A)
-                push!(avg.Z, Z)
-                push!(avg.TKE, TKE)
                 n = last(output_df_A_Z_TKE_NoSequence_Value.No_Sequence[(output_df_A_Z_TKE_NoSequence_Value.A .== A) .& (output_df_A_Z_TKE_NoSequence_Value.Z .== Z) .& (output_df_A_Z_TKE_NoSequence_Value.TKE .== TKE)])
-                push!(avg.Value, sum(output_df_A_Z_TKE_NoSequence_Value.Value[(output_df_A_Z_TKE_NoSequence_Value.A .== A) .& (output_df_A_Z_TKE_NoSequence_Value.Z .== Z) .& (output_df_A_Z_TKE_NoSequence_Value.TKE .== TKE)])/n)
+                if n > 0
+                    push!(avg.A, A)
+                    push!(avg.Z, Z)
+                    push!(avg.TKE, TKE)
+                    push!(avg.Value, sum(output_df_A_Z_TKE_NoSequence_Value.Value[(output_df_A_Z_TKE_NoSequence_Value.A .== A) .& (output_df_A_Z_TKE_NoSequence_Value.Z .== Z) .& (output_df_A_Z_TKE_NoSequence_Value.TKE .== TKE)]) /n)
+                end
             end
         end
     end

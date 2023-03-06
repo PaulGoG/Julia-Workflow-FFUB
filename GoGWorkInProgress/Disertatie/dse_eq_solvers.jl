@@ -30,6 +30,14 @@ function DSE_equation_solver_CONSTANT_cs(E_excitation, density_parameter_type, d
                         k += 1
                         a_k = density_parameter(density_parameter_type, A - k, Z, density_parameter_datafile)
                     end
+                    if k == 1
+                        push!(Tₖ.A, A)
+                        push!(Tₖ.Z, Z)
+                        push!(Tₖ.TKE, TKE)
+                        push!(Tₖ.Value, NaN)
+                        push!(aₖ, a_k)
+                        push!(Tₖ.No_Sequence, 0)
+                    end
                 end  
             end          
         end
@@ -92,6 +100,15 @@ function DSE_equation_solver_VARIABLE_cs(E_excitation, density_parameter_type, d
                         Sₙ_k_last = Separation_energy(1, 0, A - k, Z, dm)[1]
                         k += 1
                         a_k = density_parameter(density_parameter_type, A - k, Z, density_parameter_datafile)
+                    end
+                    if k == 1
+                        push!(Tₖ.A, A)
+                        push!(Tₖ.Z, Z)
+                        push!(Tₖ.TKE, TKE)
+                        push!(Tₖ.Value, NaN)
+                        push!(aₖ, a_k)
+                        push!(αₖ, NaN)
+                        push!(Tₖ.No_Sequence, 0)
                     end
                 end  
             end          

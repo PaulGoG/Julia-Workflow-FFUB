@@ -28,23 +28,40 @@ E_excitation = TXE_partitioning(txe_partitioning_type, A₀, Z₀, A_H_min, A_H_
 println("*solving DSE energy conservation equations")
 DSE_eq_output = DSE_equation_solver(evaporation_cs_type, E_excitation, density_parameter_type, density_parameter_datafile, dmass_excess)
 
-println("*preparing output datafile")
+println("*processing equation output")
 Raw_output_datafile = Process_main_output(DSE_eq_output, evaporation_cs_type)
 
-println("*writing output to file")
-Write_seq_output(A₀, Z₀, A_H_min, A_H_max, No_ZperA, Eₙ, tkerange, fragmdomain, E_excitation, Raw_output_datafile, density_parameter_type, density_parameter_datafile, evaporation_cs_type, mass_excess_filename, txe_partitioning_type, dmass_excess)
+if write_primary_outputs == "YES"
+    println("*writing output to file")
+    Write_seq_output(A₀, Z₀, A_H_min, A_H_max, No_ZperA, Eₙ, tkerange, fragmdomain, E_excitation, Raw_output_datafile, density_parameter_type, density_parameter_datafile, evaporation_cs_type, mass_excess_filename, txe_partitioning_type, dmass_excess)
+end
 
 println("*main program execution successful!")
 
-y_A_Z_TKE = Process_yield_data(A₀, fragmdomain, dY)
-
-ν_A_Z_TKE = Neutron_multiplicity_A_Z_TKE(DataFrame(
+if secondary_outputs == "YES"
+    println("*averaging data over $yield_distribution_filename experimental Yield distribution")
+    y_A_Z_TKE = Process_yield_data(A₀, fragmdomain, dY)
+    ν_A_Z_TKE = Neutron_multiplicity_A_Z_TKE(DataFrame(
     A = Raw_output_datafile.A,
     Z = Raw_output_datafile.Z,
     TKE = Raw_output_datafile.TKE,
     No_Sequence = Raw_output_datafile.No_Sequence
-))
+    ))
+    ν_A = Average_over_TKE_Z(ν_A_Z_TKE, y_A_Z_TKE)
+    Output = DataFrame(A = ν_A.Argument, ν = ν_A.Value)
+    CSV.write("output_data/nu_A.OUT", Output, writeheader=true, newline='\n', delim=' ')
+    ν_TKE = Average_over_A_Z(ν_A_Z_TKE, y_A_Z_TKE)
+    Output = DataFrame(TKE = ν_TKE.Argument, ν = ν_TKE.Value)
+    CSV.write("output_data/nu_TKE.OUT", Output, writeheader=true, newline='\n', delim=' ')
+    y_Ap = Yield_post_neutron(y_A_Z_TKE, ν_A)
+    Output = DataFrame(Aₚ = y_Ap.Argument, Y = y_Ap.Value, σ = y_Ap.σ)
+    CSV.write("output_data/Y_Ap.OUT", Output, writeheader=true, newline='\n', delim=' ')
+    y_Z_Ap = Yield_post_neutron(y_A_Z_TKE, ν_A_Z_TKE)
+    Output = DataFrame(Aₚ = y_Z_Ap.A, Z = y_Z_Ap.Z, Y = y_Z_Ap.Value, σ = y_Z_Ap.σ)
+    CSV.write("output_data/Y_Z_Ap.OUT", Output, writeheader=true, newline='\n', delim=' ')
+end
 
+#=
 T_A_Z_TKE = SeqAvg_A_Z_TKE(DataFrame(
     A = Raw_output_datafile.A,
     Z = Raw_output_datafile.Z,
@@ -52,6 +69,7 @@ T_A_Z_TKE = SeqAvg_A_Z_TKE(DataFrame(
     No_Sequence = Raw_output_datafile.No_Sequence,
     Value = Raw_output_datafile.Tₖ
 ))
+=#
+#if plots
 
-ν_A_TKE = Average_over_Z(ν_A_Z_TKE, fragmdomain)
-
+#if Neutron_spectrum

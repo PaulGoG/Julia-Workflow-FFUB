@@ -16,12 +16,12 @@ Z₀ = 92
 
 #Heavy fission fragment range 
 A_H_min = 118
-A_H_max = 158
+A_H_max = 160
 
 #Total Kinetic Energy range and step in MeV
-TKE_min = 140.0
-TKE_max = 180.0
-TKE_step = 5.0
+TKE_min = 100.0
+TKE_max = 200.0
+TKE_step = 2.0
 
 #=
 Fission type: 
@@ -65,7 +65,7 @@ isobaric_distribution_firstdataline = 2
 #=
 Number of Z per A fragments considered
 =#
-No_ZperA = 3
+No_ZperA = 5
 
 #=
 Total Excitation Energy partitioning method:
@@ -83,6 +83,9 @@ txe_partitioning_header = ["A", "Z", "Value"]
 txe_partitioning_delimiter = ' '
 txe_partitioning_firstdataline = 2
 txe_partitioning_segmentpoints = [(118, 1.2), (160, 1.2)]
+
+#Writing out main DSE output file containing detailed sequence data YES or NO selector
+write_primary_outputs = "NO"
 
 #= 
 Yield-averaged outputs YES or NO selector
