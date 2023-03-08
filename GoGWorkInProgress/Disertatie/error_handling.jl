@@ -90,12 +90,29 @@ if txe_partitioning_type == "MSCZ"
     end
 end
 
-if write_primary_outputs != "YES" && write_primary_outputs != "NO"
+if write_primary_output != "YES" && write_primary_output != "NO"
     error("$write_primary_outputs is not a valid input for write_primary_outputs")
 end
 
 if secondary_outputs != "YES" && secondary_outputs != "NO"
     error("$secondary_outputs is not a valid input for secondary_outputs")
+end
+
+if generate_plots != "YES" && generate_plots != "NO"
+    error("$generate_plots is not a valid input for generate_plots")
+end
+
+if neutron_spectrum != "YES" && neutron_spectrum != "NO"
+    error("$neutron_spectrum is not a valid input for neutron_spectrum")
+end
+
+
+if secondary_outputs == "NO"
+    if generate_plots == "YES"
+        error("plots cannot be generated without yield-averaged quantities!")
+    elseif neutron_spectrum == "YES"
+        error("prompt neutron spectrum cannot be calculated without yield-averaged quantities!")
+    end
 end
 
 if secondary_outputs == "YES"
@@ -109,4 +126,3 @@ if secondary_outputs == "YES"
         )
     end
 end
-

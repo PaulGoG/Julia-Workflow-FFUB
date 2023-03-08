@@ -18,10 +18,6 @@ struct Distribution_unidym{T <: Vector{Float64}} <: AbstractDistribution
     Value::T
     σ::T
 end
-struct Neutron_spectrum{T <: Vector{Float64}} <: AbstractDistribution
-    ε::T
-    Value::T
-end
 
 #Define value range for TKE
 tkerange = TKE_min:TKE_step:TKE_max
@@ -35,6 +31,7 @@ elseif fission_type == "(n,f)"
     A₀ += 1
 end
 
+#Necessary inputs for VARIABLE neutron cs
 if evaporation_cs_type == "VARIABLE"
     using Roots
     ħc = 197.3268601
@@ -44,8 +41,8 @@ if evaporation_cs_type == "VARIABLE"
     const C_α = (π*ħc)^2 /(aₘ*amu)
 end
 
-println("*reading data files")
-#Read input data files as DataFrames
+println("*reading input data files")
+
 dmass_excess = CSV.read(mass_excess_filename, DataFrame; delim = mass_excess_delimiter, ignorerepeated = true, header = mass_excess_header, skipto = mass_excess_firstdataline)
 println("reading $mass_excess_filename done!")
 
@@ -83,6 +80,12 @@ end
 if secondary_outputs == "YES"
     dY = CSV.read(yield_distribution_filename, DataFrame; delim = yield_distribution_delimiter, ignorerepeated = true, header = yield_distribution_header, skipto = yield_distribution_firstdataline)
     println("reading $yield_distribution_filename done!")
+end
+
+#Revert relative PATH to project root folder
+cd(@__DIR__)
+if !isdir("output_data/")
+    mkdir("output_data/")
 end
 #Function bodies
 #Isobaric charge distribution p(Z,A)
@@ -181,19 +184,13 @@ function Fragmentation_domain(A_0, Z_0, NoZperA, A_H_min, A_H_max, dpAZ)
     end
     return fragmdomain
 end
-#Energy in Fermi Gas regime
+#Energy in Fermi Gas model
 function Energy_FermiGas(a::Float64, T::Float64)      
     return a *T^2
 end
-#Function bodies for neutron spectrum and average neutron energy for a given sequence
-function Neutron_spectrum(ε::Float64, T::Float64)
-    return ε*exp(-ε/T)/T^2
-end
+#Average neutron energy for a given sequence
 function Average_neutron_energy(T::Float64)
     return 2*T
-end
-function Neutron_spectrum(ε::Float64, α::Float64, T::Float64)
-    (ε + α*sqrt(ε))*exp(-ε/T) /((sqrt(T) +α*sqrt(π)/2) *T^(3/2))
 end
 function Average_neutron_energy(α::Float64, T::Float64)
     return T*(2*sqrt(T) + α*3*sqrt(π)/4) /(sqrt(T) + α*sqrt(π)/2)
@@ -226,9 +223,6 @@ function Process_main_output(DSE_eq_output, evaporation_cs_type)
 end
 #Writing main output file
 function Write_seq_output(A_0, Z_0, A_H_min, A_H_max, No_ZperA, Eₙ, tkerange, fragmdomain, E_excitation, Processed_raw_output, density_parameter_type, density_parameter_datafile, evaporation_cs_type, mass_excess_filename, txe_partitioning_type, dm)
-    if !isdir("output_data/")
-        mkdir("output_data/")
-    end
     horizontal_delimiter = lpad('-', 159, '-')
     Sₙ = Separation_energy(1, 0, A_0, Z_0, dm)
     open("output_data/main_DSE.OUT", "w") do file
@@ -269,7 +263,7 @@ function Write_seq_output(A_0, Z_0, A_H_min, A_H_max, No_ZperA, Eₙ, tkerange, 
                                 write(file, "/ <ε> = $avgε_k\n")
                             end
                         else
-                            write(file, "   *Fragment does not emit neutrons at current TKE!\n")
+                            write(file, "   *Fragment does not emit neutrons at specified TKE!\n")
                         end
                     end
                     write(file, '\n')
@@ -282,7 +276,7 @@ function Write_seq_output(A_0, Z_0, A_H_min, A_H_max, No_ZperA, Eₙ, tkerange, 
 end
 #Neutron multiplicity from raw output data
 function Neutron_multiplicity_A_Z_TKE(output_df_A_Z_TKE_NoSequence::DataFrame)
-    ν = Distribution(Int[], Int[], Float64[], Int[], Float64[], Float64[])
+    ν = Distribution(Int[], Int[], Float64[], Int[], Int[], Float64[])
     for A in unique(output_df_A_Z_TKE_NoSequence.A)
         for Z in unique(output_df_A_Z_TKE_NoSequence.Z[output_df_A_Z_TKE_NoSequence.A .== A])
             for TKE in unique(output_df_A_Z_TKE_NoSequence.TKE[(output_df_A_Z_TKE_NoSequence.A .== A) .& (output_df_A_Z_TKE_NoSequence.Z .== Z)])
