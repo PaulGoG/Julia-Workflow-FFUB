@@ -1,11 +1,13 @@
-#Designation of input values and parameters used throughout the main program
+#Designation of input values and parameters 
 #####
 #Add path to input data folder
 cd(@__DIR__)
+if !isdir("input_data/")
+    mkdir("input_data/")
+end
 cd("input_data/")
 
 #Mass excess data file name, column names, delimiter symbol, number of first row of actual data in file
-
 mass_excess_filename = "AUDI2021.ANA"
 mass_excess_header = ["Z", "A", "Symbol", "D", "σ_D"]
 mass_excess_delimiter = ' '
@@ -22,7 +24,7 @@ A_H_max = 160
 #Total Kinetic Energy range and step in MeV
 TKE_min = 100.0
 TKE_max = 200.0
-TKE_step = 1.0
+TKE_step = 2.0
 
 #=
 Fission type: 
@@ -36,10 +38,11 @@ Eₙ = 25*1e-9
 
 #=
 Density level parameter computation method:
-GC for Gilbert-Cameron
-BSFG for Egidy-Bucurescu
+*GC for Gilbert-Cameron using shell corrections
+*BSFG for Egidy-Bucurescu Back Shift Fermi Gas
 =#
-density_parameter_type = "GC"
+density_parameter_type = "BSFG"
+
 density_parameter_filename = "SZSN.GC"
 density_parameter_header = ["n", "S_Z", "S_N"]
 density_parameter_delimiter = ' '
@@ -47,46 +50,62 @@ density_parameter_firstdataline = 2
 
 #=
 Neutron evaporation cross section type:
-CONSTANT for energy-independent cross section
-VARIABLE for energy-dependent cross section
-
-!If variable σ is used, provide the necessary data file for the force function S₀!
+*CONSTANT for constant cross section
+*VARIABLE for energy-dependent cross section modelled with s-wave neutron force function
 =#
-evaporation_cs_type = "CONSTANT"
-S₀_filename = ""
+evaporation_cs_type = "VARIABLE"
 
 #=
 Input type for the isobaric charge distribution p(Z,A):
-MEAN_VALUES for ΔZ(A)=0.5 & rms(A)=0.6
-DATA for values provided in a datafile
-
-!If variable ΔZ(A) & rms(A) are used, provide the necessary data file!
+*MEAN_VALUES for ΔZ(A_H) = -0.5 & rms(A_H) = 0.6
+*DATA for values provided in a datafile
 =#
 isobaric_distribution_type = "DATA"
-isobaric_distribution_filename = "Converted_deltaZA_rmsA.CSV"
+isobaric_distribution_filename = "DeltaZA_rmsA.U5"
 isobaric_distribution_header = ["A", "ΔZ_A", "rms_A"]
 isobaric_distribution_delimiter = ' '
 isobaric_distribution_firstdataline = 2
 
-#=
-Number of Z per A fragments considered
-=#
+#Number of normally distributed Z considered for each A
 No_ZperA = 3
 
 #=
 Total Excitation Energy partitioning method:
-MSCZ for Modelling at scission
-PARAM for file-provided partitioning ratios
+*MSCZ for Modelling at scission
+*PARAM for file-provided partitioning ratios E*_H/TXE via segments
+*RT(A_H) for T_L/T_H ratio provided by user via segments -for constant RT provide segment line-
 
-!Necessary data files must be provided in each case!: 
-Extra deformation energies for MSCZ
-Partitioning ratios for PARAM
+!Data must be provided in each case!: 
+*Extra deformation energies for MSCZ via datafile
+*Segment points in Vector of Tuples for PARAM & RT
 =#
 txe_partitioning_type = "MSCZ"
-txe_partitioning_filename = "Converted_EXTRADEF.DSE"
+txe_partitioning_filename = "EXTRADEF.IN"
 txe_partitioning_header = ["A", "Z", "Value"]
 txe_partitioning_delimiter = ' '
 txe_partitioning_firstdataline = 2
+txe_partitioning_segmentpoints = [(118, 1.2), (160, 1.2)]
 
-#Main output file name
-output_filename = "DSE_main_density_parameter_$(density_parameter_type)_evaporation_cs_$(evaporation_cs_type)_txe_partitioning_$(txe_partitioning_type).OUT"
+#Writing out main DSE output file containing detailed sequence data YES or NO selector
+write_primary_output = "NO"
+
+#Yield-averaged outputs YES or NO selector
+secondary_outputs = "YES"
+yield_distribution_filename = "U5YATKE.SRE"
+yield_distribution_header = ["A", "TKE", "Value", "σ"]
+yield_distribution_delimiter = ' '
+yield_distribution_firstdataline = 2
+
+#=
+Plots YES or NO selector
+!It requires YES to secondary_outputs!
+=#
+generate_plots = "YES"
+resolution_scale = 120
+aspect_ratio = (16, 9)
+
+#Neutron spectrum calculation YES or NO selector   
+neutron_spectrum = "YES"
+E_min = 1e-3
+E_max = 15.0
+E_step = 1e-1
