@@ -216,7 +216,7 @@ Z = Raw_output_datafile.Z,
 TKE = Raw_output_datafile.TKE,
 No_Sequence = Raw_output_datafile.No_Sequence
 ))
-
+#=
 ν_A_TKE = Average_over_Z(ν_A_Z_TKE, fragmdomain)
 Output = DataFrame(A = ν_A_TKE.A, TKE = ν_A_TKE.TKE, ν = ν_A_TKE.Value)
 CSV.write("output_data/nu_A_TKE.OUT", Output, writeheader=true, newline='\n', delim=' ')
@@ -248,3 +248,4 @@ Output = DataFrame(Aₚ = y_Ap.Argument, Y = y_Ap.Value, σ = y_Ap.σ)
 CSV.write("output_data/Y_Ap.OUT", Output, writeheader=true, newline='\n', delim=' ')
 Output = DataFrame(Aₚ = y_Ap_Z.A, Z = y_Ap_Z.Z, Y = y_Ap_Z.Value, σ = y_Ap_Z.σ)
 CSV.write("output_data/y_Ap_Z.OUT", Output, writeheader=true, newline='\n', delim=' ')
+=#

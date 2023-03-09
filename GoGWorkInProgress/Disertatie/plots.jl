@@ -82,12 +82,14 @@ function Plot_data(plt::Plots.Plot, x, y, σ, plot_label, plot_color)
 end
 function Scatter_data(plt::Plots.Plot, x, y, plot_label, marker_color, marker_size, marker_shape)
     scatter!(
+        plt,
         x, y, label = plot_label, 
         markercolor = marker_color, markersize = marker_size, markershape = marker_shape
     )
 end
 function Scatter_data(plt::Plots.Plot, x, y, σ, plot_label, marker_color, marker_size, marker_shape)
     scatter!(
+        plt,
         x, y, yerror = σ, label = plot_label, 
         markercolor = marker_color, markersize = marker_size, markershape = marker_shape
     )
@@ -118,3 +120,10 @@ plot_surface_y_Ap_Z = Plot_surface(
     )
 display(plot_surface_y_Ap_Z)
 =#
+
+plot_neutron_spectrum = Plot_data(n_E.E, n_E.Value, "", :red)
+plot_neutron_spectrum = Modify_plot(
+    plot_neutron_spectrum, "E [MeV]", "N(E)", (first(n_E.E), last(n_E.E)),
+    :identity, (first(n_E.Value), last(n_E.Value)), :log10, "Neutron spectrum in SL", 300 
+)
+Display_plot(plot_neutron_spectrum, "randomfilename")

@@ -42,19 +42,21 @@ if evaporation_cs_type == "VARIABLE"
 end
 
 if generate_plots == "YES"
-    plots_resolution = (16, 9) .* resolution_scale
+    using Plots
+    plots_resolution = aspect_ratio .* resolution_scale
     if !isdir("plots/")
         mkdir("plots/")
     end
-    using Plots
     plotlyjs(size = plots_resolution)
 end
 
 if neutron_spectrum == "YES"
-    struct Neutron_spectrum{T <: Vector{Float64}} <: AbstractDistribution
-        ε::T
+    using QuadGK
+    struct Neutron_spectrum_struct{T <: Vector{Float64}} <: AbstractDistribution
+        E::T
         Value::T
     end
+    energyrange = E_min:E_step:E_max
 end
 
 println("*reading input data files")

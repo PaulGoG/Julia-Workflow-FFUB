@@ -24,7 +24,7 @@ A_H_max = 160
 #Total Kinetic Energy range and step in MeV
 TKE_min = 100.0
 TKE_max = 200.0
-TKE_step = 2.0
+TKE_step = 5.0
 
 #=
 Fission type: 
@@ -67,7 +67,7 @@ isobaric_distribution_delimiter = ' '
 isobaric_distribution_firstdataline = 2
 
 #Number of normally distributed Z considered for each A
-No_ZperA = 5
+No_ZperA = 3
 
 #=
 Total Excitation Energy partitioning method:
@@ -91,7 +91,7 @@ write_primary_output = "NO"
 
 #Yield-averaged outputs YES or NO selector
 secondary_outputs = "YES"
-yield_distribution_filename = "U5YATKE.ANA"
+yield_distribution_filename = "U5YATKE.SRE"
 yield_distribution_header = ["A", "TKE", "Value", "σ"]
 yield_distribution_delimiter = ' '
 yield_distribution_firstdataline = 2
@@ -100,8 +100,12 @@ yield_distribution_firstdataline = 2
 Plots YES or NO selector
 !It requires YES to secondary_outputs!
 =#
-generate_plots = "YES"
+generate_plots = "NO"
 resolution_scale = 120
+aspect_ratio = (16, 9)
 
 #Neutron spectrum calculation YES or NO selector   
-neutron_spectrum = "NO"
+neutron_spectrum = "YES"
+E_min = 1.0
+E_max = 20.0
+E_step = 1.0
