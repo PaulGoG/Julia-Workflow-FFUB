@@ -43,6 +43,18 @@ end
 
 if generate_plots == "YES"
     plots_resolution = (16, 9) .* resolution_scale
+    if !isdir("plots/")
+        mkdir("plots/")
+    end
+    using Plots
+    plotlyjs(size = plots_resolution)
+end
+
+if neutron_spectrum == "YES"
+    struct Neutron_spectrum{T <: Vector{Float64}} <: AbstractDistribution
+        ε::T
+        Value::T
+    end
 end
 
 println("*reading input data files")
