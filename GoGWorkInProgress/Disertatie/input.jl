@@ -100,7 +100,8 @@ yield_distribution_firstdataline = 2
 Plots YES or NO selector
 !It requires YES to secondary_outputs!
 =#
-generate_plots = "NO"
+generate_plots = "YES"
+resolution_scale = 120
 
 #Neutron spectrum calculation YES or NO selector   
 neutron_spectrum = "NO"

@@ -41,6 +41,10 @@ if evaporation_cs_type == "VARIABLE"
     const C_α = (π*ħc)^2 /(aₘ*amu)
 end
 
+if generate_plots == "YES"
+    plots_resolution = (16, 9) .* resolution_scale
+end
+
 println("*reading input data files")
 
 dmass_excess = CSV.read(mass_excess_filename, DataFrame; delim = mass_excess_delimiter, ignorerepeated = true, header = mass_excess_header, skipto = mass_excess_firstdataline)
