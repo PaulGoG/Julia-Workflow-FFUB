@@ -24,7 +24,7 @@ A_H_max = 160
 #Total Kinetic Energy range and step in MeV
 TKE_min = 100.0
 TKE_max = 200.0
-TKE_step = 5.0
+TKE_step = 2.0
 
 #=
 Fission type: 
@@ -100,12 +100,12 @@ yield_distribution_firstdataline = 2
 Plots YES or NO selector
 !It requires YES to secondary_outputs!
 =#
-generate_plots = "NO"
+generate_plots = "YES"
 resolution_scale = 120
 aspect_ratio = (16, 9)
 
 #Neutron spectrum calculation YES or NO selector   
 neutron_spectrum = "YES"
-E_min = 1.0
-E_max = 20.0
-E_step = 1.0
+E_min = 1e-3
+E_max = 15.0
+E_step = 1e-1

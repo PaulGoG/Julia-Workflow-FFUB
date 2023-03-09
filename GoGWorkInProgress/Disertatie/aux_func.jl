@@ -41,18 +41,9 @@ if evaporation_cs_type == "VARIABLE"
     const C_α = (π*ħc)^2 /(aₘ*amu)
 end
 
-if generate_plots == "YES"
-    using Plots
-    plots_resolution = aspect_ratio .* resolution_scale
-    if !isdir("plots/")
-        mkdir("plots/")
-    end
-    plotlyjs(size = plots_resolution)
-end
-
 if neutron_spectrum == "YES"
     using QuadGK
-    struct Neutron_spectrum_struct{T <: Vector{Float64}} <: AbstractDistribution
+    struct Neutron_spectrum_obj{T <: Vector{Float64}} <: AbstractDistribution
         E::T
         Value::T
     end
@@ -102,8 +93,18 @@ end
 
 #Revert relative PATH to project root folder
 cd(@__DIR__)
+
 if !isdir("output_data/")
     mkdir("output_data/")
+end
+
+if generate_plots == "YES"
+    using Plots
+    plots_resolution = aspect_ratio .* resolution_scale
+    if !isdir("plots/")
+        mkdir("plots/")
+    end
+    plotlyjs(size = plots_resolution)
 end
 #Function bodies
 #Isobaric charge distribution p(Z,A)

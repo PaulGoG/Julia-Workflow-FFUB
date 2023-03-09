@@ -1,5 +1,3 @@
-#Function bodies and function calls for plotting data
-#####
 function Grid_builder(q_x_y::DataFrame)
     x = sort(unique(q_x_y.x))
     y = sort(unique(q_x_y.y))

@@ -42,9 +42,8 @@ function density_parameter_Egidy_Bucurescu(A, Z, dm)
 end
 function density_parameter(density_parameter_type, A, Z, density_parameter_datafile)
     if density_parameter_type == "GC"
-        a = density_parameter_Gilbert_Cameron(A, Z, density_parameter_datafile)
+        return density_parameter_Gilbert_Cameron(A, Z, density_parameter_datafile)
     elseif density_parameter_type == "BSFG"
-        a = density_parameter_Egidy_Bucurescu(A, Z, density_parameter_datafile)
+        return density_parameter_Egidy_Bucurescu(A, Z, density_parameter_datafile)
     end
-    return a
 end

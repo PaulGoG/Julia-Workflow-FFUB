@@ -118,9 +118,8 @@ function DSE_equation_solver_VARIABLE_cs(E_excitation, density_parameter_type, d
 end
 function DSE_equation_solver(evaporation_cs_type, E_excitation, density_parameter_type, density_parameter_datafile, dm)
     if evaporation_cs_type == "CONSTANT"
-        DSE_Output = DSE_equation_solver_CONSTANT_cs(E_excitation, density_parameter_type, density_parameter_datafile, dm)
+        return DSE_equation_solver_CONSTANT_cs(E_excitation, density_parameter_type, density_parameter_datafile, dm)
     elseif evaporation_cs_type == "VARIABLE"
-        DSE_Output = DSE_equation_solver_VARIABLE_cs(E_excitation, density_parameter_type, density_parameter_datafile, dm)
+        return DSE_equation_solver_VARIABLE_cs(E_excitation, density_parameter_type, density_parameter_datafile, dm)
     end
-    return DSE_Output
 end

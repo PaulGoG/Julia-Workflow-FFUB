@@ -192,13 +192,12 @@ function TXE_partitioning(A_0, Z_0, A_H_min, A_H_max, Eₙ, fragmdomain, Points:
 end
 function TXE_partitioning(txe_partitioning_type, A₀, Z₀, A_H_min, A_H_max, Eₙ, fragmdomain, txe_partitioning_datafile, tkerange, density_parameter_type, density_parameter_datafile, dm)
     if txe_partitioning_type == "MSCZ"
-        E_excitation = TXE_partitioning(A₀, Z₀, A_H_min, A_H_max, Eₙ, fragmdomain, txe_partitioning_datafile, tkerange, density_parameter_type, density_parameter_datafile, dm)
+        return TXE_partitioning(A₀, Z₀, A_H_min, A_H_max, Eₙ, fragmdomain, txe_partitioning_datafile, tkerange, density_parameter_type, density_parameter_datafile, dm)
     elseif txe_partitioning_type == "PARAM"
-        E_excitation = TXE_partitioning(A₀, Z₀, A_H_min, A_H_max, Eₙ, fragmdomain, txe_partitioning_datafile, tkerange, dm)
+        return TXE_partitioning(A₀, Z₀, A_H_min, A_H_max, Eₙ, fragmdomain, txe_partitioning_datafile, tkerange, dm)
     elseif txe_partitioning_type == "RT"
-        E_excitation = TXE_partitioning(A₀, Z₀, A_H_min, A_H_max, Eₙ, fragmdomain, txe_partitioning_datafile, tkerange, density_parameter_type, density_parameter_datafile, dm)
+        return TXE_partitioning(A₀, Z₀, A_H_min, A_H_max, Eₙ, fragmdomain, txe_partitioning_datafile, tkerange, density_parameter_type, density_parameter_datafile, dm)
     end
-    return E_excitation
 end
 function Sort_TXE_partitioning(E_excit, fragmdomain)
     aux_A = copy(E_excit.A)
