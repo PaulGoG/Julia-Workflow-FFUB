@@ -111,7 +111,7 @@ if secondary_outputs == "NO"
     if generate_plots == "YES"
         error("plots cannot be generated without yield-averaged quantities!")
     elseif neutron_spectrum == "YES"
-        error("prompt neutron spectrum cannot be calculated without yield-averaged quantities!")
+        error("prompt neutron spectrum cannot be calculated without yield distribution!")
     end
 end
 
@@ -124,5 +124,10 @@ if secondary_outputs == "YES"
         "yield_distribution_header contains invalid fields: $(filter(x -> !in(x, ("A", "TKE", "Value", "σ")), yield_distribution_header));
         allowed header names list: A, TKE, Value, σ"
         )
+    end
+    if neutron_spectrum == "YES"
+        if E_min >= E_max 
+            error("invalid Energy range!")
+        end
     end
 end

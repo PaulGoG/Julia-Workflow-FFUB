@@ -100,24 +100,26 @@ function Plot_legend_attributes(plt::Plots.Plot, lposition)
 end
 function Display_plot(plt::Plots.Plot, filename::String)
     display(plt)
-    #savefig("plots/$filename.png")
+    savefig("plots/$filename.png")
+    println("*plotting $filename done!")
 end
 #####
-#=
+println("*executing data plots")
+
 plot_surface_ν_A_TKE = Plot_surface(
     DataFrame(x = ν_A_TKE.A, y = ν_A_TKE.TKE, z = ν_A_TKE.Value),
-    10, 10, Int(round(10/TKE_step)), 10, (120, 30), 
-    "ν", (minimum(ν_A_TKE.Value), maximum(ν_A_TKE.Value)), :identity
-    )
-display(plot_surface_ν_A_TKE)
+    5, 5, Int(round(10/TKE_step)), 10, (120, 30), 
+    "ν(A,TKE)", (minimum(ν_A_TKE.Value), maximum(ν_A_TKE.Value)+0.5), :identity
+)
+Display_plot(plot_surface_ν_A_TKE, "nu_A_TKE")
 
 plot_surface_y_Ap_Z = Plot_surface(
     DataFrame(x = y_Ap_Z.A, y = y_Ap_Z.Z, z = y_Ap_Z.Value),
     10, 10, 2, 10, (120, 30),
     "Y(Aₚ,Z)", (minimum(y_Ap_Z.Value), maximum(y_Ap_Z.Value)), :identity
     )
-display(plot_surface_y_Ap_Z)
-=#
+    Display_plot(plot_neutron_spectrum, "randomfilename")
+
 
 plot_neutron_spectrum = Plot_data(n_E.E, n_E.Value, "", :red)
 plot_neutron_spectrum = Modify_plot(

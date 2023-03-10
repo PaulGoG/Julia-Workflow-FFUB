@@ -134,10 +134,10 @@ function Average_over_A_Z(q_A_Z_TKE::Distribution, y_A_Z_TKE::Distribution)
     return q_TKE
 end
 #Average q(A,Z,TKE) over Y(A,Z,TKE) to get average value <q>
-function Average_value(q_A_Z_TKE::Distribution, y_A_Z_TKE::Distribution)
+function Average_value(q_A_Z_TKE::Distribution, y_A_Z_TKE::Distribution, mass_number_range)
     Denominator = 0.0
     Numerator = 0.0
-    for A in unique(q_A_Z_TKE.A)
+    for A in mass_number_range
         for Z in unique(q_A_Z_TKE.Z[(q_A_Z_TKE.A .== A)])
             for TKE in q_A_Z_TKE.TKE[(q_A_Z_TKE.A .== A) .& (q_A_Z_TKE.Z .== Z)]
                 value = q_A_Z_TKE.Value[(q_A_Z_TKE.A .== A) .& (q_A_Z_TKE.TKE .== TKE) .& (q_A_Z_TKE.Z .== Z)][1]
@@ -206,22 +206,20 @@ function Yield_post_neutron(y_A_Z_TKE::Distribution, ν_A_Z_TKE::Distribution)
     return y_Aₚ_Z_TKE, y_Aₚ_Z, y_Aₚ
 end
 #####
-#Function calls 
+println("*averaging data over $yield_distribution_filename experimental Yield distribution")
 
 y_A_Z_TKE = Process_yield_data(A₀, fragmdomain, dY)
-
+#=
 ν_A_Z_TKE = Neutron_multiplicity_A_Z_TKE(DataFrame(
 A = Raw_output_datafile.A,
 Z = Raw_output_datafile.Z,
 TKE = Raw_output_datafile.TKE,
 No_Sequence = Raw_output_datafile.No_Sequence
 ))
-#=
-ν_A_TKE = Average_over_Z(ν_A_Z_TKE, fragmdomain)
-Output = DataFrame(A = ν_A_TKE.A, TKE = ν_A_TKE.TKE, ν = ν_A_TKE.Value)
-CSV.write("output_data/nu_A_TKE.OUT", Output, writeheader=true, newline='\n', delim=' ')
+avg_ν_L = Average_value(ν_A_Z_TKE, y_A_Z_TKE, LF_range)
+avg_ν_H = Average_value(ν_A_Z_TKE, y_A_Z_TKE, HF_range)
+avg_ν = (avg_ν_L + avg_ν_H)/2
 
-#=
 T_A_Z_TKE = SeqAvg_A_Z_TKE(DataFrame(
     A = Raw_output_datafile.A,
     Z = Raw_output_datafile.Z,
@@ -229,23 +227,64 @@ T_A_Z_TKE = SeqAvg_A_Z_TKE(DataFrame(
     No_Sequence = Raw_output_datafile.No_Sequence,
     Value = Raw_output_datafile.Tₖ
 ))
-=#
+avg_T_L = Average_value(T_A_Z_TKE, y_A_Z_TKE, LF_range)
+avg_T_H = Average_value(T_A_Z_TKE, y_A_Z_TKE, HF_range)
+avg_T = (avg_T_L + avg_T_H)/2
+
+avg_ε_A_Z_TKE = SeqAvg_A_Z_TKE(DataFrame(
+    A = Raw_output_datafile.A,
+    Z = Raw_output_datafile.Z,
+    TKE = Raw_output_datafile.TKE,
+    No_Sequence = Raw_output_datafile.No_Sequence,
+    Value = Raw_output_datafile.Avg_εₖ
+))
+avg_ε_L = Average_value(avg_ε_A_Z_TKE, y_A_Z_TKE, LF_range)
+avg_ε_H = Average_value(avg_ε_A_Z_TKE, y_A_Z_TKE, HF_range)
+avg_ε = (avg_ε_L + avg_ε_H)/2
+
+open("output_data/$(fissionant_nucleus_identifier)_Average_quantities.OUT", "w") do file
+    write(file, "<ν_L> = $avg_ν_L\n<ν_H> = $avg_ν_H\n<ν> = $avg_ν\n\n")
+    write(file, "<T_L> = $avg_T_L\n<T_H> = $avg_T_H\n<T> = $avg_T\n\n")
+    write(file, "<ε_L> = $avg_ε_L\n<ε_H> = $avg_ε_H\n<ε> = $avg_ε\n\n")
+end
+
+ν_A_TKE = Average_over_Z(ν_A_Z_TKE, fragmdomain)
+CSV.write(
+    "output_data/$(fissionant_nucleus_identifier)_nu_A_TKE.OUT", 
+    DataFrame(A = ν_A_TKE.A, TKE = ν_A_TKE.TKE, ν = ν_A_TKE.Value), 
+    writeheader=true, newline="\r\n", delim=' '
+)
 
 ν_A = Average_over_TKE_Z(ν_A_Z_TKE, y_A_Z_TKE)
-Output = DataFrame(A = ν_A.Argument, ν = ν_A.Value)
-CSV.write("output_data/nu_A.OUT", Output, writeheader=true, newline='\n', delim=' ')
+CSV.write(
+    "output_data/$(fissionant_nucleus_identifier)_nu_A.OUT", 
+    DataFrame(A = ν_A.Argument, ν = ν_A.Value), 
+    writeheader=true, newline="\r\n", delim=' '
+)
 
 ν_A_Pair = [Pair_value(ν_A, A₀, A_H) for A_H in ν_A.Argument[ν_A.Argument .>= A_H_min]]
-Output = DataFrame(A = ν_A.Argument[ν_A.Argument .>= A_H_min], ν_Pair = ν_A_Pair)
-CSV.write("output_data/nu_A_Pair.OUT", Output, writeheader=true, newline='\n', delim=' ')
+CSV.write(
+    "output_data/$(fissionant_nucleus_identifier)_nu_AH_Pair.OUT", 
+    DataFrame(A = ν_A.Argument[ν_A.Argument .>= A_H_min], ν_Pair = ν_A_Pair), 
+    writeheader=true, newline="\r\n", delim=' '
+)
 
 ν_TKE = Average_over_A_Z(ν_A_Z_TKE, y_A_Z_TKE)
-Output = DataFrame(TKE = ν_TKE.Argument, ν = ν_TKE.Value)
-CSV.write("output_data/nu_TKE.OUT", Output, writeheader=true, newline='\n', delim=' ')
+CSV.write(
+    "output_data/$(fissionant_nucleus_identifier)_nu_TKE.OUT", 
+    DataFrame(TKE = ν_TKE.Argument, ν = ν_TKE.Value), 
+    writeheader=true, newline="\r\n", delim=' '
+)
 
 y_Ap_Z_TKE, y_Ap_Z, y_Ap = Yield_post_neutron(y_A_Z_TKE, ν_A_Z_TKE)
-Output = DataFrame(Aₚ = y_Ap.Argument, Y = y_Ap.Value, σ = y_Ap.σ)
-CSV.write("output_data/Y_Ap.OUT", Output, writeheader=true, newline='\n', delim=' ')
-Output = DataFrame(Aₚ = y_Ap_Z.A, Z = y_Ap_Z.Z, Y = y_Ap_Z.Value, σ = y_Ap_Z.σ)
-CSV.write("output_data/y_Ap_Z.OUT", Output, writeheader=true, newline='\n', delim=' ')
+CSV.write(
+    "output_data/$(fissionant_nucleus_identifier)_Y_Ap.OUT", 
+    DataFrame(Aₚ = y_Ap.Argument, Y = y_Ap.Value, σ = y_Ap.σ), 
+    writeheader=true, newline="\r\n", delim=' '
+)
+CSV.write(
+    "output_data/$(fissionant_nucleus_identifier)_Y_Ap_Z.OUT", 
+    DataFrame(Aₚ = y_Ap_Z.A, Z = y_Ap_Z.Z, Y = y_Ap_Z.Value, σ = y_Ap_Z.σ), 
+    writeheader=true, newline="\r\n", delim=' '
+)
 =#

@@ -22,6 +22,11 @@ end
 #Define value range for TKE
 tkerange = TKE_min:TKE_step:TKE_max
 
+#Define value ranges for A
+HF_range = A_H_min:A_H_max
+LF_range = (A₀ - A_H_max):(A₀ - A_H_min)
+total_range = (A₀ - A_H_max):A_H_max
+
 #Input variables corrections according to fission type
 if fission_type == "SF"
     #Null neutron incident energy in spontaneous fission
@@ -31,7 +36,6 @@ elseif fission_type == "(n,f)"
     A₀ += 1
 end
 
-#Necessary inputs for VARIABLE neutron cs
 if evaporation_cs_type == "VARIABLE"
     using Roots
     ħc = 197.3268601
@@ -42,7 +46,7 @@ if evaporation_cs_type == "VARIABLE"
 end
 
 if neutron_spectrum == "YES"
-    using QuadGK
+    using QuadGK, Trapz
     struct Neutron_spectrum_obj{T <: Vector{Float64}} <: AbstractDistribution
         E::T
         Value::T
@@ -163,6 +167,7 @@ function Total_excitation_energy(Q, σ_Q, TKE, σ_TKE, Sₙ, σ_Sₙ, Eₙ)
 end
 #Construct vectorized fragmentation domain with p(A,Z) values stored in memory
 function Fragmentation_domain(A_0, Z_0, NoZperA, A_H_min, A_H_max, dpAZ)
+    println("*building fragmentation domain")
     fragmdomain = Distribution(Int[], Int[], Float64[], Int[], Float64[], Float64[])
     for A_H in A_H_min:A_H_max
         A_L = A_0 - A_H
@@ -216,6 +221,7 @@ function Average_neutron_energy(α::Float64, T::Float64)
 end
 #Processing raw DSE eq output
 function Process_main_output(DSE_eq_output, evaporation_cs_type)
+    println("*processing DSE equations primary output")
     Tₖ, aₖ = DSE_eq_output[1], DSE_eq_output[2]
     if evaporation_cs_type .== "CONSTANT"
         Datafile = DataFrame(
@@ -224,7 +230,8 @@ function Process_main_output(DSE_eq_output, evaporation_cs_type)
             TKE = Tₖ.TKE, 
             No_Sequence = Tₖ.No_Sequence, 
             Tₖ = Tₖ.Value, 
-            aₖ = aₖ
+            aₖ = aₖ,
+            Avg_εₖ = Average_neutron_energy.(Tₖ.Value)
         )
     elseif evaporation_cs_type .== "VARIABLE"
         αₖ = DSE_eq_output[3]
@@ -235,16 +242,18 @@ function Process_main_output(DSE_eq_output, evaporation_cs_type)
             No_Sequence = Tₖ.No_Sequence, 
             Tₖ = Tₖ.Value, 
             aₖ = aₖ,
-            αₖ = αₖ
+            αₖ = αₖ,
+            Avg_εₖ = Average_neutron_energy.(αₖ, Tₖ.Value)
         )
     end
     return Datafile
 end
 #Writing main output file
-function Write_seq_output(A_0, Z_0, A_H_min, A_H_max, No_ZperA, Eₙ, tkerange, fragmdomain, E_excitation, Processed_raw_output, density_parameter_type, density_parameter_datafile, evaporation_cs_type, mass_excess_filename, txe_partitioning_type, dm)
+function Write_seq_output(A_0, Z_0, A_H_min, A_H_max, No_ZperA, Eₙ, tkerange, fragmdomain, E_excitation, Processed_raw_output, density_parameter_type, density_parameter_datafile, fissionant_nucleus_identifier, mass_excess_filename, txe_partitioning_type, dm)
+    println("*writing main DSE output data to file")
     horizontal_delimiter = lpad('-', 159, '-')
     Sₙ = Separation_energy(1, 0, A_0, Z_0, dm)
-    open("output_data/main_DSE.OUT", "w") do file
+    open("output_data/$(fissionant_nucleus_identifier)_main_DSE_.OUT", "w") do file
         write(file, "DSE main output file for the following input data:\n")
         write(file,"(A₀ = $A_0, Z₀ = $Z_0), fission type $fission_type, $No_ZperA Z per A, mass excess file - $mass_excess_filename\n")
         write(file,"Heavy Fragment mass number ranges from $A_H_min to $A_H_max\n")
@@ -273,16 +282,10 @@ function Write_seq_output(A_0, Z_0, A_H_min, A_H_max, No_ZperA, Eₙ, tkerange, 
                             write(file, "/ Eʳ = $Eᵣ_k ")
                             S_k = Separation_energy(1, 0, A-k, Z, dm)[1]
                             write(file, "/ Sₙ = $S_k ")
-                            if evaporation_cs_type == "CONSTANT"
-                                avgε_k = Average_neutron_energy(T_k)
-                                write(file, "/ <ε> = $avgε_k\n")
-                            elseif evaporation_cs_type == "VARIABLE"
-                                α_k = Processed_raw_output.αₖ[(Processed_raw_output.A .== A) .& (Processed_raw_output.Z .== Z) .& (Processed_raw_output.TKE .== TKE) .& (Processed_raw_output.No_Sequence .== k)][1]
-                                avgε_k = Average_neutron_energy(α_k, T_k)
-                                write(file, "/ <ε> = $avgε_k\n")
-                            end
+                            avgε_k = Processed_raw_output.Avg_εₖ[(Processed_raw_output.A .== A) .& (Processed_raw_output.Z .== Z) .& (Processed_raw_output.TKE .== TKE) .& (Processed_raw_output.No_Sequence .== k)][1]
+                            write(file, "/ <ε> = $avgε_k\n")
                         else
-                            write(file, "   *Fragment does not emit neutrons at specified TKE!\n")
+                            write(file, "   *Fragment does not emit neutrons at TKE = $(TKE)!\n")
                         end
                     end
                     write(file, '\n')

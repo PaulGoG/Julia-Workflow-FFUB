@@ -9,6 +9,7 @@ deformation energy at scission and deformation energy at total acceleration of t
 
 3. Temperature ratio R_T = T_L/T_H for fragments at total acceleration in Fermi Gas regime provided via parametrization by segments
 =#
+#####
 #Modelling at scission
 function TXE_partitioning(A_0, Z_0, A_H_min, A_H_max, Eₙ, fragmdomain, dΔE_def, tkerange, density_parameter_type, density_parameter_datafile, dm)
     E_excit = Distribution(Int[], Int[], Float64[], Int[], Float64[], Float64[])
@@ -191,6 +192,7 @@ function TXE_partitioning(A_0, Z_0, A_H_min, A_H_max, Eₙ, fragmdomain, Points:
     end
 end
 function TXE_partitioning(txe_partitioning_type, A₀, Z₀, A_H_min, A_H_max, Eₙ, fragmdomain, txe_partitioning_datafile, tkerange, density_parameter_type, density_parameter_datafile, dm)
+    println("*partitioning Total Excitation Energy")
     if txe_partitioning_type == "MSCZ"
         return TXE_partitioning(A₀, Z₀, A_H_min, A_H_max, Eₙ, fragmdomain, txe_partitioning_datafile, tkerange, density_parameter_type, density_parameter_datafile, dm)
     elseif txe_partitioning_type == "PARAM"

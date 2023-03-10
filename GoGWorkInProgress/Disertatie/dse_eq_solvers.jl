@@ -117,6 +117,7 @@ function DSE_equation_solver_VARIABLE_cs(E_excitation, density_parameter_type, d
     return Tₖ, aₖ, αₖ
 end
 function DSE_equation_solver(evaporation_cs_type, E_excitation, density_parameter_type, density_parameter_datafile, dm)
+    println("*solving DSE energy conservation equations")
     if evaporation_cs_type == "CONSTANT"
         return DSE_equation_solver_CONSTANT_cs(E_excitation, density_parameter_type, density_parameter_datafile, dm)
     elseif evaporation_cs_type == "VARIABLE"
