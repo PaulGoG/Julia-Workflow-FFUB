@@ -54,14 +54,12 @@ if neutron_spectrum == "YES"
     energyrange = E_min:E_step:E_max
 end
 
-println("*reading input data files")
-
 dmass_excess = CSV.read(mass_excess_filename, DataFrame; delim = mass_excess_delimiter, ignorerepeated = true, header = mass_excess_header, skipto = mass_excess_firstdataline)
-println("reading $mass_excess_filename done!")
+println("*reading $mass_excess_filename done!")
 
 if density_parameter_type == "GC"
     density_parameter_datafile = CSV.read(density_parameter_filename, DataFrame; delim = density_parameter_delimiter, ignorerepeated = true, header = density_parameter_header, skipto = density_parameter_firstdataline)
-    println("reading $density_parameter_filename done!")
+    println("*reading $density_parameter_filename done!")
 elseif density_parameter_type == "BSFG"
     density_parameter_datafile = dmass_excess
     const Dᵖ = dmass_excess.D[(dmass_excess.A .== 1) .& (dmass_excess.Z .== 1)][1]*1e-3
@@ -80,19 +78,19 @@ if isobaric_distribution_type == "MEAN_VALUES"
     isobaric_distribution_datafile = DataFrame(A = NaN)
 elseif isobaric_distribution_type == "DATA"
     isobaric_distribution_datafile = CSV.read(isobaric_distribution_filename, DataFrame; delim = isobaric_distribution_delimiter, ignorerepeated = true, header = isobaric_distribution_header, skipto = isobaric_distribution_firstdataline)
-    println("reading $isobaric_distribution_filename done!")
+    println("*reading $isobaric_distribution_filename done!")
 end
 
 if txe_partitioning_type == "MSCZ"
     txe_partitioning_datafile = CSV.read(txe_partitioning_filename, DataFrame; delim = txe_partitioning_delimiter, ignorerepeated = true, header = txe_partitioning_header, skipto = txe_partitioning_firstdataline)
-    println("reading $txe_partitioning_filename done!")
+    println("*reading $txe_partitioning_filename done!")
 else
     txe_partitioning_datafile = txe_partitioning_segmentpoints
 end
 
 if secondary_outputs == "YES"
     dY = CSV.read(yield_distribution_filename, DataFrame; delim = yield_distribution_delimiter, ignorerepeated = true, header = yield_distribution_header, skipto = yield_distribution_firstdataline)
-    println("reading $yield_distribution_filename done!")
+    println("*reading $yield_distribution_filename done!")
 end
 
 #Revert relative PATH to project root folder

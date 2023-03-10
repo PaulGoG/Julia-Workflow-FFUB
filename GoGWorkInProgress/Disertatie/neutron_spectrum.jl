@@ -10,26 +10,28 @@ end
 function u_2(E, E_f)
     return (sqrt(E) + sqrt(E_f))^2
 end
-function Neutron_spectrum_CONSTANT_cs(A_0, Z_0, A_H_min, A_H_max, energyrange, Raw_output_datafile::DataFrame, y_A_Z_TKE::Distribution, Y_cutoff_value)
+function Neutron_spectrum_CONSTANT_cs(A_0, Z_0, A_H_min, A_H_max, energyrange, Raw_output_datafile::DataFrame, y_A_Z_TKE::DataFrame)
     n_E = Neutron_spectrum_obj(Float64[], Float64[])
     function Neutron_spectrum_k(ε::Float64, T::Float64)
         return ε *exp(-ε/T) /T^2
     end
     E_min = first(energyrange)
     ΔE = last(energyrange) - first(energyrange)
-    println("Progress: 0%")
     for E in energyrange
         Denominator = 0.0
         Numerator = 0.0
-        if isinteger(E)
+        if isinteger(E - E_min)
             println("Progress: $(Int(round(100*(E - E_min)/ΔE)))%")
         end
         for A_H in A_H_min:A_H_max
             A_L = A_0 - A_H
             for Z_H in unique(y_A_Z_TKE.Z[(y_A_Z_TKE.A .== A_H)])
                 Z_L = Z_0 - Z_H
-                for TKE in y_A_Z_TKE.TKE[(y_A_Z_TKE.A .== A_H) .& (y_A_Z_TKE.Z .== Z_H) .& (y_A_Z_TKE.Value .>= Y_cutoff_value)]
+                for TKE in y_A_Z_TKE.TKE[(y_A_Z_TKE.A .== A_H) .& (y_A_Z_TKE.Z .== Z_H)]
                     Y_A_Z_TKE = y_A_Z_TKE.Value[(y_A_Z_TKE.A .== A_H) .& (y_A_Z_TKE.Z .== Z_H) .& (y_A_Z_TKE.TKE .== TKE)][1]
+                    if A_L == A_H
+                        Y_A_Z_TKE /= 2
+                    end
                     #HF
                     if !isassigned(Raw_output_datafile.No_Sequence[(Raw_output_datafile.A .== A_H) .& (Raw_output_datafile.Z .== Z_H) .& (Raw_output_datafile.TKE .== TKE)], 1)
                         ν_H = 0.0
@@ -74,26 +76,28 @@ function Neutron_spectrum_CONSTANT_cs(A_0, Z_0, A_H_min, A_H_max, energyrange, R
     end
     return n_E
 end
-function Neutron_spectrum_VARIABLE_cs(A_0, Z_0, A_H_min, A_H_max, energyrange, Raw_output_datafile::DataFrame, y_A_Z_TKE::Distribution, Y_cutoff_value)
+function Neutron_spectrum_VARIABLE_cs(A_0, Z_0, A_H_min, A_H_max, energyrange, Raw_output_datafile::DataFrame, y_A_Z_TKE::DataFrame)
     n_E = Neutron_spectrum_obj(Float64[], Float64[])
     function Neutron_spectrum_k(ε::Float64, α::Float64, T::Float64)
         (ε + α*sqrt(ε)) *exp(-ε/T) /((sqrt(T) +α*sqrt(π)/2) *T^(3/2))
     end
     E_min = first(energyrange)
     ΔE = last(energyrange) - first(energyrange)
-    println("Progress: 0%")
     for E in energyrange
         Denominator = 0.0
         Numerator = 0.0
-        if isinteger(E)
+        if isinteger(E - E_min)
             println("Progress: $(Int(round(100*(E - E_min)/ΔE)))%")
         end
         for A_H in A_H_min:A_H_max
             A_L = A_0 - A_H
             for Z_H in unique(y_A_Z_TKE.Z[(y_A_Z_TKE.A .== A_H)])
                 Z_L = Z_0 - Z_H
-                for TKE in y_A_Z_TKE.TKE[(y_A_Z_TKE.A .== A_H) .& (y_A_Z_TKE.Z .== Z_H) .& (y_A_Z_TKE.Value .>= Y_cutoff_value)]
+                for TKE in y_A_Z_TKE.TKE[(y_A_Z_TKE.A .== A_H) .& (y_A_Z_TKE.Z .== Z_H)]
                     Y_A_Z_TKE = y_A_Z_TKE.Value[(y_A_Z_TKE.A .== A_H) .& (y_A_Z_TKE.Z .== Z_H) .& (y_A_Z_TKE.TKE .== TKE)][1]
+                    if A_L == A_H
+                        Y_A_Z_TKE /= 2
+                    end
                     #HF
                     if !isassigned(Raw_output_datafile.No_Sequence[(Raw_output_datafile.A .== A_H) .& (Raw_output_datafile.Z .== Z_H) .& (Raw_output_datafile.TKE .== TKE)], 1)
                         ν_H = 0.0
@@ -140,12 +144,12 @@ function Neutron_spectrum_VARIABLE_cs(A_0, Z_0, A_H_min, A_H_max, energyrange, R
     end
     return n_E
 end
-function Neutron_spectrum_builder(A_0, Z_0, A_H_min, A_H_max, energyrange, Raw_output_datafile::DataFrame, evaporation_cs_type, y_A_Z_TKE::Distribution, Y_cutoff_value)
+function Neutron_spectrum_builder(A_0, Z_0, A_H_min, A_H_max, energyrange, Raw_output_datafile::DataFrame, evaporation_cs_type, y_A_Z_TKE::DataFrame)
     println("*generating prompt neutron spectrum")
     if evaporation_cs_type == "CONSTANT"
-        return Neutron_spectrum_CONSTANT_cs(A_0, Z_0, A_H_min, A_H_max, energyrange, Raw_output_datafile, y_A_Z_TKE, Y_cutoff_value)
+        return Neutron_spectrum_CONSTANT_cs(A_0, Z_0, A_H_min, A_H_max, energyrange, Raw_output_datafile, y_A_Z_TKE)
     elseif evaporation_cs_type == "VARIABLE"
-        return Neutron_spectrum_VARIABLE_cs(A_0, Z_0, A_H_min, A_H_max, energyrange, Raw_output_datafile, y_A_Z_TKE, Y_cutoff_value)
+        return Neutron_spectrum_VARIABLE_cs(A_0, Z_0, A_H_min, A_H_max, energyrange, Raw_output_datafile, y_A_Z_TKE)
     end
 end
 function Normalise_spectrum_to_Maxwellian(E::Vector{Float64}, N::Vector{Float64}, T_M::Float64)
@@ -159,13 +163,19 @@ function Normalise_spectrum_to_Maxwellian(E::Vector{Float64}, N::Vector{Float64}
 end
 #####
 
-n_E = Neutron_spectrum_builder(A₀, Z₀, A_H_min, A_H_max, energyrange, Raw_output_datafile, evaporation_cs_type, y_A_Z_TKE, Y_cutoff_value)
+Yield = DataFrame(
+    A = y_A_Z_TKE.A[(y_A_Z_TKE.Value .>= Yield_cutoff_value) .& (y_A_Z_TKE.A .>= A_H_min)], 
+    Z = y_A_Z_TKE.Z[(y_A_Z_TKE.Value .>= Yield_cutoff_value) .& (y_A_Z_TKE.A .>= A_H_min)],
+    TKE = y_A_Z_TKE.TKE[(y_A_Z_TKE.Value .>= Yield_cutoff_value) .& (y_A_Z_TKE.A .>= A_H_min)],
+    Value = y_A_Z_TKE.Value[(y_A_Z_TKE.Value .>= Yield_cutoff_value) .& (y_A_Z_TKE.A .>= A_H_min)]
+)
+n_E = Neutron_spectrum_builder(A₀, Z₀, A_H_min, A_H_max, energyrange, Raw_output_datafile, evaporation_cs_type, Yield)
 #<E_spectrum> = 3/2 *T_M_equivalent
 T_M_eq = 2/3 * trapz(n_E.E, n_E.Value .* n_E.E)/trapz(n_E.E, n_E.Value)
 Ratio_to_Maxwellian = copy(n_E.Value)
 Normalise_spectrum_to_Maxwellian(n_E.E, Ratio_to_Maxwellian, T_M_eq)
 CSV.write(
-    "output_data/$(fissionant_nucleus_identifier)_neutron_spectrum_TMequiv_$T_M_eq.OUT", 
+    "output_data/$(fissionant_nucleus_identifier)_neutron_spectrum_TMequiv_$(round(T_M_eq, digits = 4)).OUT", 
     DataFrame(E = n_E.E, N = n_E.Value, Ratio_Maxwellian = Ratio_to_Maxwellian), 
     writeheader=true, newline="\r\n", delim=' '
 )

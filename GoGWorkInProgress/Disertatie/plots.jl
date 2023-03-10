@@ -35,21 +35,6 @@ function Plot_surface(q_x_y::DataFrame, tick_size_xaxis::Int, tick_roundness_xax
     )
     return plt
 end
-function Modify_plot(plt::Plots.Plot, xaxisname, yaxisname, xaxislims::Tuple, xaxisscale, yaxislims::Tuple, yaxisscale, plot_title, DPI::Int)
-    plot!(
-        plt,
-        xlabel = xaxisname,
-        ylabel = yaxisname,
-        xlims = xaxislims,
-        ylims = yaxislims,
-        xscale = xaxisscale,
-        yscale = yaxisscale,
-        title = plot_title,
-        dpi = DPI,
-        minorgrid = true,
-        framestyle = :box
-    )
-end
 function Plot_data(x, y, plot_label, plot_color)
     plt = plot(x, y, label = plot_label, color = plot_color)
     return plt
@@ -92,11 +77,27 @@ function Scatter_data(plt::Plots.Plot, x, y, σ, plot_label, marker_color, marke
         markercolor = marker_color, markersize = marker_size, markershape = marker_shape
     )
 end
+function Modify_plot(plt::Plots.Plot, xaxisname, yaxisname, xaxislims::Tuple, xaxisscale, yaxislims::Tuple, yaxisscale, plot_title, DPI::Int)
+    plot!(
+        plt,
+        xlabel = xaxisname,
+        ylabel = yaxisname,
+        xlims = xaxislims,
+        ylims = yaxislims,
+        xscale = xaxisscale,
+        yscale = yaxisscale,
+        title = plot_title,
+        dpi = DPI
+    )
+end
+function Modify_plot(plt::Plots.Plot)
+    plot!(plt, minorgrid = true, framestyle = :box)
+end
 function Plot_textbox(plt::Plots.Plot, x, y, text)
     annotate!(plt, x, y, text)
 end
 function Plot_legend_attributes(plt::Plots.Plot, lposition)
-    plot!(legend_position = lposition)
+    plot!(plt, legend_position = lposition)
 end
 function Display_plot(plt::Plots.Plot, filename::String)
     display(plt)
@@ -120,10 +121,9 @@ plot_surface_y_Ap_Z = Plot_surface(
     )
     Display_plot(plot_neutron_spectrum, "randomfilename")
 
-
-plot_neutron_spectrum = Plot_data(n_E.E, n_E.Value, "", :red)
+plot_neutron_spectrum = Plot_data(n_E.E, Ratio_to_Maxwellian, "", :red)
 plot_neutron_spectrum = Modify_plot(
     plot_neutron_spectrum, "E [MeV]", "N(E)", (first(n_E.E), last(n_E.E)),
-    :identity, (first(n_E.Value), last(n_E.Value)), :log10, "Neutron spectrum in SL", 300 
+    :identity, (minimum(n_E.Value), maximum(n_E.Value)), :log10, "Neutron spectrum, linear scale", 300 
 )
-Display_plot(plot_neutron_spectrum, "randomfilename")
+Display_plot(plot_neutron_spectrum, "Neutron spectrum_linear")

@@ -30,5 +30,5 @@ end
 if generate_plots == "YES"
     include("plots.jl")
 end
-
-println("*program execution successful!")
+println("*end program execution at $(Dates.format(now(), "HH:MM:SS"))")
+println("*program execution succesful!")

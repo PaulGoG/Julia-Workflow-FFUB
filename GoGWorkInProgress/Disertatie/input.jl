@@ -1,8 +1,8 @@
 #Designation of input values and parameters 
 #####
-println("*starting program")
+using Dates
+println("*begin program execution at $(Dates.format(now(), "HH:MM:SS"))")
 println("*loading input parameters and Julia libraries")
-
 #Add path to input data folder
 cd(@__DIR__)
 if !isdir("input_data/")
@@ -106,10 +106,10 @@ yield_distribution_firstdataline = 2
 
 #Neutron spectrum calculation YES or NO selector   
 neutron_spectrum = "YES"
-E_min = 1e-3
+E_min = 1e-4
 E_max = 20.0
 E_step = 1e-2
-Y_cutoff_value = 1e-8
+Yield_cutoff_value = 1e-4
 
 #=
 Plots YES or NO selector
