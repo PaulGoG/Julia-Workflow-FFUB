@@ -3,7 +3,7 @@
 cd(@__DIR__)
 cd("input_data/")
 
-using CSV, DataFrames, Tables
+using CSV, DataFrames, Tables, Plots
 
 #=
 !DATA-SPECIFIC CODE!
@@ -58,48 +58,34 @@ if nrow(rawdatafile_1) == nrow(rawdatafile_2)
 else error("raw data files row sizes do not match!")
 end
 =#
+#=
+#Check s-wave neutron strength function from RIPL vs dse_eq_solvers
+rawdatafile_name = "resonances0.dat"
+rawdatafile_header = ["Z", "Symbol", "A", "Io", "Bn", "D0", "dD", "S0", "dS", "Gg", "dG", "Com"]
+rawdatafile_firstline = 5
+rawdatafile_delim = ' '
+rawdatafile = CSV.read(rawdatafile_name, DataFrame; delim = rawdatafile_delim, ignorerepeated = true, skipto = rawdatafile_firstline, header = rawdatafile_header)
+rawdatafile.S0 .*= 1e-4
+
+RIPL_data = DataFrame(A = rawdatafile.A[rawdatafile.S0 .> 0], Z = rawdatafile.Z[rawdatafile.S0 .> 0], S_0 = rawdatafile.S0[rawdatafile.S0 .> 0])
+A_data = Float64[]
+S0_A_data = Float64[]
+for A in sort(unique(RIPL_data.A))
+    Denominator = 0.0
+    Numerator = 0.0
+    for Z in RIPL_data.Z[RIPL_data.A .== A]
+        Numerator += RIPL_data.S_0[(RIPL_data.A .== A) .& ((RIPL_data.Z .== Z))][1]
+        Denominator += 1.0
+    end
+    if Denominator > 0
+        push!(S0_A_data, Numerator/Denominator)
+        push!(A_data, A)
+    end
+end
+
+scatter(A_data, S0_A_data)
+S0_Calc = Strength_function_S₀.(A_data)
+plot!(A_data, S0_Calc, yscale=:identity, size = (1000, 1000))
+=#
 #####
 
-#=
-#Sorts data in ascending order for mass number
-length_Y = length(y_A_Z_TKE.Value)
-aux_A = sort(y_A_Z_TKE.A)
-aux_Z = [y_A_Z_TKE.Z[y_A_Z_TKE.A .== A] for A in unique(aux_A)]
-aux_Z = reduce(vcat, aux_Z)
-aux_TKE = zeros(length_Y)
-aux_Value = zeros(length_Y)
-aux_σ = zeros(length_Y)
-aux_index = 0
-for index_fragmdomain in eachindex(fragmdomain.A)
-    for TKE in unique(y_A_Z_TKE.TKE[(y_A_Z_TKE.A .== fragmdomain.A[index_fragmdomain]) .& (y_A_Z_TKE.Z .== fragmdomain.Z[index_fragmdomain])])
-        aux_index += 1
-        aux_TKE[aux_index] = y_A_Z_TKE.TKE[(y_A_Z_TKE.A .== fragmdomain.A[index_fragmdomain]) .& (y_A_Z_TKE.Z .== fragmdomain.Z[index_fragmdomain]) .& (y_A_Z_TKE.TKE .== TKE)][1]
-        aux_Value[aux_index] = y_A_Z_TKE.Value[(y_A_Z_TKE.A .== fragmdomain.A[index_fragmdomain]) .& (y_A_Z_TKE.Z .== fragmdomain.Z[index_fragmdomain]) .& (y_A_Z_TKE.TKE .== TKE)][1]
-        aux_σ[aux_index] = y_A_Z_TKE.σ[(y_A_Z_TKE.A .== fragmdomain.A[index_fragmdomain]) .& (y_A_Z_TKE.Z .== fragmdomain.Z[index_fragmdomain]) .& (y_A_Z_TKE.TKE .== TKE)][1]
-    end
-end
-for index in 1:aux_index
-    y_A_Z_TKE.A[index] = aux_A[index]
-    y_A_Z_TKE.Z[index] = aux_Z[index]
-    y_A_Z_TKE.TKE[index] = aux_TKE[index]
-    y_A_Z_TKE.Value[index] = aux_Value[index]
-    y_A_Z_TKE.σ[index] = aux_σ[index]
-end
-=#
-#=
-if Denominator > 0
-    ν_A_Z = Numerator/Denominator
-    Y_A_Z = sum(y_A_Z_TKE.Value[(y_A_Z_TKE.A .== A) .& (y_A_Z_TKE.Z .== Z)])
-    σ_Y_A_Z = sqrt(sum(y_A_Z_TKE.σ[(y_A_Z_TKE.A .== A) .& (y_A_Z_TKE.Z .== Z)].^2))
-    Aₚ = round(A - ν_A_Z)
-    if !isassigned(y_Z_Aₚ.Value[(y_Z_Aₚ.A .== Aₚ) .& (y_Z_Aₚ.Z .== Z)], 1)
-        push!(y_Z_Aₚ.A, Aₚ)
-        push!(y_Z_Aₚ.Z, Z)
-        push!(y_Z_Aₚ.Value, Y_A_Z)
-        push!(y_Z_Aₚ.σ, σ_Y_A_Z)
-    else
-        y_Z_Aₚ.Value[(y_Z_Aₚ.A .== Aₚ) .& (y_Z_Aₚ.Z .== Z)] .+= Y_A_Z
-        y_Z_Aₚ.σ[(y_Z_Aₚ.A .== Aₚ) .& (y_Z_Aₚ.Z .== Z)] .= sqrt(sum(y_Z_Aₚ.σ[(y_Z_Aₚ.A .== Aₚ) .& (y_Z_Aₚ.Z .== Z)].^2) + σ_Y_A_Z^2)
-    end
-end
-=#
