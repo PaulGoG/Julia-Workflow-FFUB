@@ -67,25 +67,79 @@ rawdatafile_delim = ' '
 rawdatafile = CSV.read(rawdatafile_name, DataFrame; delim = rawdatafile_delim, ignorerepeated = true, skipto = rawdatafile_firstline, header = rawdatafile_header)
 rawdatafile.S0 .*= 1e-4
 
-RIPL_data = DataFrame(A = rawdatafile.A[rawdatafile.S0 .> 0], Z = rawdatafile.Z[rawdatafile.S0 .> 0], S_0 = rawdatafile.S0[rawdatafile.S0 .> 0])
-A_data = Float64[]
-S0_A_data = Float64[]
-for A in sort(unique(RIPL_data.A))
-    Denominator = 0.0
-    Numerator = 0.0
-    for Z in RIPL_data.Z[RIPL_data.A .== A]
-        Numerator += RIPL_data.S_0[(RIPL_data.A .== A) .& ((RIPL_data.Z .== Z))][1]
-        Denominator += 1.0
-    end
-    if Denominator > 0
-        push!(S0_A_data, Numerator/Denominator)
-        push!(A_data, A)
+RIPL3_data = DataFrame(A = rawdatafile.A[rawdatafile.S0 .> 0], Z = rawdatafile.Z[rawdatafile.S0 .> 0], S_0 = rawdatafile.S0[rawdatafile.S0 .> 0])
+
+function Strength_function_new(A)
+    if A <= 23
+        return 2.5e-5
+    elseif A > 23 && A <= 55
+        return 1.296875e-5 *A - 0.00027328125
+    elseif A > 55 && A <= 69
+        return -2.142857142857143e-5 *A + 0.0016185714285714289
+    elseif A > 69 && A <= 79
+        return 0.00014
+    elseif A > 79 && A <= 90
+        return -7.818181818181818e-6 *A + 0.0007576363636363635
+    elseif A > 90 && A <= 110
+        return 5.4e-5
+    elseif A > 110 && A <= 120
+        return -4.4e-6 *A + 0.000538 
+    elseif A > 120 && A <= 135
+        return 6.666666666666667e-6 *A - 0.00079
+    elseif A > 135 && A <= 146
+        return 2.4545454545454552e-5 *A - 0.0032036363636363647
+    elseif A > 146 && A <= 152
+        return 0.00038
+    elseif A > 152 && A <= 158
+        return -3.833333333333334e-5 *A + 0.006206666666666668
+    elseif A > 158 && A <= 173
+        return 0.00015
+    elseif A > 173 && A <= 186
+        return 1.0769230769230771e-5 *A - 0.0017130769230769235
+    elseif A > 186 && A <= 208
+        return -8.636363636363637e-6 *A + 0.0018963636363636366
+    elseif A > 208
+        return 1e-4
     end
 end
 
-scatter(A_data, S0_A_data)
-S0_Calc = Strength_function_S₀.(A_data)
-plot!(A_data, S0_Calc, yscale=:identity, size = (1000, 1000))
+function Strength_function_old(A)
+    if A <= 70
+        return 7e-5
+    elseif A > 70 && A <= 86
+        return 1e-4 *(A*1.875e-2 - 6.125e-1)
+    elseif A > 86 && A <= 111
+        return 1e-4 
+    elseif A > 111 && A <= 121
+        return 1e-4 *(-A*2.857e-2 + 4.1714)
+    elseif A > 121 && A <= 140
+        return 1e-4 
+    elseif A > 140 && A <= 144
+        return 1e-4 *(A*7.5e-2 - 9.8)
+    elseif A > 144
+        return 1e-4
+    end
+end
+
+function slope_intercept(x_1, y_1, x_2, y_2)
+    a = (y_1-y_2)/(x_1-x_2)
+    b = y_1 - a*x_1
+    return a, b
+end
+
+slope_intercept(135, 0.00010999999999999996, 146, 380e-6)
+
+S0_old = Strength_function_old.(sort(unique(RIPL3_data.A)))
+S0_new = Strength_function_new.(sort(unique(RIPL3_data.A)))
+
+pltlog = scatter(RIPL3_data.A, RIPL3_data.S_0, yscale=:log10, size = (1280, 720), color = :black, xlabel = "A", ylabel = "S₀", framestyle = :box, minorgrid = true, title = "logarithmic scale")
+pltlog = scatter!(pltlog, sort(unique(RIPL3_data.A)), S0_old, color = :red)
+pltlog = plot!(pltlog, sort(unique(RIPL3_data.A)), S0_new, color = :blue)
+
+pltlin = scatter(RIPL3_data.A, RIPL3_data.S_0, yscale=:identity, size = (1280, 720), color = :black, xlabel = "A", ylabel = "S₀", framestyle = :box, minorgrid = true, title = "linear scale")
+pltlin = scatter!(pltlin, sort(unique(RIPL3_data.A)), S0_old, color = :red)
+pltlin = plot!(pltlin, sort(unique(RIPL3_data.A)), S0_new, color = :blue)
+
 =#
 #####
 

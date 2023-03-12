@@ -41,7 +41,7 @@ if evaporation_cs_type == "VARIABLE"
     ħc = 197.3268601
     amu = 931.50176
     aₘ = 1.008665
-    const r₀ = 1.2e-1
+    const r₀ = 1.2
     const C_α = (π*ħc)^2 /(aₘ*amu)
 end
 

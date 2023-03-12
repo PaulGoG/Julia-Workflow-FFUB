@@ -65,9 +65,9 @@ function Strength_function_S₀(A)
 end
 #Solves the transcendental equation for given sequence
 function Solve_transcendental_eq(Eᵣ_k_last, Sₙ_k_last, a_k, A, k)
-    σ₀ = π*r₀^2 *(A - k)^(2/3)
+    σ₀ = π *(r₀ *0.1)^2 *(A - k)^(2/3)
     S₀ = Strength_function_S₀(A - k)
-    αₖ = 10*C_α*S₀/σ₀
+    αₖ = 10 *C_α *S₀ /σ₀
     f(Tₖ) = a_k*Tₖ^2 + Tₖ*(2*sqrt(Tₖ) + αₖ*3*sqrt(π)/4)/(sqrt(Tₖ) + αₖ*sqrt(π)/2) + (Sₙ_k_last - Eᵣ_k_last)
     T_k = find_zero(f, 1.0)
     return T_k, αₖ
