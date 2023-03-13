@@ -37,11 +37,10 @@ if density_parameter_type != "GC" && density_parameter_type != "BSFG"
     error("$density_parameter_type is not a valid input for density_parameter_type!")
 end
 
-if !isfile(density_parameter_filename)
-    error("$density_parameter_filename does not exist at input_data/  PATH!")
-end
-
 if density_parameter_type == "GC"
+    if !isfile(density_parameter_filename)
+        error("$density_parameter_filename does not exist at input_data/  PATH!")
+    end
     if isassigned(filter(x -> !in(x, ("n", "S_Z", "S_N")), density_parameter_header), 1)
         error(
         "density_parameter_header contains invalid fields: $(filter(x -> !in(x, ("n", "S_Z", "S_N")), density_parameter_header));
@@ -106,12 +105,11 @@ if neutron_spectrum != "YES" && neutron_spectrum != "NO"
     error("$neutron_spectrum is not a valid input for neutron_spectrum")
 end
 
-
 if secondary_outputs == "NO"
     if generate_plots == "YES"
         error("plots cannot be generated without yield-averaged quantities!")
     elseif neutron_spectrum == "YES"
-        error("prompt neutron spectrum cannot be calculated without yield distribution!")
+        error("prompt neutron spectrum cannot be calculated without valid yield distribution!")
     end
 end
 
@@ -125,9 +123,7 @@ if secondary_outputs == "YES"
         allowed header names list: A, TKE, Value, σ"
         )
     end
-    if neutron_spectrum == "YES"
-        if E_min >= E_max 
-            error("invalid Energy range!")
-        end
+    if neutron_spectrum == "YES" && E_min >= E_max
+        error("invalid Energy range!")
     end
 end
