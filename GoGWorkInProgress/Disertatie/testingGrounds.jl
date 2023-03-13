@@ -2,18 +2,12 @@
 
 cd(@__DIR__)
 cd("input_data/")
+using CSV, DataFrames, Plots
 
-using CSV, DataFrames, Tables, Plots
-
-#=
-!DATA-SPECIFIC CODE!
-Blocks of code specific to one type of file conversion
-=#
-#####
 #Convert L&H stacked values provided on H domain to single-file values on the whole A domain
 #=
-rawdatafile_name = "EXTRADF5.DSE"
-rawdatafile_header = ["A", "Z", "Val_L", "Val_H"]
+rawdatafile_name = "CF2YATKE.VES"
+rawdatafile_header = ["A", "TKE", "Val"]
 rawdatafile_firstline = 2
 rawdatafile_delim = ' '
 rawdatafile = CSV.read(rawdatafile_name, DataFrame; delim = rawdatafile_delim, ignorerepeated = true, skipto = rawdatafile_firstline, header = rawdatafile_header)
@@ -34,29 +28,28 @@ for i in eachindex(Output[:, 1])
     end
 end
 
-Output = Tables.table(Output;  header=[:A, :Z, :Value])
-newdatafile_name = "EXTRADEF.IN"
-CSV.write(newdatafile_name, Output, delim="   ")
+aux_col = [NaN for i in 1:nrow(rawdatafile)]
+
+Output = DataFrame(A = rawdatafile.A, TKE = rawdatafile.TKE, Value = rawdatafile.Val, σ = aux_col)
+newdatafile_name = "CF2YATKE.VES"
+CSV.write(newdatafile_name, Output, delim=' ')
 =#
 
 #Concatenate data for ΔZ(A) & rms(A) in a single file
 #=
-rawdatafile_name = "U5DELTAZ.WAH"
+rawdatafile_name = "CFDELTAZ.WAH"
 rawdatafile_header = ["A", "Val"]
 rawdatafile_firstline = 2
 rawdatafile_delim = ' '
 rawdatafile_1 = CSV.read(rawdatafile_name, DataFrame; delim = rawdatafile_delim, ignorerepeated = true, skipto = rawdatafile_firstline, header = rawdatafile_header)
 
-rawdatafile_name = "U5RMS.WAH"
+rawdatafile_name = "CFRMS.WAH"
 rawdatafile_2 = CSV.read(rawdatafile_name, DataFrame; delim = rawdatafile_delim, ignorerepeated = true, skipto = rawdatafile_firstline, header = rawdatafile_header)
 
-if nrow(rawdatafile_1) == nrow(rawdatafile_2)
-    Output =  hcat(rawdatafile_1[!, 1], rawdatafile_1[!, 2], rawdatafile_2[!, 2])
-    Output = Tables.table(Output;  header=[:A, :ΔZ, :rms])
-    newdatafile_name = "DeltaZA_rmsA.U5"
-    CSV.write(newdatafile_name, Output, delim="   ")
-else error("raw data files row sizes do not match!")
-end
+Output =  DataFrame(A = rawdatafile_1.A, ΔZ = rawdatafile_1.Val, rms = rawdatafile_2.Val)
+newdatafile_name = "DeltaZ_rms_A.CF2"
+CSV.write(newdatafile_name, Output, delim=' ')
+
 =#
 #=
 #Check s-wave neutron strength function from RIPL vs dse_eq_solvers
@@ -126,20 +119,30 @@ function slope_intercept(x_1, y_1, x_2, y_2)
     b = y_1 - a*x_1
     return a, b
 end
-
 slope_intercept(135, 0.00010999999999999996, 146, 380e-6)
 
 S0_old = Strength_function_old.(sort(unique(RIPL3_data.A)))
 S0_new = Strength_function_new.(sort(unique(RIPL3_data.A)))
 
-pltlog = scatter(RIPL3_data.A, RIPL3_data.S_0, yscale=:log10, size = (1280, 720), color = :black, xlabel = "A", ylabel = "S₀", framestyle = :box, minorgrid = true, title = "logarithmic scale")
-pltlog = scatter!(pltlog, sort(unique(RIPL3_data.A)), S0_old, color = :red)
-pltlog = plot!(pltlog, sort(unique(RIPL3_data.A)), S0_new, color = :blue)
+pltlog = scatter(
+    RIPL3_data.A, RIPL3_data.S_0, 
+    yscale=:log10, size = (1000, 900), color = :black, xlabel = "A", ylabel = "S₀", 
+    framestyle = :box, minorgrid = true, title = "Log10 scale", 
+    xticks = (20:10:300), label="RIPL3 data"
+    )
+pltlog = scatter!(pltlog, sort(unique(RIPL3_data.A)), S0_old, color = :red, label="S₀ old")
+pltlog = plot!(pltlog, sort(unique(RIPL3_data.A)), S0_new, color = :blue, label="S₀ new")
+vline!(pltlog, [76, 160], color = :green, label="")
 
-pltlin = scatter(RIPL3_data.A, RIPL3_data.S_0, yscale=:identity, size = (1280, 720), color = :black, xlabel = "A", ylabel = "S₀", framestyle = :box, minorgrid = true, title = "linear scale")
-pltlin = scatter!(pltlin, sort(unique(RIPL3_data.A)), S0_old, color = :red)
-pltlin = plot!(pltlin, sort(unique(RIPL3_data.A)), S0_new, color = :blue)
-
+pltlin = scatter(
+    RIPL3_data.A, RIPL3_data.S_0, 
+    yscale=:identity, size = (1000, 900), color = :black, xlabel = "A", ylabel = "S₀", 
+    framestyle = :box, minorgrid = true, title = "Lin scale",
+    xticks = (20:10:300), label="RIPL3 data"
+    )
+pltlin = scatter!(pltlin, sort(unique(RIPL3_data.A)), S0_old, color = :red, label="S₀ old")
+pltlin = plot!(pltlin, sort(unique(RIPL3_data.A)), S0_new, color = :blue, label="S₀ new")
+vline!(pltlin, [76, 160], color = :green, label="")
 =#
 #####
 

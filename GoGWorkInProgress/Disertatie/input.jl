@@ -11,23 +11,23 @@ end
 cd("input_data/")
 
 #Mass excess data file name, column names, delimiter symbol, number of first row of actual data in file
-mass_excess_filename = "AUDI2021.ANA"
+mass_excess_filename = "AME2020.ANA"
 mass_excess_header = ["Z", "A", "Symbol", "D", "σ_D"]
 mass_excess_delimiter = ' '
 mass_excess_firstdataline = 1
 
 #(A,Z) and symbol identifier of the fissionant nucleus
-fissionant_nucleus_identifier = "U5"
-A₀ = 235
-Z₀ = 92
+fissionant_nucleus_identifier = "CF52"
+A₀ = 252
+Z₀ = 98
 
 #Heavy fission fragment range 
-A_H_min = 118
-A_H_max = 160
+A_H_min = 126
+A_H_max = 174
 
 #Total Kinetic Energy range and step in MeV
 TKE_min = 100.0
-TKE_max = 200.0
+TKE_max = 250.0
 TKE_step = 1.0
 
 #=
@@ -35,10 +35,10 @@ Fission type:
 *SF for spontaneous fission
 *(n,f) for neutron-induced fission
 =#
-fission_type = "(n,f)"
+fission_type = "SF"
 
 #Specify incident neutron energy in MeV
-Eₙ = 25*1e-9
+Eₙ = 0.0
 
 #=
 Density level parameter computation method:
@@ -66,7 +66,7 @@ Input type for the isobaric charge distribution p(Z,A):
 =#
 isobaric_distribution_type = "DATA"
 
-isobaric_distribution_filename = "DeltaZA_rmsA.U5"
+isobaric_distribution_filename = "DeltaZ_rms_A.$fissionant_nucleus_identifier"
 isobaric_distribution_header = ["A", "ΔZ_A", "rms_A"]
 isobaric_distribution_delimiter = ' '
 isobaric_distribution_firstdataline = 2
@@ -77,37 +77,43 @@ No_ZperA = 5
 #=
 Total Excitation Energy partitioning method:
 *MSCZ for Modelling at scission
-*PARAM for file-provided partitioning ratios E*_H/TXE via segments
-*RT(A_H) for T_L/T_H ratio provided by user via segments -for constant RT provide y=const. segment line-
+*PARAM for file-provided partitioning ratios E*_H/TXE via segments as a function of A_H 
+*RT as a function of A_H for T_L/T_H ratio provided by user via segments -for constant RT provide y=const. segment line-
 
 Data provided in each case: 
 *Extra deformation energies for MSCZ via datafile
 *Segment points in Vector of Tuples (txe_partitioning_segmentpoints) for PARAM & RT
 =#
-txe_partitioning_type = "MSCZ"
+txe_partitioning_type = "RT"
 
-txe_partitioning_filename = "EXTRADEF.IN"
+txe_partitioning_filename = "EXTRADEF.U5"
 txe_partitioning_header = ["A", "Z", "Value"]
 txe_partitioning_delimiter = ' '
 txe_partitioning_firstdataline = 2
 
-txe_partitioning_segmentpoints = [(118, 1.2), (160, 1.2)]
-# 252Cf [(126, 1.0), (130, 2.0), (134, 1.38), (150, 0.88), (175, 0.6059)] BSFG E-B
-# 252Cf [(126, 1.0), (130, 1.734), (134, 1.28), (138, 1.28), (150, 0.9), (167, 0.68)] Superfluid
+txe_partitioning_segmentpoints = [(126, 1.0), (130, 1.734), (134, 1.28), (138, 1.28), (150, 0.9), (167, 0.68)]
 
 #Writing out main DSE output file containing detailed sequence data YES or NO selector
-write_primary_output = "NO"
+write_primary_output = "YES"
 
 #Yield-averaged outputs YES or NO selector
 secondary_outputs = "YES"
+secondary_output_ν = "NO"
+secondary_output_T = "NO"
+secondary_output_Tₖ = "NO"
+secondary_output_avg_ε = "NO"
+secondary_output_avg_εₖ = "NO"
+secondary_output_Yield = "NO"
+secondary_output_TXE_Q = "NO"
+secondary_output_Ap = "NO"
 
-yield_distribution_filename = "U5YATKE.SRE"
+yield_distribution_filename = "$(fissionant_nucleus_identifier)YATKE.VES"
 yield_distribution_header = ["A", "TKE", "Value", "σ"]
 yield_distribution_delimiter = ' '
 yield_distribution_firstdataline = 2
 
 #Neutron spectrum calculation YES or NO selector   
-neutron_spectrum = "YES"
+neutron_spectrum = "NO"
 E_min = 1e-4
 E_max = 20.0
 E_step = 1e-2

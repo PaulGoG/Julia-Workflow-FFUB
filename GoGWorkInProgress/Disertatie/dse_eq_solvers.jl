@@ -47,19 +47,35 @@ end
 #VARIABLE σₙ functions
 #Parametrization for the force function S₀ of the s-wave neutron
 function Strength_function_S₀(A)
-    if A <= 70
-        return 7e-5
-    elseif A > 70 && A <= 86
-        return 1e-4 *(A*1.875e-2 - 6.125e-1)
-    elseif A > 86 && A <= 111
-        return 1e-4 
-    elseif A > 111 && A <= 121
-        return 1e-4 *(-A*2.857e-2 + 4.1714)
-    elseif A > 121 && A <= 140
-        return 1e-4 
-    elseif A > 140 && A <= 144
-        return 1e-4 *(A*7.5e-2 - 9.8)
-    elseif A > 144
+    if A <= 23
+        return 2.5e-5
+    elseif A > 23 && A <= 55
+        return 1.296875e-5 *A - 0.00027328125
+    elseif A > 55 && A <= 69
+        return -2.142857142857143e-5 *A + 0.0016185714285714289
+    elseif A > 69 && A <= 79
+        return 0.00014
+    elseif A > 79 && A <= 90
+        return -7.818181818181818e-6 *A + 0.0007576363636363635
+    elseif A > 90 && A <= 110
+        return 5.4e-5
+    elseif A > 110 && A <= 120
+        return -4.4e-6 *A + 0.000538 
+    elseif A > 120 && A <= 135
+        return 6.666666666666667e-6 *A - 0.00079
+    elseif A > 135 && A <= 146
+        return 2.4545454545454552e-5 *A - 0.0032036363636363647
+    elseif A > 146 && A <= 152
+        return 0.00038
+    elseif A > 152 && A <= 158
+        return -3.833333333333334e-5 *A + 0.006206666666666668
+    elseif A > 158 && A <= 173
+        return 0.00015
+    elseif A > 173 && A <= 186
+        return 1.0769230769230771e-5 *A - 0.0017130769230769235
+    elseif A > 186 && A <= 208
+        return -8.636363636363637e-6 *A + 0.0018963636363636366
+    elseif A > 208
         return 1e-4
     end
 end
