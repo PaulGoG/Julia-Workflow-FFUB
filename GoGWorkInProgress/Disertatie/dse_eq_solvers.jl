@@ -1,15 +1,16 @@
 #=
-Function bodies for solving the DSE conservation equations coresponding to 
+Function bodies for solving the DSE energy conservation equations coresponding to 
 constant and variable neutron evaporation cross section types.
 =#
 #####
-function DSE_equation_solver_CONSTANT_cs(E_excitation, density_parameter_type, density_parameter_datafile, dm)
+#CONSTANT σₙ function
+function DSE_equation_solver_CONSTANT_cs(E_excitation::Distribution, density_parameter_type, density_parameter_data, dm::DataFrame)
     Tₖ = Distribution(Int[], Int[], Float64[], Int[], Float64[], Float64[])
     aₖ = Float64[]
     for A in unique(E_excitation.A)
         for Z in unique(E_excitation.Z[E_excitation.A .== A])
             Sₙ = Separation_energy(1, 0, A, Z, dm)[1]
-            a_1 = density_parameter(density_parameter_type, A - 1, Z, density_parameter_datafile)
+            a_1 = density_parameter(density_parameter_type, A - 1, Z, density_parameter_data)
             if !isnan(a_1)
                 for TKE in E_excitation.TKE[(E_excitation.A .== A) .& (E_excitation.Z .== Z)]
                     Eᵣ_k_last = E_excitation.Value[(E_excitation.A .== A) .& (E_excitation.Z .== Z) .& (E_excitation.TKE .== TKE)][1]
@@ -17,7 +18,7 @@ function DSE_equation_solver_CONSTANT_cs(E_excitation, density_parameter_type, d
                     a_k = a_1
                     k = 1
                     while Eᵣ_k_last > Sₙ_k_last
-                        T_k = (sqrt(1 + a_k * (Eᵣ_k_last - Sₙ_k_last)) - 1)/a_k
+                        T_k = (sqrt(1 + a_k *(Eᵣ_k_last - Sₙ_k_last)) - 1) /a_k
                         push!(Tₖ.A, A)
                         push!(Tₖ.Z, Z)
                         push!(Tₖ.TKE, TKE)
@@ -28,7 +29,7 @@ function DSE_equation_solver_CONSTANT_cs(E_excitation, density_parameter_type, d
                         Eᵣ_k_last = Energy_FermiGas(a_k, T_k)
                         Sₙ_k_last = Separation_energy(1, 0, A - k, Z, dm)[1]
                         k += 1
-                        a_k = density_parameter(density_parameter_type, A - k, Z, density_parameter_datafile)
+                        a_k = density_parameter(density_parameter_type, A - k, Z, density_parameter_data)
                     end
                     if k == 1
                         push!(Tₖ.A, A)
@@ -46,7 +47,7 @@ function DSE_equation_solver_CONSTANT_cs(E_excitation, density_parameter_type, d
 end
 #VARIABLE σₙ functions
 #Parametrization for the force function S₀ of the s-wave neutron
-function Strength_function_S₀(A)
+function Neutron_strength_function(A)
     if A <= 23
         return 2.5e-5
     elseif A > 23 && A <= 55
@@ -82,20 +83,20 @@ end
 #Solves the transcendental equation for given sequence
 function Solve_transcendental_eq(Eᵣ_k_last, Sₙ_k_last, a_k, A, k)
     σ₀ = π *(r₀ *0.1)^2 *(A - k)^(2/3)
-    S₀ = Strength_function_S₀(A - k)
+    S₀ = Neutron_strength_function(A - k)
     αₖ = 10 *C_α *S₀ /σ₀
     f(Tₖ) = a_k*Tₖ^2 + Tₖ*(2*sqrt(Tₖ) + αₖ*3*sqrt(π)/4)/(sqrt(Tₖ) + αₖ*sqrt(π)/2) + (Sₙ_k_last - Eᵣ_k_last)
     T_k = find_zero(f, 1.0)
     return T_k, αₖ
 end
-function DSE_equation_solver_VARIABLE_cs(E_excitation, density_parameter_type, density_parameter_datafile, dm)
+function DSE_equation_solver_VARIABLE_cs(E_excitation::Distribution, density_parameter_type, density_parameter_data, dm::DataFrame)
     Tₖ = Distribution(Int[], Int[], Float64[], Int[], Float64[], Float64[])
     aₖ = Float64[]
     αₖ = Float64[]
     for A in unique(E_excitation.A)
         for Z in unique(E_excitation.Z[E_excitation.A .== A])
             Sₙ = Separation_energy(1, 0, A, Z, dm)[1]
-            a_1 = density_parameter(density_parameter_type, A - 1, Z, density_parameter_datafile)
+            a_1 = density_parameter(density_parameter_type, A - 1, Z, density_parameter_data)
             if !isnan(a_1)
                 for TKE in E_excitation.TKE[(E_excitation.A .== A) .& (E_excitation.Z .== Z)]
                     Eᵣ_k_last = E_excitation.Value[(E_excitation.A .== A) .& (E_excitation.Z .== Z) .& (E_excitation.TKE .== TKE)][1]
@@ -115,7 +116,7 @@ function DSE_equation_solver_VARIABLE_cs(E_excitation, density_parameter_type, d
                         Eᵣ_k_last = Energy_FermiGas(a_k, T_k)
                         Sₙ_k_last = Separation_energy(1, 0, A - k, Z, dm)[1]
                         k += 1
-                        a_k = density_parameter(density_parameter_type, A - k, Z, density_parameter_datafile)
+                        a_k = density_parameter(density_parameter_type, A - k, Z, density_parameter_data)
                     end
                     if k == 1
                         push!(Tₖ.A, A)
@@ -132,11 +133,11 @@ function DSE_equation_solver_VARIABLE_cs(E_excitation, density_parameter_type, d
     end
     return Tₖ, aₖ, αₖ
 end
-function DSE_equation_solver(evaporation_cs_type, E_excitation, density_parameter_type, density_parameter_datafile, dm)
+function DSE_equation_solver(evaporation_cs_type, E_excitation, density_parameter_type, density_parameter_data, dm)
     println("*solving DSE energy conservation equations")
     if evaporation_cs_type == "CONSTANT"
-        return DSE_equation_solver_CONSTANT_cs(E_excitation, density_parameter_type, density_parameter_datafile, dm)
+        return DSE_equation_solver_CONSTANT_cs(E_excitation, density_parameter_type, density_parameter_data, dm)
     elseif evaporation_cs_type == "VARIABLE"
-        return DSE_equation_solver_VARIABLE_cs(E_excitation, density_parameter_type, density_parameter_datafile, dm)
+        return DSE_equation_solver_VARIABLE_cs(E_excitation, density_parameter_type, density_parameter_data, dm)
     end
 end

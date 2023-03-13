@@ -1,9 +1,9 @@
-#Function bodies and definitions used in the main part of the DSE
+#Function bodies and parameter initialisations used in the main part of the DSE code
 #####
-#Load Julia packages
+#Load Julia packages for data manipulation
 using DataFrames, CSV
 
-#Main struct objects definitions
+#Define main struct objects
 abstract type AbstractDistribution end
 struct Distribution{T1 <: Vector{Int}, T2 <: Vector{Float64}} <: AbstractDistribution
     A::T1
@@ -22,10 +22,10 @@ end
 #Define value range for TKE
 tkerange = TKE_min:TKE_step:TKE_max
 
-#Define value ranges for A
-HF_range = A_H_min:A_H_max
-LF_range = (A₀ - A_H_max):(A₀ - A_H_min)
-total_range = (A₀ - A_H_max):A_H_max
+#Define value ranges for fragmentation regions
+A_H_range = A_H_min:A_H_max
+A_L_range = (A₀ - A_H_max):(A₀ - A_H_min)
+A_range = (A₀ - A_H_max):A_H_max
 
 #Input variables corrections according to fission type
 if fission_type == "SF"
@@ -58,10 +58,10 @@ dmass_excess = CSV.read(mass_excess_filename, DataFrame; delim = mass_excess_del
 println("*reading $mass_excess_filename done!")
 
 if density_parameter_type == "GC"
-    density_parameter_datafile = CSV.read(density_parameter_filename, DataFrame; delim = density_parameter_delimiter, ignorerepeated = true, header = density_parameter_header, skipto = density_parameter_firstdataline)
+    density_parameter_data = CSV.read(density_parameter_filename, DataFrame; delim = density_parameter_delimiter, ignorerepeated = true, header = density_parameter_header, skipto = density_parameter_firstdataline)
     println("*reading $density_parameter_filename done!")
 elseif density_parameter_type == "BSFG"
-    density_parameter_datafile = dmass_excess
+    density_parameter_data = dmass_excess
     const Dᵖ = dmass_excess.D[(dmass_excess.A .== 1) .& (dmass_excess.Z .== 1)][1]*1e-3
     const Dⁿ = dmass_excess.D[(dmass_excess.A .== 1) .& (dmass_excess.Z .== 0)][1]*1e-3
     const a_v = 15.65
@@ -75,21 +75,21 @@ elseif density_parameter_type == "BSFG"
 end
 
 if isobaric_distribution_type == "MEAN_VALUES"
-    isobaric_distribution_datafile = DataFrame(A = NaN)
+    isobaric_distribution_data = DataFrame(A = NaN)
 elseif isobaric_distribution_type == "DATA"
-    isobaric_distribution_datafile = CSV.read(isobaric_distribution_filename, DataFrame; delim = isobaric_distribution_delimiter, ignorerepeated = true, header = isobaric_distribution_header, skipto = isobaric_distribution_firstdataline)
+    isobaric_distribution_data = CSV.read(isobaric_distribution_filename, DataFrame; delim = isobaric_distribution_delimiter, ignorerepeated = true, header = isobaric_distribution_header, skipto = isobaric_distribution_firstdataline)
     println("*reading $isobaric_distribution_filename done!")
 end
 
 if txe_partitioning_type == "MSCZ"
-    txe_partitioning_datafile = CSV.read(txe_partitioning_filename, DataFrame; delim = txe_partitioning_delimiter, ignorerepeated = true, header = txe_partitioning_header, skipto = txe_partitioning_firstdataline)
+    txe_partitioning_data = CSV.read(txe_partitioning_filename, DataFrame; delim = txe_partitioning_delimiter, ignorerepeated = true, header = txe_partitioning_header, skipto = txe_partitioning_firstdataline)
     println("*reading $txe_partitioning_filename done!")
 else
-    txe_partitioning_datafile = txe_partitioning_segmentpoints
+    txe_partitioning_data = txe_partitioning_segmentpoints
 end
 
 if secondary_outputs == "YES"
-    dY = CSV.read(yield_distribution_filename, DataFrame; delim = yield_distribution_delimiter, ignorerepeated = true, header = yield_distribution_header, skipto = yield_distribution_firstdataline)
+    Yield_data = CSV.read(yield_distribution_filename, DataFrame; delim = yield_distribution_delimiter, ignorerepeated = true, header = yield_distribution_header, skipto = yield_distribution_firstdataline)
     println("*reading $yield_distribution_filename done!")
 end
 
@@ -108,14 +108,14 @@ if generate_plots == "YES"
     end
     plotlyjs(size = plots_resolution)
 end
-#Function bodies
+#Function definitions
 #Isobaric charge distribution p(Z,A)
 function p_A_Z(Z, Z_p, rms_A)
-    return exp(-(Z - Z_p)^2 /(2 *rms_A^2)) /(sqrt(2*π) * rms_A)
+    return exp(-(Z - Z_p)^2 /(2 *rms_A^2)) /(sqrt(2*π) *rms_A)
 end
 #Compute the most probable charge for a given heavy fragment
 function Most_probable_charge(A_0, Z_0, A_H, ΔZ)
-    return A_H*Z_0/A_0 + ΔZ
+    return ΔZ + A_H *Z_0 /A_0
 end
 #Q_value energy in MeV released at fission of (A,Z) nucleus 
 function Q_value_released(A_0, Z_0, A_H, Z_H, dm)
@@ -164,10 +164,10 @@ function Total_excitation_energy(Q, σ_Q, TKE, σ_TKE, Sₙ, σ_Sₙ, Eₙ)
     end
 end
 #Construct vectorized fragmentation domain with p(A,Z) values stored in memory
-function Fragmentation_domain(A_0, Z_0, NoZperA, A_H_min, A_H_max, dpAZ)
+function Fragmentation_domain(A_0, Z_0, NoZperA, A_H_range, dpAZ)
     println("*building fragmentation domain")
     fragmdomain = Distribution(Int[], Int[], Float64[], Int[], Float64[], Float64[])
-    for A_H in A_H_min:A_H_max
+    for A_H in A_H_range
         A_L = A_0 - A_H
         if isassigned(dpAZ.A[dpAZ.A .== A_H], 1)
             RMS = dpAZ.rms_A[dpAZ.A .== A_H][1]
@@ -215,14 +215,14 @@ function Average_neutron_energy(T::Float64)
     return 2*T
 end
 function Average_neutron_energy(α::Float64, T::Float64)
-    return T*(2*sqrt(T) + α*3*sqrt(π)/4) /(sqrt(T) + α*sqrt(π)/2)
+    return T *(2*sqrt(T) + α*3*sqrt(π)/4) /(sqrt(T) + α*sqrt(π)/2)
 end
-#Processing raw DSE eq output
+#Processing output of the main DSE equations
 function Process_main_output(DSE_eq_output, evaporation_cs_type)
     println("*processing DSE equations primary output")
     Tₖ, aₖ = DSE_eq_output[1], DSE_eq_output[2]
-    if evaporation_cs_type .== "CONSTANT"
-        Datafile = DataFrame(
+    if evaporation_cs_type == "CONSTANT"
+        Data = DataFrame(
             A = Tₖ.A, 
             Z = Tₖ.Z, 
             TKE = Tₖ.TKE, 
@@ -231,9 +231,9 @@ function Process_main_output(DSE_eq_output, evaporation_cs_type)
             aₖ = aₖ,
             Avg_εₖ = Average_neutron_energy.(Tₖ.Value)
         )
-    elseif evaporation_cs_type .== "VARIABLE"
+    elseif evaporation_cs_type == "VARIABLE"
         αₖ = DSE_eq_output[3]
-        Datafile = DataFrame(
+        Data = DataFrame(
             A = Tₖ.A, 
             Z = Tₖ.Z, 
             TKE = Tₖ.TKE, 
@@ -244,25 +244,37 @@ function Process_main_output(DSE_eq_output, evaporation_cs_type)
             Avg_εₖ = Average_neutron_energy.(αₖ, Tₖ.Value)
         )
     end
-    return Datafile
+    return Data
 end
-#Writing main output file
-function Write_seq_output(A_0, Z_0, A_H_min, A_H_max, No_ZperA, Eₙ, tkerange, fragmdomain, E_excitation, Processed_raw_output, density_parameter_type, density_parameter_datafile, fissionant_nucleus_identifier, mass_excess_filename, txe_partitioning_type, dm)
-    println("*writing main DSE output data to file")
+#Writing primary output to file
+function Write_seq_output(A_0, Z_0, A_H_min, A_H_max, No_ZperA, Eₙ, tkerange, fragmdomain, E_excitation, Processed_raw_output, density_parameter_type, density_parameter_data, fissionant_nucleus_identifier, mass_excess_filename, txe_partitioning_type, txe_partitioning_data, evaporation_cs_type, dm)
+    println("*writing primary DSE output data to file")
     horizontal_delimiter = lpad('-', 159, '-')
     Sₙ = Separation_energy(1, 0, A_0, Z_0, dm)
     open("output_data/$(fissionant_nucleus_identifier)_main_DSE_.OUT", "w") do file
-        write(file, "DSE main output file for the following input data:\n")
-        write(file,"(A₀ = $A_0, Z₀ = $Z_0), fission type $fission_type, $No_ZperA Z per A, mass excess file - $mass_excess_filename\n")
-        write(file,"Heavy Fragment mass number ranges from $A_H_min to $A_H_max\n")
-        write(file,"TKE ∈ $tkerange\n")
-        write(file,"TXE partitioning method - $txe_partitioning_type\n")
+        write(file, "DSE main output file generated at $(Dates.format(now(), "HH:MM:SS")) corresponding to input data:\n")
+        write(file, "$(fissionant_nucleus_identifier) (A₀ = $A_0, Z₀ = $Z_0), fission type: $fission_type, $No_ZperA Z per A, mass excess file - $mass_excess_filename\n")
+        write(file, "Heavy Fragment mass number ranges from $A_H_min to $A_H_max\n")
+        write(file, "TKE ∈ $tkerange\n")
+        write(file, "TXE partitioning method - $txe_partitioning_type\n")
+        if txe_partitioning_type == "MSCZ"
+            write(file, "TXE partitioning data used: Extra deformation energies from $txe_partitioning_data\n")
+        elseif txe_partitioning_type == "RT"
+            write(file, "TXE partitioning data used: RT(A_H) denoted by segments $txe_partitioning_data\n")
+        elseif txe_partitioning_type == "PARAM"
+            write(file, "TXE partitioning data used: Ratio(A_H) = E*_H/TXE denoted by segments $txe_partitioning_data\n")
+        end
+        if evaporation_cs_type == "CONSTANT"
+            write(file, "Neutron evaporation cross section is considered CONSTANT\n")
+        elseif evaporation_cs_type == "VARIABLE"
+            write(file, "Neutron evaporation cross section is considered VARIABLE and calculated using s-wave neutron force function\n")
+        end
         write(file, "\n$horizontal_delimiter\n$horizontal_delimiter\n")
         for A in unique(Processed_raw_output.A)
             for Z in unique(Processed_raw_output.Z[Processed_raw_output.A .== A])
                 P_Z_A = fragmdomain.Value[(fragmdomain.A .== A) .& (fragmdomain.Z .== Z)][1]
                 Q = Q_value_released(A_0, Z_0, A, Z, dm)
-                a = density_parameter(density_parameter_type, A, Z, density_parameter_datafile)
+                a = density_parameter(density_parameter_type, A, Z, density_parameter_data)
                 S = Separation_energy(1, 0, A, Z, dm)[1]
                 write(file, "Fission fragment: A = $A / Z = $Z / p(Z,A) = $P_Z_A / Q = $(Q[1]) / a = $a / Sₙ = $S\n\n")
                 for TKE in unique(Processed_raw_output.TKE[(Processed_raw_output.A .== A) .& (Processed_raw_output.Z .== Z)])

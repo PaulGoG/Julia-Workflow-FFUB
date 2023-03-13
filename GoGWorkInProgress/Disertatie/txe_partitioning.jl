@@ -11,11 +11,11 @@ deformation energy at scission and deformation energy at total acceleration of t
 =#
 #####
 #Modelling at scission
-function TXE_partitioning(A_0, Z_0, A_H_min, A_H_max, Eₙ, fragmdomain, dΔE_def, tkerange, density_parameter_type, density_parameter_datafile, dm)
+function TXE_partitioning(A_0, Z_0, A_H_range, Eₙ, fragmdomain::Distribution, dΔE_def, tkerange, density_parameter_type, density_parameter_data, dm::DataFrame)
     E_excit = Distribution(Int[], Int[], Float64[], Int[], Float64[], Float64[])
     Sₙ = Separation_energy(1, 0, A_0, Z_0, dm)
     if !isnan(Sₙ[1])
-        for A_H in A_H_min:A_H_max
+        for A_H in A_H_range
             A_L = A_0 - A_H
             for Z_H in fragmdomain.Z[fragmdomain.A .== A_H]
                 Z_L = Z_0 - Z_H
@@ -24,8 +24,8 @@ function TXE_partitioning(A_0, Z_0, A_H_min, A_H_max, Eₙ, fragmdomain, dΔE_de
                     ΔE_def_L = dΔE_def.Value[(dΔE_def.A .== A_L) .& (dΔE_def.Z .== Z_L)][1]
                     Q = Q_value_released(A_0, Z_0, A_H, Z_H, dm)
                     if !isnan(Q[1])
-                        a_L = density_parameter(density_parameter_type, A_L, Z_L, density_parameter_datafile)
-                        a_H = density_parameter(density_parameter_type, A_H, Z_H, density_parameter_datafile)
+                        a_L = density_parameter(density_parameter_type, A_L, Z_L, density_parameter_data)
+                        a_H = density_parameter(density_parameter_type, A_H, Z_H, density_parameter_data)
                         if !isnan(a_L) && !isnan(a_H)
                             r = a_L/a_H
                             for TKE in tkerange
@@ -76,11 +76,11 @@ function TXE_partitioning(A_0, Z_0, A_H_min, A_H_max, Eₙ, fragmdomain, dΔE_de
     end
 end
 #Direct partitioning ratio by segments
-function TXE_partitioning(A_0, Z_0, A_H_min, A_H_max, Eₙ, fragmdomain, Points::Vector{Tuple{Int64, Float64}}, tkerange, dm)
+function TXE_partitioning(A_0, Z_0, A_H_range, Eₙ, fragmdomain::Distribution, Points::Vector{Tuple{Int64, Float64}}, tkerange, dm::DataFrame)
     E_excit = Distribution(Int[], Int[], Float64[], Int[], Float64[], Float64[])
     Sₙ = Separation_energy(1, 0, A_0, Z_0, dm)
     if !isnan(Sₙ[1])
-        for A_H in A_H_min:A_H_max
+        for A_H in A_H_range
             A_L = A_0 - A_H
             Ratio = Segments_TXE_partitioning(Points, A_H)
             if !isnan(Ratio) && Ratio <= 1
@@ -132,19 +132,19 @@ function TXE_partitioning(A_0, Z_0, A_H_min, A_H_max, Eₙ, fragmdomain, Points:
     end
 end
 #R_T provided by segments
-function TXE_partitioning(A_0, Z_0, A_H_min, A_H_max, Eₙ, fragmdomain, Points::Vector{Tuple{Int64, Float64}}, tkerange, density_parameter_type, density_parameter_datafile, dm)
+function TXE_partitioning(A_0, Z_0, A_H_range, Eₙ, fragmdomain::Distribution, Points::Vector{Tuple{Int64, Float64}}, tkerange, density_parameter_type, density_parameter_data, dm::DataFrame)
     E_excit = Distribution(Int[], Int[], Float64[], Int[], Float64[], Float64[])
     Sₙ = Separation_energy(1, 0, A_0, Z_0, dm)
     if !isnan(Sₙ[1])
-        for A_H in A_H_min:A_H_max
+        for A_H in A_H_range
             A_L = A_0 - A_H
             R_T = Segments_TXE_partitioning(Points, A_H)
             if !isnan(R_T)
                 for Z_H in fragmdomain.Z[fragmdomain.A .== A_H]
                     Z_L = Z_0 - Z_H
                     Q = Q_value_released(A_0, Z_0, A_H, Z_H, dm)
-                    a_L = density_parameter(density_parameter_type, A_L, Z_L, density_parameter_datafile)
-                    a_H = density_parameter(density_parameter_type, A_H, Z_H, density_parameter_datafile)
+                    a_L = density_parameter(density_parameter_type, A_L, Z_L, density_parameter_data)
+                    a_H = density_parameter(density_parameter_type, A_H, Z_H, density_parameter_data)
                     if !isnan(Q[1]) && !isnan(a_L) && !isnan(a_H)
                         r = a_L/a_H
                         Ratio = 1/(1 + r *R_T^2)
@@ -191,14 +191,14 @@ function TXE_partitioning(A_0, Z_0, A_H_min, A_H_max, Eₙ, fragmdomain, Points:
         error("Neutron separation energy for fissionant nucleus ($(A_0),$(Z_0)) could not be calculated!")
     end
 end
-function TXE_partitioning(txe_partitioning_type, A₀, Z₀, A_H_min, A_H_max, Eₙ, fragmdomain, txe_partitioning_datafile, tkerange, density_parameter_type, density_parameter_datafile, dm)
+function TXE_partitioning(txe_partitioning_type, A₀, Z₀, A_H_range, Eₙ, fragmdomain, txe_partitioning_datafile, tkerange, density_parameter_type, density_parameter_data, dm)
     println("*partitioning Total Excitation Energy")
     if txe_partitioning_type == "MSCZ"
-        return TXE_partitioning(A₀, Z₀, A_H_min, A_H_max, Eₙ, fragmdomain, txe_partitioning_datafile, tkerange, density_parameter_type, density_parameter_datafile, dm)
+        return TXE_partitioning(A₀, Z₀, A_H_range, Eₙ, fragmdomain, txe_partitioning_datafile, tkerange, density_parameter_type, density_parameter_data, dm)
     elseif txe_partitioning_type == "PARAM"
-        return TXE_partitioning(A₀, Z₀, A_H_min, A_H_max, Eₙ, fragmdomain, txe_partitioning_datafile, tkerange, dm)
+        return TXE_partitioning(A₀, Z₀, A_H_range, Eₙ, fragmdomain, txe_partitioning_datafile, tkerange, dm)
     elseif txe_partitioning_type == "RT"
-        return TXE_partitioning(A₀, Z₀, A_H_min, A_H_max, Eₙ, fragmdomain, txe_partitioning_datafile, tkerange, density_parameter_type, density_parameter_datafile, dm)
+        return TXE_partitioning(A₀, Z₀, A_H_range, Eₙ, fragmdomain, txe_partitioning_datafile, tkerange, density_parameter_type, density_parameter_data, dm)
     end
 end
 function Sort_TXE_partitioning(E_excit, fragmdomain)
@@ -223,7 +223,7 @@ function Sort_TXE_partitioning(E_excit, fragmdomain)
         E_excit.Value[index] = aux_Value[index]
     end
 end
-function Segments_TXE_partitioning(P, x)
+function Segments_TXE_partitioning(P::Vector{Tuple{Int, Float64}}, x::Int)
     for index in axes(P, 1)
         if P[index][1] >= x && index != 1
             x₀ = P[index-1][1]
@@ -231,8 +231,12 @@ function Segments_TXE_partitioning(P, x)
             x₁ = P[index][1]
             y₁ = P[index][2]
             slope = (y₁ - y₀)/(x₁ - x₀)
-            y = y₀ + slope*(x - x₀)
-            return y
+            y = y₀ + slope *(x - x₀)
+            if y > 0
+                return y
+            else
+                return NaN
+            end
         end
     end
     return NaN

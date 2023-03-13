@@ -2,12 +2,12 @@
 Flow control and error handling for input parameters and filenames of the main program
 =#
 #####
-if A_H_min < A₀/2
-    error("$A_H_min invalid Heavy Fragment region lower bound!")
+if A_H_min < A₀/2 || !isinteger(A_H_min)
+    error("A_H_min must be an Integer greater than $(Int(round(A₀/2)))!")
 end
 
-if A_H_max >= A₀
-    error("$A_H_max invalid Heavy Fragment region upper bound!")
+if A_H_max >= A₀ || !isinteger(A_H_max)
+    error("A_H_max must be an Integer lesser than $(A₀)!")
 end
 
 if A_H_min >= A_H_max
@@ -124,6 +124,6 @@ if secondary_outputs == "YES"
         )
     end
     if neutron_spectrum == "YES" && E_min >= E_max
-        error("invalid Energy range!")
+        error("invalid neutron spectrum Energy range!")
     end
 end

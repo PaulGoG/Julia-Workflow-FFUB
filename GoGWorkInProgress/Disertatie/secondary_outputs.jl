@@ -208,7 +208,7 @@ end
 #####
 println("*averaging data over $yield_distribution_filename experimental Yield distribution")
 
-y_A_Z_TKE = Process_yield_data(A₀, fragmdomain, dY)
+y_A_Z_TKE = Process_yield_data(A₀, fragmdomain, Yield_data)
 #=
 ν_A_Z_TKE = Neutron_multiplicity_A_Z_TKE(DataFrame(
 A = Raw_output_datafile.A,

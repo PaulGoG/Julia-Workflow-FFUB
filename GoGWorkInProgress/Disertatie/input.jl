@@ -86,7 +86,7 @@ Data provided in each case:
 =#
 txe_partitioning_type = "RT"
 
-txe_partitioning_filename = "EXTRADEF.U5"
+txe_partitioning_filename = ""
 txe_partitioning_header = ["A", "Z", "Value"]
 txe_partitioning_delimiter = ' '
 txe_partitioning_firstdataline = 2
