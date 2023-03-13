@@ -98,14 +98,14 @@ write_primary_output = "YES"
 
 #Yield-averaged outputs YES or NO selector
 secondary_outputs = "YES"
-secondary_output_ν = "NO"
-secondary_output_T = "NO"
-secondary_output_Tₖ = "NO"
-secondary_output_avg_ε = "NO"
-secondary_output_avg_εₖ = "NO"
-secondary_output_Yield = "NO"
-secondary_output_TXE_Q = "NO"
-secondary_output_Ap = "NO"
+secondary_output_ν = "YES"
+secondary_output_T = "YES"
+secondary_output_Tₖ = "YES"
+secondary_output_avg_ε = "YES"
+secondary_output_avg_εₖ = "YES"
+secondary_output_Yield = "YES"
+secondary_output_TXE_Q = "YES"
+secondary_output_Ap = "YES"
 
 yield_distribution_filename = "$(fissionant_nucleus_identifier)YATKE.VES"
 yield_distribution_header = ["A", "TKE", "Value", "σ"]
@@ -116,7 +116,7 @@ yield_distribution_firstdataline = 2
 neutron_spectrum = "NO"
 E_min = 1e-4
 E_max = 20.0
-E_step = 1e-2
+E_step = 5e-2
 Yield_cutoff_value = 1e-4
 
 #=

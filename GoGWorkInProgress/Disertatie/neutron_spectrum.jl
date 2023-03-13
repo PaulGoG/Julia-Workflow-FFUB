@@ -11,7 +11,7 @@ function u_2(E, E_f)
     return (sqrt(E) + sqrt(E_f))^2
 end
 function Neutron_spectrum_CONSTANT_cs(A_0, Z_0, A_H_min, A_H_max, energyrange, Raw_output_datafile::DataFrame, y_A_Z_TKE::DataFrame)
-    n_E = Neutron_spectrum_obj(Float64[], Float64[])
+    n_E = Neutron_spectrum_object(Float64[], Float64[])
     function Neutron_spectrum_k(ε::Float64, T::Float64)
         return ε *exp(-ε/T) /T^2
     end
@@ -77,7 +77,7 @@ function Neutron_spectrum_CONSTANT_cs(A_0, Z_0, A_H_min, A_H_max, energyrange, R
     return n_E
 end
 function Neutron_spectrum_VARIABLE_cs(A_0, Z_0, A_H_min, A_H_max, energyrange, Raw_output_datafile::DataFrame, y_A_Z_TKE::DataFrame)
-    n_E = Neutron_spectrum_obj(Float64[], Float64[])
+    n_E = Neutron_spectrum_object(Float64[], Float64[])
     function Neutron_spectrum_k(ε::Float64, α::Float64, T::Float64)
         (ε + α*sqrt(ε)) *exp(-ε/T) /((sqrt(T) +α*sqrt(π)/2) *T^(3/2))
     end
@@ -163,15 +163,14 @@ function Normalise_spectrum_to_Maxwellian(E::Vector{Float64}, N::Vector{Float64}
 end
 #####
 
-Yield = DataFrame(
+Adjusted_yield = DataFrame(
     A = y_A_Z_TKE.A[(y_A_Z_TKE.Value .>= Yield_cutoff_value) .& (y_A_Z_TKE.A .>= A_H_min)], 
     Z = y_A_Z_TKE.Z[(y_A_Z_TKE.Value .>= Yield_cutoff_value) .& (y_A_Z_TKE.A .>= A_H_min)],
     TKE = y_A_Z_TKE.TKE[(y_A_Z_TKE.Value .>= Yield_cutoff_value) .& (y_A_Z_TKE.A .>= A_H_min)],
     Value = y_A_Z_TKE.Value[(y_A_Z_TKE.Value .>= Yield_cutoff_value) .& (y_A_Z_TKE.A .>= A_H_min)]
 )
-n_E = Neutron_spectrum_builder(A₀, Z₀, A_H_min, A_H_max, energyrange, Raw_output_datafile, evaporation_cs_type, Yield)
-#<E_spectrum> = 3/2 *T_M_equivalent
-T_M_eq = 2/3 * trapz(n_E.E, n_E.Value .* n_E.E)/trapz(n_E.E, n_E.Value)
+n_E = Neutron_spectrum_builder(A₀, Z₀, A_H_min, A_H_max, energyrange, Raw_output_datafile, evaporation_cs_type, Adjusted_yield)
+T_M_eq = 2/3 *trapz(n_E.E, n_E.Value .* n_E.E)/trapz(n_E.E, n_E.Value)
 Ratio_to_Maxwellian = copy(n_E.Value)
 Normalise_spectrum_to_Maxwellian(n_E.E, Ratio_to_Maxwellian, T_M_eq)
 CSV.write(

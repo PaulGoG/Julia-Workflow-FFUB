@@ -107,6 +107,8 @@ end
 #####
 println("*executing data plots")
 
+#TO ADD CONDITIONALS AS PER secondary_outputs
+
 plot_surface_ν_A_TKE = Plot_surface(
     DataFrame(x = ν_A_TKE.A, y = ν_A_TKE.TKE, z = ν_A_TKE.Value),
     5, 5, Int(round(10/TKE_step)), 10, (120, 30), 

@@ -47,7 +47,7 @@ end
 
 if neutron_spectrum == "YES"
     using QuadGK, Trapz
-    struct Neutron_spectrum_obj{T <: Vector{Float64}} <: AbstractDistribution
+    struct Neutron_spectrum_object{T <: Vector{Float64}} <: AbstractDistribution
         E::T
         Value::T
     end

@@ -5,7 +5,6 @@ For secondary results comparable to experimental data (eg. neutron multiplicity)
 secondary_output.jl program, and for graphical representations run the graphics_plots.jl program;
 =#
 #####
-#Include auxiliary files in main program
 include("input.jl")
 include("error_handling.jl")
 include("aux_func.jl")
@@ -13,7 +12,7 @@ include("density_parameters.jl")
 include("txe_partitioning.jl")
 include("dse_eq_solvers.jl")
 
-#Execute function calls
+#Execute program function calls 
 fragmdomain = Fragmentation_domain(A₀, Z₀, No_ZperA, A_H_range, isobaric_distribution_data)
 E_excitation = TXE_partitioning(txe_partitioning_type, A₀, Z₀, A_H_range, Eₙ, fragmdomain, txe_partitioning_data, tkerange, density_parameter_type, density_parameter_data, dmass_excess)
 DSE_eq_output = DSE_equation_solver(evaporation_cs_type, E_excitation, density_parameter_type, density_parameter_data, dmass_excess)
