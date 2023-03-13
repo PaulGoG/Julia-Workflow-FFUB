@@ -98,6 +98,11 @@ write_primary_output = "YES"
 
 #Yield-averaged outputs YES or NO selector
 secondary_outputs = "YES"
+
+#Add Δq step size for P(q) calculations
+#Add Δq step size for P(q) calculations
+#Add Δq step size for P(q) calculations
+
 secondary_output_ν = "YES"
 secondary_output_T = "YES"
 secondary_output_Tₖ = "YES"
@@ -113,7 +118,7 @@ yield_distribution_delimiter = ' '
 yield_distribution_firstdataline = 2
 
 #Neutron spectrum calculation YES or NO selector   
-neutron_spectrum = "NO"
+neutron_spectrum = "YES"
 E_min = 1e-4
 E_max = 20.0
 E_step = 5e-2

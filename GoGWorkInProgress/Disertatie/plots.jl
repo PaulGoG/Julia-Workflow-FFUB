@@ -99,9 +99,9 @@ end
 function Plot_legend_attributes(plt::Plots.Plot, lposition)
     plot!(plt, legend_position = lposition)
 end
-function Display_plot(plt::Plots.Plot, filename::String)
+function Display_plot(plt::Plots.Plot, filename::String, fissionant_nucleus_identifier::String)
     display(plt)
-    savefig("plots/$filename.png")
+    savefig("plots/$(fissionant_nucleus_identifier)_$(filename).png")
     println("*plotting $filename done!")
 end
 #####

@@ -5,4 +5,4 @@
 252Cf: [(126, 1.0), (130, 2.0), (134, 1.38), (150, 0.88), (175, 0.6059)] with density parameter via BSFG Egidy-Bucurescu
 252Cf: [(126, 1.0), (130, 1.734), (134, 1.28), (138, 1.28), (150, 0.9), (167, 0.68)] with density parameter via Superfluid model
 
-*Ratio = E*_H/TXE:
+*Ratio = E*_H/TXE
