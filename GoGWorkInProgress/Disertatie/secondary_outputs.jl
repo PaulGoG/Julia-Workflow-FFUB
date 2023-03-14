@@ -404,10 +404,10 @@ if secondary_output_ν == "YES"
         DataFrame(A = ν_A.Argument, ν = ν_A.Value), 
         writeheader=true, newline="\r\n", delim=' '
     )
-    ν_A_Pair = [Pair_value(ν_A, A₀, A_H) for A_H in ν_A.Argument[ν_A.Argument .>= A_H_min]]
+    ν_AH_Pair = [Pair_value(ν_A, A₀, A_H) for A_H in ν_A.Argument[ν_A.Argument .>= A_H_min]]
     CSV.write(
         "output_data/$(fissionant_nucleus_identifier)_nu_AH_Pair.OUT", 
-        DataFrame(A = ν_A.Argument[ν_A.Argument .>= A_H_min], ν_Pair = ν_A_Pair), 
+        DataFrame(A = ν_A.Argument[ν_A.Argument .>= A_H_min], ν_Pair = ν_AH_Pair), 
         writeheader=true, newline="\r\n", delim=' '
     )
     ν_TKE = Average_over_A_Z(ν_A_Z_TKE, y_A_Z_TKE)
@@ -416,7 +416,7 @@ if secondary_output_ν == "YES"
         DataFrame(TKE = ν_TKE.Argument, ν = ν_TKE.Value), 
         writeheader=true, newline="\r\n", delim=' '
     )
-    probability_ν = Probability_of_occurrence(ν_A_Z_TKE.Value, 1)
+    probability_ν = Probability_of_occurrence(ν_A_Z_TKE.Value, Δν)
     CSV.write(
         "output_data/$(fissionant_nucleus_identifier)_P_nu.OUT", 
         DataFrame(ν = probability_ν.Argument, P = probability_ν.Value), 
@@ -455,9 +455,9 @@ if secondary_output_ν == "YES"
     if secondary_output_Tₖ == "YES"
         for k in 1:maximum(ν_A_Z_TKE.Value)
             Tₖ = DataFrame(Value = Raw_output_datafile.Tₖ[Raw_output_datafile.No_Sequence .== k])
-            probability_Tₖ = Probability_of_occurrence(Tₖ.Value, 1e-2)
+            probability_Tₖ = Probability_of_occurrence(Tₖ.Value, ΔTₖ)
             CSV.write(
-                "output_data/$(fissionant_nucleus_identifier)_P_T$(k).OUT", 
+                "output_data/$(fissionant_nucleus_identifier)_P_T_$(k).OUT", 
                 DataFrame(Tₖ = probability_Tₖ.Argument, P = probability_Tₖ.Value), 
                 writeheader=true, newline="\r\n", delim=' '
             )
@@ -466,9 +466,9 @@ if secondary_output_ν == "YES"
     if secondary_output_avg_εₖ == "YES"
         for k in 1:maximum(ν_A_Z_TKE.Value)
             avg_εₖ = DataFrame(Value = Raw_output_datafile.Avg_εₖ[Raw_output_datafile.No_Sequence .== k])
-            probability_avg_εₖ = Probability_of_occurrence(avg_εₖ.Value, 1e-2)
+            probability_avg_εₖ = Probability_of_occurrence(avg_εₖ.Value, Δavg_εₖ)
             CSV.write(
-                "output_data/$(fissionant_nucleus_identifier)_P_avgE$(k)_SCM.OUT", 
+                "output_data/$(fissionant_nucleus_identifier)_P_avgE_$(k)_SCM.OUT", 
                 DataFrame(Avg_εₖ = probability_avg_εₖ.Argument, P = probability_avg_εₖ.Value), 
                 writeheader=true, newline="\r\n", delim=' '
             )
@@ -483,7 +483,7 @@ if secondary_output_T == "YES"
         No_Sequence = Raw_output_datafile.No_Sequence,
         Value = Raw_output_datafile.Tₖ
     ))
-    probability_T = Probability_of_occurrence(T_A_Z_TKE.Value, 1e-2)
+    probability_T = Probability_of_occurrence(T_A_Z_TKE.Value, ΔT)
     CSV.write(
         "output_data/$(fissionant_nucleus_identifier)_P_T.OUT", 
         DataFrame(T = probability_T.Argument, P = probability_T.Value), 
@@ -498,7 +498,7 @@ if secondary_output_avg_ε == "YES"
         No_Sequence = Raw_output_datafile.No_Sequence,
         Value = Raw_output_datafile.Avg_εₖ
     ))
-    probability_avg_ε = Probability_of_occurrence(avg_ε_A_Z_TKE.Value, 1e-2)
+    probability_avg_ε = Probability_of_occurrence(avg_ε_A_Z_TKE.Value, Δavg_ε)
     CSV.write(
         "output_data/$(fissionant_nucleus_identifier)_P_avgE_SCM.OUT", 
         DataFrame(avg_ε = probability_avg_ε.Argument, P = probability_avg_ε.Value), 
@@ -513,26 +513,45 @@ open("output_data/$(fissionant_nucleus_identifier)_Average_quantities.OUT", "w")
     if secondary_output_Yield == "YES"
         avg_A_L = Average_yield_argument(y_A, y_A.Argument[y_A.Argument .< A_H_min])
         avg_A_H = Average_yield_argument(y_A, y_A.Argument[y_A.Argument .>= A_H_min])
-        write(file, "<A_L> = $(avg_A_L[1]) ± $(avg_A_L[2])\n")
-        write(file, "<A_H> = $(avg_A_H[1]) ± $(avg_A_H[2])\n")
+        if !isnan(avg_A_H[2])
+            write(file, "<A>_L = $(avg_A_L[1]) ± $(avg_A_L[2])\n")
+            write(file, "<A>_H = $(avg_A_H[1]) ± $(avg_A_H[2])\n")
+        else
+            write(file, "<A>_L = $(avg_A_L[1])\n")
+            write(file, "<A>_H = $(avg_A_H[1])\n")
+        end
 
         avg_TKE = Average_yield_argument(y_TKE, y_TKE.Argument)
-        write(file, "<TKE> = $(avg_TKE[1]) ± $(avg_TKE[2])\n")
+        if !isnan(avg_TKE[2])
+            write(file, "<TKE> = $(avg_TKE[1]) ± $(avg_TKE[2])\n")
+        else
+            write(file, "<TKE> = $(avg_TKE[1])\n")
+        end
 
         δₑₒ = (sum(y_Z.Value[iseven.(y_Z.Argument)]) - sum(y_Z.Value[isodd.(y_Z.Argument)]))/sum(y_Z.Value)
         σδₑₒ = (1/sum(y_Z.Value)) * sqrt((1 + δₑₒ)^2 * sum(y_Z.σ .^2) + 2*δₑₒ*(sum(y_Z.σ[isodd.(y_Z.Argument)] .^2) - sum(y_Z.σ[iseven.(y_Z.Argument)].^2)))
-        write(file, "δₑₒ = $(δₑₒ *100) ± $(σδₑₒ *100)%\n\n")
+        if !isnan(σδₑₒ)
+            write(file, "δₑₒ = $(δₑₒ *100) ± $(σδₑₒ *100)%\n\n")
+        else
+            write(file, "δₑₒ = $(δₑₒ *100)%\n\n")
+        end
     end
     if secondary_output_ν == "YES"
         avg_ν_L = Average_value(ν_A_Z_TKE, y_A_Z_TKE, A_L_range)
         avg_ν_H = Average_value(ν_A_Z_TKE, y_A_Z_TKE, A_H_range)
         avg_ν = (avg_ν_L + avg_ν_H)/2
-        write(file, "<ν_L> = $avg_ν_L\n<ν_H> = $avg_ν_H\n<ν> = $avg_ν\n\n")
+        avg_ν_Pair = 2 *avg_ν
+        write(file, "<ν>_L = $avg_ν_L\n<ν>_H = $avg_ν_H\n<ν> = $avg_ν\n<ν>_pair = $avg_ν_Pair\n\n")
         if secondary_output_Ap == "YES"
             avg_Ap_L = Average_yield_argument(y_Ap, y_Ap.Argument[y_Ap.Argument .< Ap_H_min])
             avg_Ap_H = Average_yield_argument(y_Ap, y_Ap.Argument[y_Ap.Argument .>= Ap_H_min])
-            write(file, "<Ap_L> = $(avg_A_L[1]) ± $(avg_A_L[2])\n")
-            write(file, "<Ap_H> = $(avg_A_H[1]) ± $(avg_A_H[2])\n\n")
+            if !isnan(avg_Ap_H[2])
+                write(file, "<Ap>_L = $(avg_A_L[1]) ± $(avg_A_L[2])\n")
+                write(file, "<Ap>_H = $(avg_A_H[1]) ± $(avg_A_H[2])\n\n")
+            else
+                write(file, "<Ap>_L = $(avg_A_L[1])\n")
+                write(file, "<Ap>_H = $(avg_A_H[1])\n\n")
+            end
         end
         if secondary_output_Tₖ == "YES"
             for k in 1:maximum(ν_A_Z_TKE.Value)
@@ -545,7 +564,9 @@ open("output_data/$(fissionant_nucleus_identifier)_Average_quantities.OUT", "w")
                 avg_Tₖ_L = Average_value(Tₖ_A_Z_TKE, y_A_Z_TKE, A_L_range)
                 avg_Tₖ_H = Average_value(Tₖ_A_Z_TKE, y_A_Z_TKE, A_H_range)
                 avg_Tₖ = (avg_Tₖ_L + avg_Tₖ_H)/2
-                write(file, "<T$(k)_L> = $avg_Tₖ_L\n<T$(k)_H> = $avg_Tₖ_H\n<T$(k)> = $avg_Tₖ\n\n")
+                if !isnan(avg_Tₖ)
+                    write(file, "<T_$(k)>_L = $avg_Tₖ_L\n<T_$(k)>_H = $avg_Tₖ_H\n<T_$(k)> = $avg_Tₖ\n\n")
+                end
             end
         end    
         if secondary_output_avg_εₖ == "YES"
@@ -559,7 +580,9 @@ open("output_data/$(fissionant_nucleus_identifier)_Average_quantities.OUT", "w")
                 avg_εₖ_L = Average_value(avg_εₖ_A_Z_TKE, y_A_Z_TKE, A_L_range)
                 avg_εₖ_H = Average_value(avg_εₖ_A_Z_TKE, y_A_Z_TKE, A_H_range)
                 avg_εₖ = (avg_εₖ_L + avg_εₖ_H)/2
-                write(file, "<avg_ε$(k)_L> = $avg_εₖ_L\n<avg_ε$(k)_H> = $avg_εₖ_H\n<avg_ε$(k)> = $avg_εₖ\n\n")
+                if !isnan(avg_εₖ)
+                    write(file, "<avg_ε_$(k)>_L = $avg_εₖ_L\n<avg_ε_$(k)>_H = $avg_εₖ_H\n<avg_ε_$(k)> = $avg_εₖ\n\n")
+                end
             end
         end  
     end
@@ -567,12 +590,12 @@ open("output_data/$(fissionant_nucleus_identifier)_Average_quantities.OUT", "w")
         avg_T_L = Average_value(T_A_Z_TKE, y_A_Z_TKE, A_L_range)
         avg_T_H = Average_value(T_A_Z_TKE, y_A_Z_TKE, A_H_range)
         avg_T = (avg_T_L + avg_T_H)/2
-        write(file, "<T_L> = $avg_T_L\n<T_H> = $avg_T_H\n<T> = $avg_T\n\n")
+        write(file, "<T>_L = $avg_T_L\n<T>_H = $avg_T_H\n<T> = $avg_T\n\n")
     end    
     if secondary_output_avg_ε == "YES"
         avg_ε_L = Average_value(avg_ε_A_Z_TKE, y_A_Z_TKE, A_L_range)
         avg_ε_H = Average_value(avg_ε_A_Z_TKE, y_A_Z_TKE, A_H_range)
         avg_ε = (avg_ε_L + avg_ε_H)/2
-        write(file, "<ε_L> = $avg_ε_L\n<ε_H> = $avg_ε_H\n<ε> = $avg_ε\n\n")
+        write(file, "<ε>_L = $avg_ε_L\n<ε>_H = $avg_ε_H\n<ε> = $avg_ε\n\n")
     end  
 end

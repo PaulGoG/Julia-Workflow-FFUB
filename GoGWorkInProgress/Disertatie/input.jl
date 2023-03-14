@@ -26,8 +26,8 @@ A_H_min = 126
 A_H_max = 174
 
 #Total Kinetic Energy range and step in MeV
-TKE_min = 100.0
-TKE_max = 250.0
+TKE_min = 130.0
+TKE_max = 230.0
 TKE_step = 1.0
 
 #=
@@ -99,15 +99,21 @@ write_primary_output = "YES"
 #Yield-averaged outputs YES or NO selector
 secondary_outputs = "YES"
 
-#Add Δq step size for P(q) calculations
-#Add Δq step size for P(q) calculations
-#Add Δq step size for P(q) calculations
-
 secondary_output_ν = "YES"
+Δν = 1
+
 secondary_output_T = "YES"
+ΔT = 1e-3
+
 secondary_output_Tₖ = "YES"
+ΔTₖ = 1e-3
+
 secondary_output_avg_ε = "YES"
+Δavg_ε = 1e-3
+
 secondary_output_avg_εₖ = "YES"
+Δavg_εₖ = 1e-3
+
 secondary_output_Yield = "YES"
 secondary_output_TXE_Q = "YES"
 secondary_output_Ap = "YES"
@@ -119,10 +125,10 @@ yield_distribution_firstdataline = 2
 
 #Neutron spectrum calculation YES or NO selector   
 neutron_spectrum = "YES"
-E_min = 1e-4
+E_min = 1e-6
 E_max = 20.0
 E_step = 5e-2
-Yield_cutoff_value = 1e-4
+Yield_cutoff_value = 1e-5
 
 #=
 Plots YES or NO selector
