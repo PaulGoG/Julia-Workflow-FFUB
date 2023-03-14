@@ -153,6 +153,20 @@ function Average_value(q_A_Z_TKE, y_A_Z_TKE::Distribution, mass_number_range)
     end
     return Numerator/Denominator
 end
+#Average q(Argument) over Y(Argument) to get average value <q>
+function Average_value(q::Distribution_unidym, y::Distribution_unidym, Argument_range)
+    Denominator = 0.0
+    Numerator = 0.0
+    for Argument in Argument_range
+        if isassigned(q.Value[q.Argument .== Argument], 1) && isassigned(y.Value[y.Argument .== Argument], 1)
+            Value = q.Value[q.Argument .== Argument][1]
+            Y = y.Value[y.Argument .== Argument][1]
+            Denominator += Y
+            Numerator += Value *Y
+        end
+    end
+    return Numerator/Denominator
+end
 #Get L-H pair value from given q(A) distribution and A_H 
 function Pair_value(q_A::Distribution_unidym, A_0, A_H)
     val_L = q_A.Value[q_A.Argument .== A_0-A_H][1]
@@ -301,7 +315,7 @@ function Average_yield_argument(yield::Distribution_unidym, argument_range)
     return Average_arg, sqrt(𝚺_σ²)/Denominator
 end
 #Obtain vectorized singular distributions Q(AH), TXE(AH)
-function Vectorized_TXE_Q_A(A_0, Z_0, fission_type, E_incident, y_A_Z_TKE::Distribution, A_H_range, dm)
+function Vectorized_TXE_Q_AH(A_0, Z_0, fission_type::String, E_incident, y_A_Z_TKE::Distribution, A_H_range, dm::DataFrame)
     Q_AH = Distribution_unidym(Int[], Float64[], Float64[])
     txe_AH = Distribution_unidym(Int[], Float64[], Float64[])
     E_CN = Compound_nucleus_energy(fission_type, A_0, Z_0, E_incident, dm)
@@ -314,9 +328,11 @@ function Vectorized_TXE_Q_A(A_0, Z_0, fission_type, E_incident, y_A_Z_TKE::Distr
             Q_A_Z = Q_value_released(A_0, Z_0, A_H, Z_H, dm)
             for TKE in y_A_Z_TKE.TKE[(y_A_Z_TKE.A .== A_H) .& (y_A_Z_TKE.Z .== Z_H)]
                 TXE_A_Z_TKE = Total_excitation_energy(Q_A_Z[1], Q_A_Z[2], TKE, 0.0, E_CN[1], E_CN[2])
-                Y_A_Z_TKE = y_A_Z_TKE.Value[(y_A_Z_TKE.A .== A_H) .& (y_A_Z_TKE.Z .== Z_H) .& (y_A_Z_TKE.TKE .== TKE)][1]
-                Numerator_TXE += Y_A_Z_TKE *TXE_A_Z_TKE[1]
-                Denominator_TXE += Y_A_Z_TKE
+                if !isnan(TXE_A_Z_TKE[1])
+                    Y_A_Z_TKE = y_A_Z_TKE.Value[(y_A_Z_TKE.A .== A_H) .& (y_A_Z_TKE.Z .== Z_H) .& (y_A_Z_TKE.TKE .== TKE)][1]
+                    Numerator_TXE += Y_A_Z_TKE *TXE_A_Z_TKE[1]
+                    Denominator_TXE += Y_A_Z_TKE
+                end
             end
             Y_A_Z = sum(y_A_Z_TKE.Value[(y_A_Z_TKE.A .== A_H) .& (y_A_Z_TKE.Z .== Z_H)])
             Numerator_Q += Y_A_Z *Q_A_Z[1]
@@ -461,9 +477,15 @@ if secondary_output_ν == "YES"
         DataFrame(ν = probability_ν.Argument, P = probability_ν.Value), 
         writeheader=true, newline="\r\n", delim=' '
     )
+    probability_ν_Pair = Probability_of_occurrence(ν_AH_Pair, Δν)
+    CSV.write(
+        "output_data/nu/$(fissionant_nucleus_identifier)_P_nu_Pair.OUT", 
+        DataFrame(ν = probability_ν_Pair.Argument, P = probability_ν_Pair.Value), 
+        writeheader=true, newline="\r\n", delim=' '
+    )
     if secondary_output_Ap == "YES"
         y_Ap_Z_TKE, y_Ap_Z = Yield_post_neutron(y_A_Z_TKE, ν_A_Z_TKE)
-        Ap_H_min = A_H_min - round(ν_A.Value[ν_A.Argument .== A_H_min][1])
+        Ap_H_min = A_H_min - ceil(ν_A.Value[ν_A.Argument .== A_H_min][1])
         y_Ap, y_Zp, y_Np, y_TKEp, tke_AHp, ke_Ap = Singular_yield_distributions(y_Ap_Z_TKE, A₀, Ap_H_min)
         if !isdir("output_data/Yield_Ap/")
             mkdir("output_data/Yield_Ap/")
@@ -599,7 +621,7 @@ if secondary_output_avg_ε == "YES"
     )
 end
 if secondary_output_TXE_Q == "YES"
-    Q_A, txe_A = Vectorized_TXE_Q_A(A₀, Z₀, fission_type, E_incident, y_A_Z_TKE, A_H_range, dmass_excess)
+    Q_AH, txe_AH = Vectorized_TXE_Q_AH(A₀, Z₀, fission_type, E_incident, y_A_Z_TKE, A_H_range, dmass_excess)
 end
 #Write average quantities to file
 open("output_data/$(fissionant_nucleus_identifier)_Average_quantities.OUT", "w") do file
@@ -613,14 +635,12 @@ open("output_data/$(fissionant_nucleus_identifier)_Average_quantities.OUT", "w")
             write(file, "<A>_L = $(avg_A_L[1])\n")
             write(file, "<A>_H = $(avg_A_H[1])\n")
         end
-
         avg_TKE = Average_yield_argument(y_TKE, y_TKE.Argument)
         if !isnan(avg_TKE[2])
             write(file, "<TKE> = $(avg_TKE[1]) ± $(avg_TKE[2])\n")
         else
             write(file, "<TKE> = $(avg_TKE[1])\n")
         end
-
         δₑₒ = (sum(y_Z.Value[iseven.(y_Z.Argument)]) - sum(y_Z.Value[isodd.(y_Z.Argument)]))/sum(y_Z.Value)
         σδₑₒ = (1/sum(y_Z.Value)) * sqrt((1 + δₑₒ)^2 * sum(y_Z.σ .^2) + 2*δₑₒ*(sum(y_Z.σ[isodd.(y_Z.Argument)] .^2) - sum(y_Z.σ[iseven.(y_Z.Argument)].^2)))
         if !isnan(σδₑₒ)
@@ -633,7 +653,7 @@ open("output_data/$(fissionant_nucleus_identifier)_Average_quantities.OUT", "w")
         avg_ν_L = Average_value(ν_A_Z_TKE, y_A_Z_TKE, A_L_range)
         avg_ν_H = Average_value(ν_A_Z_TKE, y_A_Z_TKE, A_H_range)
         avg_ν = Average_value(ν_A_Z_TKE, y_A_Z_TKE, A_range)
-        avg_ν_Pair = avg_ν_L + avg_ν_H
+        avg_ν_Pair = Average_value(ν_AH_Pair, y_A, A_H_range)
         write(file, "<ν>_L = $avg_ν_L\n<ν>_H = $avg_ν_H\n<ν> = $avg_ν\n<ν>_pair = $avg_ν_Pair\n\n")
         if secondary_output_Ap == "YES"
             avg_Ap_L = Average_yield_argument(y_Ap, y_Ap.Argument[y_Ap.Argument .< Ap_H_min])
@@ -672,7 +692,7 @@ open("output_data/$(fissionant_nucleus_identifier)_Average_quantities.OUT", "w")
                 )
                 avg_εₖ_L = Average_value(avg_εₖ_A_Z_TKE, y_A_Z_TKE, A_L_range)
                 avg_εₖ_H = Average_value(avg_εₖ_A_Z_TKE, y_A_Z_TKE, A_H_range)
-                avg_εₖ_H = Average_value(avg_εₖ_A_Z_TKE, y_A_Z_TKE, A_range)
+                avg_εₖ = Average_value(avg_εₖ_A_Z_TKE, y_A_Z_TKE, A_range)
                 if !isnan(avg_εₖ)
                     write(file, "<avg_ε_$(k)>_L = $avg_εₖ_L\n<avg_ε_$(k)>_H = $avg_εₖ_H\n<avg_ε_$(k)> = $avg_εₖ\n\n")
                 end
