@@ -94,7 +94,7 @@ txe_partitioning_firstdataline = 2
 txe_partitioning_segmentpoints = [(126, 1.0), (130, 1.734), (134, 1.28), (138, 1.28), (150, 0.9), (167, 0.68)]
 
 #Writing out main DSE output file containing detailed sequence data YES or NO selector
-write_primary_output = "NO"
+write_primary_output = "YES"
 
 #Yield-averaged outputs YES or NO selector
 secondary_outputs = "YES"
@@ -115,7 +115,7 @@ yield_distribution_delimiter = ' '
 yield_distribution_firstdataline = 2
 
 #Neutron spectrum calculation YES or NO selector   
-neutron_spectrum = "NO"
+neutron_spectrum = "YES"
 E_min = 1e-6
 E_max = 20.0
 E_step = 5e-2

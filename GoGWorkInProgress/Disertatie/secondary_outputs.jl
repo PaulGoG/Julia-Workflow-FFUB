@@ -154,7 +154,7 @@ function Average_value(q_A_Z_TKE, y_A_Z_TKE::Distribution, mass_number_range)
     return Numerator/Denominator
 end
 #Average q(Argument) over Y(Argument) to get average value <q>
-function Average_value(q::Distribution_unidym, y::Distribution_unidym, Argument_range)
+function Average_value(q, y::Distribution_unidym, Argument_range)
     Denominator = 0.0
     Numerator = 0.0
     for Argument in Argument_range
@@ -459,10 +459,13 @@ if secondary_output_ν == "YES"
         DataFrame(A = ν_A.Argument, ν = ν_A.Value), 
         writeheader=true, newline="\r\n", delim=' '
     )
-    ν_AH_Pair = [Pair_value(ν_A, A₀, A_H) for A_H in ν_A.Argument[ν_A.Argument .>= A_H_min]]
+    ν_AH_Pair = DataFrame(
+        Argument =  ν_A.Argument[ν_A.Argument .>= A_H_min],
+        Value = [Pair_value(ν_A, A₀, A_H) for A_H in ν_A.Argument[ν_A.Argument .>= A_H_min]]
+    )
     CSV.write(
         "output_data/nu/$(fissionant_nucleus_identifier)_nu_AH_Pair.OUT", 
-        DataFrame(A = ν_A.Argument[ν_A.Argument .>= A_H_min], ν_Pair = ν_AH_Pair), 
+        DataFrame(A = ν_AH_Pair.Argument, ν_Pair = ν_AH_Pair.Value), 
         writeheader=true, newline="\r\n", delim=' '
     )
     ν_TKE = Average_over_A_Z(ν_A_Z_TKE, y_A_Z_TKE)
@@ -477,7 +480,7 @@ if secondary_output_ν == "YES"
         DataFrame(ν = probability_ν.Argument, P = probability_ν.Value), 
         writeheader=true, newline="\r\n", delim=' '
     )
-    probability_ν_Pair = Probability_of_occurrence(ν_AH_Pair, Δν)
+    probability_ν_Pair = Probability_of_occurrence(ν_AH_Pair.Value, Δν)
     CSV.write(
         "output_data/nu/$(fissionant_nucleus_identifier)_P_nu_Pair.OUT", 
         DataFrame(ν = probability_ν_Pair.Argument, P = probability_ν_Pair.Value), 
