@@ -37,8 +37,8 @@ Fission type:
 =#
 fission_type = "SF"
 
-#Specify incident neutron energy in MeV
-Eₙ = 0.0
+#Specify incident particle energy in MeV
+E_incident = 0.0
 
 #=
 Density level parameter computation method:
@@ -99,24 +99,15 @@ write_primary_output = "YES"
 #Yield-averaged outputs YES or NO selector
 secondary_outputs = "YES"
 
-secondary_output_ν = "YES"
-Δν = 1
-
-secondary_output_T = "YES"
-ΔT = 1e-3
-
-secondary_output_Tₖ = "YES"
-ΔTₖ = 1e-3
-
-secondary_output_avg_ε = "YES"
-Δavg_ε = 1e-3
-
-secondary_output_avg_εₖ = "YES"
-Δavg_εₖ = 1e-3
-
 secondary_output_Yield = "YES"
 secondary_output_TXE_Q = "YES"
+secondary_output_ν = "YES"
 secondary_output_Ap = "YES"
+secondary_output_T = "YES"
+secondary_output_Tₖ = "YES"
+secondary_output_avg_ε = "YES"
+secondary_output_avg_εₖ = "YES"
+Δν, ΔT, ΔTₖ, Δavg_ε, Δavg_εₖ = 1, 1e-3, 1e-3, 1e-3, 1e-3
 
 yield_distribution_filename = "$(fissionant_nucleus_identifier)YATKE.VES"
 yield_distribution_header = ["A", "TKE", "Value", "σ"]

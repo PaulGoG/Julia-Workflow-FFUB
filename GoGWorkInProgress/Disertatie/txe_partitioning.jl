@@ -11,9 +11,9 @@ deformation energy at scission and deformation energy at total acceleration of t
 =#
 #####
 #Modelling at scission
-function TXE_partitioning(A_0, Z_0, A_H_range, Eₙ, fragmdomain::Distribution, dΔE_def, tkerange, density_parameter_type, density_parameter_data, dm::DataFrame)
+function TXE_partitioning(A_0, Z_0, A_H_range, fission_type, E_incident, fragmdomain::Distribution, dΔE_def, tkerange, density_parameter_type, density_parameter_data, dm::DataFrame)
     E_excit = Distribution(Int[], Int[], Float64[], Int[], Float64[], Float64[])
-    Sₙ = Separation_energy(1, 0, A_0, Z_0, dm)
+    E_CN = Compound_nucleus_energy(fission_type, A_0, Z_0, E_incident, dm)
     if !isnan(Sₙ[1])
         for A_H in A_H_range
             A_L = A_0 - A_H
@@ -29,7 +29,7 @@ function TXE_partitioning(A_0, Z_0, A_H_range, Eₙ, fragmdomain::Distribution, 
                         if !isnan(a_L) && !isnan(a_H)
                             r = a_L/a_H
                             for TKE in tkerange
-                                TXE = Total_excitation_energy(Q[1], Q[2], TKE, 0.0, Sₙ[1], Sₙ[2], Eₙ)[1]
+                                TXE = Total_excitation_energy(Q[1], Q[2], TKE, 0.0, E_CN[1], E_CN[2])[1]
                                 if TXE > 0
                                     E_scission = TXE - (ΔE_def_L + ΔE_def_H)
                                     if E_scission > 0
@@ -76,9 +76,9 @@ function TXE_partitioning(A_0, Z_0, A_H_range, Eₙ, fragmdomain::Distribution, 
     end
 end
 #Direct partitioning ratio by segments
-function TXE_partitioning(A_0, Z_0, A_H_range, Eₙ, fragmdomain::Distribution, Points::Vector{Tuple{Int64, Float64}}, tkerange, dm::DataFrame)
+function TXE_partitioning(A_0, Z_0, A_H_range, fission_type, E_incident, fragmdomain::Distribution, Points::Vector{Tuple{Int64, Float64}}, tkerange, dm::DataFrame)
     E_excit = Distribution(Int[], Int[], Float64[], Int[], Float64[], Float64[])
-    Sₙ = Separation_energy(1, 0, A_0, Z_0, dm)
+    E_CN = Compound_nucleus_energy(fission_type, A_0, Z_0, E_incident, dm)
     if !isnan(Sₙ[1])
         for A_H in A_H_range
             A_L = A_0 - A_H
@@ -89,7 +89,7 @@ function TXE_partitioning(A_0, Z_0, A_H_range, Eₙ, fragmdomain::Distribution, 
                     Q = Q_value_released(A_0, Z_0, A_H, Z_H, dm)
                     if !isnan(Q[1])
                         for TKE in tkerange
-                            TXE = Total_excitation_energy(Q[1], Q[2], TKE, 0.0, Sₙ[1], Sₙ[2], Eₙ)[1]
+                            TXE = Total_excitation_energy(Q[1], Q[2], TKE, 0.0, E_CN[1], E_CN[2])[1]
                             if TXE > 0 
                                 E_excit_H = TXE *Ratio
                                 E_excit_L = TXE - E_excit_H
@@ -132,9 +132,9 @@ function TXE_partitioning(A_0, Z_0, A_H_range, Eₙ, fragmdomain::Distribution, 
     end
 end
 #R_T provided by segments
-function TXE_partitioning(A_0, Z_0, A_H_range, Eₙ, fragmdomain::Distribution, Points::Vector{Tuple{Int64, Float64}}, tkerange, density_parameter_type, density_parameter_data, dm::DataFrame)
+function TXE_partitioning(A_0, Z_0, A_H_range, fission_type, E_incident, fragmdomain::Distribution, Points::Vector{Tuple{Int64, Float64}}, tkerange, density_parameter_type, density_parameter_data, dm::DataFrame)
     E_excit = Distribution(Int[], Int[], Float64[], Int[], Float64[], Float64[])
-    Sₙ = Separation_energy(1, 0, A_0, Z_0, dm)
+    E_CN = Compound_nucleus_energy(fission_type, A_0, Z_0, E_incident, dm)
     if !isnan(Sₙ[1])
         for A_H in A_H_range
             A_L = A_0 - A_H
@@ -149,7 +149,7 @@ function TXE_partitioning(A_0, Z_0, A_H_range, Eₙ, fragmdomain::Distribution, 
                         r = a_L/a_H
                         Ratio = 1/(1 + r *R_T^2)
                         for TKE in tkerange
-                            TXE = Total_excitation_energy(Q[1], Q[2], TKE, 0.0, Sₙ[1], Sₙ[2], Eₙ)[1]
+                            TXE = Total_excitation_energy(Q[1], Q[2], TKE, 0.0, E_CN[1], E_CN[2])[1]
                             if TXE > 0 
                                 E_excit_H = TXE *Ratio
                                 E_excit_L = TXE - E_excit_H
@@ -191,14 +191,14 @@ function TXE_partitioning(A_0, Z_0, A_H_range, Eₙ, fragmdomain::Distribution, 
         error("Neutron separation energy for fissionant nucleus ($(A_0),$(Z_0)) could not be calculated!")
     end
 end
-function TXE_partitioning(txe_partitioning_type, A₀, Z₀, A_H_range, Eₙ, fragmdomain, txe_partitioning_datafile, tkerange, density_parameter_type, density_parameter_data, dm)
+function TXE_partitioning(txe_partitioning_type, A₀, Z₀, A_H_range, fission_type, E_incident, fragmdomain, txe_partitioning_datafile, tkerange, density_parameter_type, density_parameter_data, dm)
     println("*partitioning Total Excitation Energy")
     if txe_partitioning_type == "MSCZ"
-        return TXE_partitioning(A₀, Z₀, A_H_range, Eₙ, fragmdomain, txe_partitioning_datafile, tkerange, density_parameter_type, density_parameter_data, dm)
+        return TXE_partitioning(A₀, Z₀, A_H_range, fission_type, E_incident, fragmdomain, txe_partitioning_datafile, tkerange, density_parameter_type, density_parameter_data, dm)
     elseif txe_partitioning_type == "PARAM"
-        return TXE_partitioning(A₀, Z₀, A_H_range, Eₙ, fragmdomain, txe_partitioning_datafile, tkerange, dm)
+        return TXE_partitioning(A₀, Z₀, A_H_range, fission_type, E_incident, fragmdomain, txe_partitioning_datafile, tkerange, dm)
     elseif txe_partitioning_type == "RT"
-        return TXE_partitioning(A₀, Z₀, A_H_range, Eₙ, fragmdomain, txe_partitioning_datafile, tkerange, density_parameter_type, density_parameter_data, dm)
+        return TXE_partitioning(A₀, Z₀, A_H_range, fission_type, E_incident, fragmdomain, txe_partitioning_datafile, tkerange, density_parameter_type, density_parameter_data, dm)
     end
 end
 function Sort_TXE_partitioning(E_excit, fragmdomain)

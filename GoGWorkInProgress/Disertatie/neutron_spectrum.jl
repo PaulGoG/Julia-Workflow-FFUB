@@ -145,7 +145,7 @@ function Neutron_spectrum_VARIABLE_cs(A_0, Z_0, A_H_min, A_H_max, energyrange, R
     return n_E
 end
 function Neutron_spectrum_builder(A_0, Z_0, A_H_min, A_H_max, energyrange, Raw_output_datafile::DataFrame, evaporation_cs_type, y_A_Z_TKE::DataFrame)
-    println("*generating prompt neutron spectrum")
+    println("*begin generating prompt neutron spectrum at $(Dates.format(now(), "HH:MM:SS"))")
     if evaporation_cs_type == "CONSTANT"
         return Neutron_spectrum_CONSTANT_cs(A_0, Z_0, A_H_min, A_H_max, energyrange, Raw_output_datafile, y_A_Z_TKE)
     elseif evaporation_cs_type == "VARIABLE"

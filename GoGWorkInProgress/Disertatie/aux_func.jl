@@ -30,7 +30,7 @@ A_range = (A₀ - A_H_max):A_H_max
 #Input variables corrections according to fission type
 if fission_type == "SF"
     #Null neutron incident energy in spontaneous fission
-    Eₙ = 0.0
+    E_incident = 0.0
 elseif fission_type == "(n,f)"
     #Taking into account compound nucleus formation
     A₀ += 1
@@ -153,10 +153,19 @@ function Separation_energy(A_part, Z_part, A, Z, dm)
         return NaN
     end 
 end
+#Excitation energy of compound nucleus
+function Compound_nucleus_energy(fission_type, A_0, Z_0, E_incident, dm)
+    if fission_type == "SF"
+        return 0.0, 0.0
+    elseif fission_type == "(n, f)" 
+        S = Separation_energy(1, 0, A_0, Z_0, dm)
+        return S[1] + E_incident, S[2]
+    end
+end
 #Total Excitation Energy for a given set of data in MeV
-function Total_excitation_energy(Q, σ_Q, TKE, σ_TKE, Sₙ, σ_Sₙ, Eₙ)
-    TXE = Q - TKE + Sₙ + Eₙ
-    σ_TXE = sqrt(σ_Q^2 + σ_Sₙ^2 + σ_TKE^2)
+function Total_excitation_energy(Q, σ_Q, TKE, σ_TKE, ε_CN, σ_ε_CN)
+    TXE = Q - TKE + ε_CN
+    σ_TXE = sqrt(σ_Q^2 + σ_ε_CN^2 + σ_TKE^2)
     if TXE > 0
         return TXE, σ_TXE
     else 
@@ -247,10 +256,10 @@ function Process_main_output(DSE_eq_output, evaporation_cs_type)
     return Data
 end
 #Writing primary output to file
-function Write_seq_output(A_0, Z_0, A_H_min, A_H_max, No_ZperA, Eₙ, tkerange, fragmdomain, E_excitation, Processed_raw_output, density_parameter_type, density_parameter_data, fissionant_nucleus_identifier, mass_excess_filename, txe_partitioning_type, txe_partitioning_data, evaporation_cs_type, dm)
+function Write_seq_output(A_0, Z_0, A_H_min, A_H_max, No_ZperA, E_incident, tkerange, fragmdomain, E_excitation, Processed_raw_output, density_parameter_type, density_parameter_data, fissionant_nucleus_identifier, mass_excess_filename, txe_partitioning_type, txe_partitioning_data, evaporation_cs_type, dm)
     println("*writing primary DSE output data to file")
     horizontal_delimiter = lpad('-', 159, '-')
-    Sₙ = Separation_energy(1, 0, A_0, Z_0, dm)
+    E_CN = Compound_nucleus_energy(fission_type, A_0, Z_0, E_incident, dm)
     open("output_data/$(fissionant_nucleus_identifier)_main_DSE_.OUT", "w") do file
         write(file, "DSE main output file generated at $(Dates.format(now(), "HH:MM:SS")) corresponding to input data:\n")
         write(file, "$(fissionant_nucleus_identifier) (A₀ = $A_0, Z₀ = $Z_0), fission type: $fission_type, $No_ZperA Z per A, mass excess file - $mass_excess_filename\n")
@@ -278,7 +287,7 @@ function Write_seq_output(A_0, Z_0, A_H_min, A_H_max, No_ZperA, Eₙ, tkerange, 
                 S = Separation_energy(1, 0, A, Z, dm)[1]
                 write(file, "Fission fragment: A = $A / Z = $Z / p(Z,A) = $P_Z_A / Q = $(Q[1]) / a = $a / Sₙ = $S\n\n")
                 for TKE in unique(Processed_raw_output.TKE[(Processed_raw_output.A .== A) .& (Processed_raw_output.Z .== Z)])
-                    TXE = Total_excitation_energy(Q[1], Q[2], TKE, 0.0, Sₙ[1], Sₙ[2], Eₙ)[1]
+                    TXE = Total_excitation_energy(Q[1], Q[2], TKE, 0.0, E_CN[1], E_CN[2])[1]
                     E_excit = E_excitation.Value[(E_excitation.A .== A) .& (E_excitation.Z .== Z) .& (E_excitation.TKE .== TKE)][1]
                     write(file, "TKE = $TKE / TXE = $TXE / E* = $E_excit\n")
                     for k in unique(Processed_raw_output.No_Sequence[(Processed_raw_output.A .== A) .& (Processed_raw_output.Z .== Z) .& (Processed_raw_output.TKE .== TKE)])
