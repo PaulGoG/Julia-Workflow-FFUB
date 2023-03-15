@@ -107,7 +107,33 @@ end
 #####
 println("*executing data plots")
 
-#TO ADD CONDITIONALS AS PER secondary_outputs
+if secondary_output_Yield == "YES"
+
+end
+if secondary_output_ν == "YES"
+
+    if secondary_output_Ap == "YES"
+
+    end
+    if secondary_output_Tₖ == "YES"
+
+    end
+    if secondary_output_avg_εₖ == "YES"
+
+    end
+    if secondary_output_Eᵣ == "YES"
+
+    end
+end
+if secondary_output_T == "YES"
+
+end
+if secondary_output_avg_ε == "YES"
+
+end
+if secondary_output_TXE_Q == "YES"
+
+end
 
 plot_surface_ν_A_TKE = Plot_surface(
     DataFrame(x = ν_A_TKE.A, y = ν_A_TKE.TKE, z = ν_A_TKE.Value),

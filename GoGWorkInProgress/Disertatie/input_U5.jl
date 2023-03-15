@@ -23,12 +23,12 @@ Z₀ = 92
 
 #Heavy fission fragment range 
 A_H_min = 118
-A_H_max = 160
+A_H_max = 158
 
 #Total Kinetic Energy range and step in MeV
-TKE_min = 100.0
-TKE_max = 200.0
-TKE_step = 1.0
+TKE_min = 120.0
+TKE_max = 198.0
+TKE_step = 2.0
 
 #=
 Fission type: 
@@ -84,9 +84,9 @@ Data provided in each case:
 *Extra deformation energies for MSCZ via datafile
 *Segment points in Vector of Tuples (txe_partitioning_segmentpoints) for PARAM & RT
 =#
-txe_partitioning_type = "RT"
+txe_partitioning_type = "MSCZ"
 
-txe_partitioning_filename = ""
+txe_partitioning_filename = "EXTRADEF.U5"
 txe_partitioning_header = ["A", "Z", "Value"]
 txe_partitioning_delimiter = ' '
 txe_partitioning_firstdataline = 2
@@ -116,7 +116,7 @@ yield_distribution_delimiter = ' '
 yield_distribution_firstdataline = 2
 
 #Neutron spectrum calculation YES or NO selector   
-neutron_spectrum = "YES"
+neutron_spectrum = "NO"
 E_min = 1e-6
 E_max = 20.0
 E_step = 5e-2
