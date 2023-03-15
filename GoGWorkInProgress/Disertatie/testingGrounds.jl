@@ -119,7 +119,7 @@ function slope_intercept(x_1, y_1, x_2, y_2)
     b = y_1 - a*x_1
     return a, b
 end
-slope_intercept(135, 0.00010999999999999996, 146, 380e-6)
+slope_intercept(150, 0.9, 167, 0.68)
 
 S0_old = Strength_function_old.(sort(unique(RIPL3_data.A)))
 S0_new = Strength_function_new.(sort(unique(RIPL3_data.A)))

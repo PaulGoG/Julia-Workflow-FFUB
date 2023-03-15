@@ -157,7 +157,7 @@ end
 function Compound_nucleus_energy(fission_type, A_0, Z_0, E_incident, dm)
     if fission_type == "SF"
         return 0.0, 0.0
-    elseif fission_type == "(n, f)" 
+    elseif fission_type == "(n,f)" 
         S = Separation_energy(1, 0, A_0, Z_0, dm)
         return S[1] + E_incident, S[2]
     end

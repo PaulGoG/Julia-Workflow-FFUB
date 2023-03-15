@@ -17,17 +17,17 @@ mass_excess_delimiter = ' '
 mass_excess_firstdataline = 1
 
 #(A,Z) and symbol identifier of the fissionant nucleus
-fissionant_nucleus_identifier = "CF52"
-A₀ = 252
-Z₀ = 98
+fissionant_nucleus_identifier = "U5"
+A₀ = 235
+Z₀ = 92
 
 #Heavy fission fragment range 
-A_H_min = 126
-A_H_max = 174
+A_H_min = 118
+A_H_max = 160
 
 #Total Kinetic Energy range and step in MeV
-TKE_min = 130.0
-TKE_max = 230.0
+TKE_min = 100.0
+TKE_max = 200.0
 TKE_step = 1.0
 
 #=
@@ -35,10 +35,10 @@ Fission type:
 *SF for spontaneous fission
 *(n,f) for neutron-induced fission
 =#
-fission_type = "SF"
+fission_type = "(n,f)"
 
 #Specify incident particle energy in MeV
-E_incident = 0.0
+E_incident = 2.5e-8
 
 #=
 Density level parameter computation method:
@@ -91,7 +91,7 @@ txe_partitioning_header = ["A", "Z", "Value"]
 txe_partitioning_delimiter = ' '
 txe_partitioning_firstdataline = 2
 
-txe_partitioning_segmentpoints = [(126, 1.0), (130, 1.734), (134, 1.28), (138, 1.28), (150, 0.9), (167, 0.68)]
+txe_partitioning_segmentpoints = [(A_H_min, 1.2), (A_H_max, 1.2)]
 
 #Writing out main DSE output file containing detailed sequence data YES or NO selector
 write_primary_output = "YES"
@@ -107,9 +107,10 @@ secondary_output_T = "YES"
 secondary_output_Tₖ = "YES"
 secondary_output_avg_ε = "YES"
 secondary_output_avg_εₖ = "YES"
-Δν, ΔT, ΔTₖ, Δavg_ε, Δavg_εₖ = 1, 1e-2, 1e-2, 1e-2, 1e-2
+secondary_output_Eᵣ = "YES"
+Δν, ΔT, ΔTₖ, Δavg_ε, Δavg_εₖ, ΔEᵣ = 1, 1e-2, 1e-2, 5e-2, 5e-2, 5e-1
 
-yield_distribution_filename = "$(fissionant_nucleus_identifier)YATKE.VES"
+yield_distribution_filename = "U5YATKE.SRE"
 yield_distribution_header = ["A", "TKE", "Value", "σ"]
 yield_distribution_delimiter = ' '
 yield_distribution_firstdataline = 2
@@ -121,10 +122,7 @@ E_max = 20.0
 E_step = 5e-2
 Yield_cutoff_value = 1e-3
 
-#=
-Plots YES or NO selector
-!It requires YES to secondary_outputs!
-=#
+#Plots YES or NO selector
 generate_plots = "NO"
 
 resolution_scale = 100
