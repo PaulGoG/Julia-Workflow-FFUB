@@ -11,7 +11,7 @@ deformation energy at scission and deformation energy at total acceleration of t
 =#
 #####
 #Modelling at scission
-function TXE_partitioning(A_0, Z_0, A_H_range, fission_type, E_incident, fragmdomain::Distribution, dΔE_def, tkerange, density_parameter_type, density_parameter_data, dm::DataFrame)
+function TXE_partitioning(A_0, Z_0, A_H_range, fission_type, E_incident, fragmdomain::Distribution, dΔE_def::DataFrame, tkerange, density_parameter_type, density_parameter_data, dm::DataFrame)
     E_excit = Distribution(Int[], Int[], Float64[], Int[], Float64[], Float64[])
     E_CN = Compound_nucleus_energy(fission_type, A_0, Z_0, E_incident, dm)
     if !isnan(E_CN[1])
@@ -33,8 +33,8 @@ function TXE_partitioning(A_0, Z_0, A_H_range, fission_type, E_incident, fragmdo
                                 if TXE > 0
                                     E_scission = TXE - (ΔE_def_L + ΔE_def_H)
                                     if E_scission > 0
-                                        E_excit_L = E_scission/(1 + r) + ΔE_def_L
-                                        E_excit_H = r * E_scission/(1 + r) + ΔE_def_H
+                                        E_excit_L = r *E_scission/(1 + r) + ΔE_def_L
+                                        E_excit_H = E_scission/(1 + r) + ΔE_def_H
                                         if A_L != A_H
                                             push!(E_excit.A, A_H)
                                             push!(E_excit.Z, Z_H)
@@ -83,7 +83,7 @@ function TXE_partitioning(A_0, Z_0, A_H_range, fission_type, E_incident, fragmdo
         for A_H in A_H_range
             A_L = A_0 - A_H
             Ratio = Segments_TXE_partitioning(Points, A_H)
-            if !isnan(Ratio) && Ratio <= 1
+            if Ratio <= 1
                 for Z_H in fragmdomain.Z[fragmdomain.A .== A_H]
                     Z_L = Z_0 - Z_H
                     Q = Q_value_released(A_0, Z_0, A_H, Z_H, dm)

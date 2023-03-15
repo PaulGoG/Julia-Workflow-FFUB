@@ -267,7 +267,7 @@ function Write_seq_output(A_0, Z_0, A_H_min, A_H_max, No_ZperA, E_incident, tker
         write(file, "TKE ∈ $tkerange\n")
         write(file, "TXE partitioning method - $txe_partitioning_type\n")
         if txe_partitioning_type == "MSCZ"
-            write(file, "TXE partitioning data used: Extra deformation energies from $txe_partitioning_data\n")
+            write(file, "TXE partitioning data used: Extra deformation energies from $txe_partitioning_filename\n")
         elseif txe_partitioning_type == "RT"
             write(file, "TXE partitioning data used: RT(A_H) denoted by segments $txe_partitioning_data\n")
         elseif txe_partitioning_type == "PARAM"

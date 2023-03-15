@@ -144,5 +144,82 @@ pltlin = scatter!(pltlin, sort(unique(RIPL3_data.A)), S0_old, color = :red, labe
 pltlin = plot!(pltlin, sort(unique(RIPL3_data.A)), S0_new, color = :blue, label="S₀ new")
 vline!(pltlin, [76, 160], color = :green, label="")
 =#
+#Generate ΔE_def
+dβ₀ = CSV.read("B2MOLLER.ANA", DataFrame; delim=' ', ignorerepeated=true, header=["Z", "A", "β"], skipto = 2)
+function Linear_function(x, a, b)
+    return a*x + b
+end
+function Beta_sciss(Z)
+    if Z <= 28 && Z > 41
+    a = 0.58/13
+    b = -28*a
+    for Z in 28:41
+        push!(β_sciz.x, Z)
+        push!(β_sciz.y, Functie_liniara(Z, a, b))
+        push!(β_sciz.σ, 0.0)
+    end
+    for Z in 42:44
+        push!(β_sciz.x, Z)
+        push!(β_sciz.y, 0.58)
+        push!(β_sciz.σ, 0.0)
+    end
+    a = -0.58/6
+    b = -50*a
+    for Z in 45:50
+        push!(β_sciz.x, Z)
+        push!(β_sciz.y, Functie_liniara(Z, a, b))
+        push!(β_sciz.σ, 0.0)
+    end
+    a = 0.6/15
+    b = -50*a
+    for Z in 51:65
+        push!(β_sciz.x, Z)
+        push!(β_sciz.y, Functie_liniara(Z, a, b))
+        push!(β_sciz.σ, 0.0)
+    end
+    return β_sciz
+end
+function E_LDM(β, A, Z)
+    η = (A - 2*Z)/A
+    χ = 1 - 1.7826 * η^2
+    α² = (5 * β^2)/(4*π)
+    X_νs = -χ*(15.4941*A - 17.9439*A^(2/3) * (1 + 0.4*α²))
+    X_e = Z^2 * (0.7053 * (1 - 0.2*α²)/(A^(1/3)) - 1.1529/A)
+    return X_νs + X_e
+end
+function ΔE_def(A_0, Z_0, dβ₀, A_H_range)
+    ΔE = Distribution(Int[], Int[], Float64[], Int[], Float64[], Float64[])
+    for A_H in A_H_range
+        if isassigned(dβ₀.Z[dβ₀.A .== A_H], 1)
+            for Z_H in sort(unique(dβ₀.Z[dβ₀.A .== A_H]))
+                A_L = A - A_H
+                Z_L = Z - Z_H
+                β_sciss_H = Beta_sciss(Z_H)
+                β_sciss_L = Beta_sciss(Z_L)
+                if !isnan(β_sciss_H + β_sciss_L)
+                    if isassigned(dβ₀.β[(dβ₀.A .== A_L) .& (dβ₀.Z .== Z_L)], 1)
+                        E_LDM_H_0 = E_LDM(0, A_H, Z_H)
+                        E_LDM_L_0 = E_LDM(0, A_L, Z_L)
+                        E_def_sciz_H = E_LDM(β_sciz.y[β_sciz.x .== Z_H][1], A_H, Z_H) - E_LDM_H_0
+                        E_def_sciz_L = E_LDM(β_sciz.y[β_sciz.x .== Z_L][1], A_L, Z_L) - E_LDM_L_0
+                        E_def_at_H = E_LDM(dβ₀.β[(dβ₀.A .== A_H) .& (dβ₀.Z .== Z_H)][1], A_H, Z_H) - E_LDM_H_0
+                        E_def_at_L = E_LDM(dβ₀.β[(dβ₀.A .== A_L) .& (dβ₀.Z .== Z_L)][1], A_L, Z_L) - E_LDM_L_0
+                        push!(ΔE.x_1, A_H)
+                        push!(ΔE.x_2, Z_H)
+                        push!(ΔE.y, abs(E_def_sciz_H - E_def_at_H))
+                        push!(ΔE.σ, 0.0)
+                        if A_L != A_H
+                            push!(ΔE.x_1, A_L)
+                            push!(ΔE.x_2, Z_L)
+                            push!(ΔE.y, abs(E_def_sciz_L - E_def_at_L))
+                            push!(ΔE.σ, 0.0)
+                        end
+                    end
+                end
+            end
+        end
+    end
+    return ΔE
+end
 #####
 
