@@ -101,12 +101,11 @@ if !isdir("output_data/")
 end
 
 if generate_plots == "YES"
-    using Plots
+    using Plots, LaTeXStrings
     plots_resolution = aspect_ratio .* resolution_scale
     if !isdir("plots/")
         mkdir("plots/")
     end
-    plotlyjs(size = plots_resolution)
 end
 #Function definitions
 #Isobaric charge distribution p(Z,A)
@@ -173,14 +172,14 @@ function Total_excitation_energy(Q, σ_Q, TKE, σ_TKE, ε_CN, σ_ε_CN)
     end
 end
 #Construct vectorized fragmentation domain with p(A,Z) values stored in memory
-function Fragmentation_domain(A_0, Z_0, NoZperA, A_H_range, dpAZ)
+function Fragmentation_domain(A_0, Z_0, NoZperA, A_H_range, pAZ_data)
     println("*building fragmentation domain")
     fragmdomain = Distribution(Int[], Int[], Float64[], Int[], Float64[], Float64[])
     for A_H in A_H_range
         A_L = A_0 - A_H
-        if isassigned(dpAZ.A[dpAZ.A .== A_H], 1)
-            RMS = dpAZ.rms_A[dpAZ.A .== A_H][1]
-            ΔZ = dpAZ.ΔZ_A[dpAZ.A .== A_H][1]
+        if isassigned(pAZ_data.A[pAZ_data.A .== A_H], 1)
+            RMS = pAZ_data.rms_A[pAZ_data.A .== A_H][1]
+            ΔZ = pAZ_data.ΔZ_A[pAZ_data.A .== A_H][1]
         else
             RMS = 0.6
             ΔZ = -0.5

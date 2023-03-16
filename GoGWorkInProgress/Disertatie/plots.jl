@@ -99,9 +99,8 @@ end
 function Plot_legend_attributes(plt::Plots.Plot, lposition)
     plot!(plt, legend_position = lposition)
 end
-function Display_plot(plt::Plots.Plot, filename::String, fissionant_nucleus_identifier::String)
-    display(plt)
-    savefig("plots/$(fissionant_nucleus_identifier)_$(filename).png")
+function Process_plot(plt::Plots.Plot, filename::String, fissionant_nucleus_identifier::String)
+    savefig(plt, "plots/$(fissionant_nucleus_identifier)_$(filename).png")
     println("*plotting $filename done!")
 end
 #####
@@ -111,9 +110,19 @@ if secondary_output_Yield == "YES"
 
 end
 if secondary_output_ν == "YES"
-
+    plot_surface_ν_A_TKE = Plot_surface(
+        DataFrame(x = ν_A_TKE.A, y = ν_A_TKE.TKE, z = ν_A_TKE.Value),
+        5, 5, Int(round(10/TKE_step)), 10, (120, 30), 
+        "ν(A,TKE)", (minimum(ν_A_TKE.Value), maximum(ν_A_TKE.Value)+0.5), :identity
+    )
+    display(plot_surface_ν_A_TKE)
     if secondary_output_Ap == "YES"
-
+        plot_surface_y_Ap_Z = Plot_surface(
+            DataFrame(x = y_Ap_Z.A, y = y_Ap_Z.Z, z = y_Ap_Z.Value),
+            10, 10, 2, 10, (120, 30),
+            "Y(Aₚ,Z)", (minimum(y_Ap_Z.Value), maximum(y_Ap_Z.Value)), :identity
+        )
+        display(plot_surface_y_Ap_Z)
     end
     if secondary_output_Tₖ == "YES"
 
@@ -132,26 +141,41 @@ if secondary_output_avg_ε == "YES"
 
 end
 if secondary_output_TXE_Q == "YES"
+    gr(size = plots_resolution)
+    avg_Q = Average_value(Q_AH, y_A, A_H_range)
+    plot_Q_AH = Scatter_data(Q_AH.Argument, Q_AH.Value, "", :red, 5, :circle)
+    Plot_data(plot_Q_AH, Q_AH.Argument, Q_AH.Value, "", :red)
+    Modify_plot(plot_Q_AH)
+    Modify_plot(
+        plot_Q_AH, L"\mathrm{A_H}", "Q [MeV]", 
+        (minimum(Q_AH.Argument), maximum(Q_AH.Argument)), :identity, 
+        (minimum(Q_AH.Value)*0.95, maximum(Q_AH.Value)*1.05), :identity,
+        "", 600
+    )
+    Plot_textbox(plot_Q_AH, maximum(Q_AH.Argument)*0.95, maximum(Q_AH.Value)*1.025, "<Q> = $(round(avg_Q, digits = 3))")
+    xticks!(plot_Q_AH, minimum(Q_AH.Argument):5:maximum(Q_AH.Argument))
+    Process_plot(plot_Q_AH, "Q_AH", fissionant_nucleus_identifier)
+
+    avg_TXE = Average_value(txe_AH, y_A, A_H_range)
+    plot_TXE_AH = Scatter_data(txe_AH.Argument, txe_AH.Value, "", :red, 5, :circle)
+    Plot_data(plot_TXE_AH, txe_AH.Argument, txe_AH.Value, "", :red)
+    Modify_plot(plot_TXE_AH)
+    Modify_plot(
+        plot_TXE_AH, L"\mathrm{A_H}", "TXE [MeV]", 
+        (minimum(txe_AH.Argument), maximum(txe_AH.Argument)), :identity, 
+        (minimum(txe_AH.Value)*0.95, maximum(txe_AH.Value)*1.05), :identity,
+        "", 600
+    )
+    Plot_textbox(plot_TXE_AH, maximum(txe_AH.Argument)*0.85, maximum(txe_AH.Value)*0.8, "<TXE> = $(round(avg_TXE, digits = 3))")
+    Process_plot(plot_TXE_AH, "TXE_AH", fissionant_nucleus_identifier)
+end
+if secondary_output_E_excitation == "YES"
 
 end
-
-plot_surface_ν_A_TKE = Plot_surface(
-    DataFrame(x = ν_A_TKE.A, y = ν_A_TKE.TKE, z = ν_A_TKE.Value),
-    5, 5, Int(round(10/TKE_step)), 10, (120, 30), 
-    "ν(A,TKE)", (minimum(ν_A_TKE.Value), maximum(ν_A_TKE.Value)+0.5), :identity
-)
-Display_plot(plot_surface_ν_A_TKE, "nu_A_TKE")
-
-plot_surface_y_Ap_Z = Plot_surface(
-    DataFrame(x = y_Ap_Z.A, y = y_Ap_Z.Z, z = y_Ap_Z.Value),
-    10, 10, 2, 10, (120, 30),
-    "Y(Aₚ,Z)", (minimum(y_Ap_Z.Value), maximum(y_Ap_Z.Value)), :identity
+if neutron_spectrum == "YES"
+    plot_neutron_spectrum = Plot_data(n_E.E, Ratio_to_Maxwellian, "", :red)
+    Modify_plot(
+        plot_neutron_spectrum, "E [MeV]", "Nuetron spectrum 1/MeV", (first(n_E.E), last(n_E.E)),
+        :identity, (minimum(n_E.Value), maximum(n_E.Value)), :log10, "Neutron spectrum, linear scale", 300 
     )
-    Display_plot(plot_neutron_spectrum, "randomfilename")
-
-plot_neutron_spectrum = Plot_data(n_E.E, Ratio_to_Maxwellian, "", :red)
-plot_neutron_spectrum = Modify_plot(
-    plot_neutron_spectrum, "E [MeV]", "N(E)", (first(n_E.E), last(n_E.E)),
-    :identity, (minimum(n_E.Value), maximum(n_E.Value)), :log10, "Neutron spectrum, linear scale", 300 
-)
-Display_plot(plot_neutron_spectrum, "Neutron spectrum_linear")
+end

@@ -84,7 +84,7 @@ function Average_over_Z(q_A_Z_TKE::Distribution, fragmdomain::Distribution)
     return q_A_TKE
 end
 #Average q(A,Z,TKE) over Y(A,Z,TKE) so it becomes q(A)
-function Average_over_TKE_Z(q_A_Z_TKE::Distribution, y_A_Z_TKE::Distribution)
+function Average_over_TKE_Z(q_A_Z_TKE, y_A_Z_TKE::Distribution)
     q_A = Distribution_unidym(Int[], Float64[], Float64[])
     for A in unique(q_A_Z_TKE.A)
         Denominator = 0.0
@@ -479,19 +479,19 @@ if secondary_output_ν == "YES"
         DataFrame(TKE = ν_TKE.Argument, ν = ν_TKE.Value), 
         writeheader=true, newline="\r\n", delim=' '
     )
-    probability_ν = Probability_of_occurrence(ν_A_Z_TKE.Value, Δν)
+    probability_ν = Probability_of_occurrence(ν_A_Z_TKE.Value, 1)
     CSV.write(
         "output_data/nu/$(fissionant_nucleus_identifier)_P_nu.OUT", 
         DataFrame(ν = probability_ν.Argument, P = probability_ν.Value), 
         writeheader=true, newline="\r\n", delim=' '
     )
-    probability_ν_L = Probability_of_occurrence(ν_A_Z_TKE.Value[ν_A_Z_TKE.A .<= A_H_min], Δν)
+    probability_ν_L = Probability_of_occurrence(ν_A_Z_TKE.Value[ν_A_Z_TKE.A .<= A_H_min], 1)
     CSV.write(
         "output_data/nu/$(fissionant_nucleus_identifier)_P_nu_L.OUT", 
         DataFrame(ν = probability_ν_L.Argument, P = probability_ν_L.Value), 
         writeheader=true, newline="\r\n", delim=' '
     )
-    probability_ν_H = Probability_of_occurrence(ν_A_Z_TKE.Value[ν_A_Z_TKE.A .>= A_H_min], Δν)
+    probability_ν_H = Probability_of_occurrence(ν_A_Z_TKE.Value[ν_A_Z_TKE.A .>= A_H_min], 1)
     CSV.write(
         "output_data/nu/$(fissionant_nucleus_identifier)_P_nu_H.OUT", 
         DataFrame(ν = probability_ν_H.Argument, P = probability_ν_H.Value), 
@@ -580,6 +580,19 @@ if secondary_output_ν == "YES"
             mkdir("output_data/P_T_k/")
         end
         for k in 1:maximum(ν_A_Z_TKE.Value)
+            Tₖ_A = Average_over_TKE_Z(
+                    DataFrame(
+                        A = Raw_output_datafile.A[Raw_output_datafile.No_Sequence .== k],
+                        Z = Raw_output_datafile.Z[Raw_output_datafile.No_Sequence .== k],
+                        TKE = Raw_output_datafile.TKE[Raw_output_datafile.No_Sequence .== k],
+                        Value = Raw_output_datafile.Tₖ[Raw_output_datafile.No_Sequence .== k]
+                    ),
+                    y_A_Z_TKE)
+            CSV.write(
+                "output_data/$(fissionant_nucleus_identifier)_T_$(k)_A.OUT", 
+                DataFrame(A = Tₖ_A.Argument, T = Tₖ_A.Value), 
+                writeheader=true, newline="\r\n", delim=' '
+            )
             Tₖ = copy(Raw_output_datafile.Tₖ[Raw_output_datafile.No_Sequence .== k])
             probability_Tₖ = Probability_of_occurrence(Tₖ, ΔTₖ)
             CSV.write(
@@ -674,6 +687,12 @@ if secondary_output_T == "YES"
         No_Sequence = Raw_output_datafile.No_Sequence,
         Value = Raw_output_datafile.Tₖ
     ))
+    T_A = Average_over_TKE_Z(T_A_Z_TKE, y_A_Z_TKE)
+    CSV.write(
+        "output_data/$(fissionant_nucleus_identifier)_T_A.OUT", 
+        DataFrame(A = T_A.Argument, T = T_A.Value), 
+        writeheader=true, newline="\r\n", delim=' '
+    )
     probability_T = Probability_of_occurrence(T_A_Z_TKE.Value, ΔT)
     CSV.write(
         "output_data/$(fissionant_nucleus_identifier)_P_T.OUT", 
@@ -722,6 +741,20 @@ if secondary_output_avg_ε == "YES"
 end
 if secondary_output_TXE_Q == "YES"
     Q_AH, txe_AH = Vectorized_TXE_Q_AH(A₀, Z₀, fission_type, E_incident, y_A_Z_TKE, A_H_range, dmass_excess)
+end
+if secondary_output_E_excitation == "YES"
+    E_excitation_A = Average_over_TKE_Z(E_excitation, y_A_Z_TKE)
+    CSV.write(
+        "output_data/$(fissionant_nucleus_identifier)_E_excit_A.OUT", 
+        DataFrame(A = E_excitation_A.Argument, E = E_excitation_A.Value), 
+        writeheader=true, newline="\r\n", delim=' '
+    )
+    probability_E_excitation = Probability_of_occurrence(E_excitation.Value, 1.0)
+    CSV.write(
+        "output_data/$(fissionant_nucleus_identifier)_P_E_excit.OUT", 
+        DataFrame(E = probability_E_excitation.Argument, P = probability_E_excitation.Value), 
+        writeheader=true, newline="\r\n", delim=' '
+    )       
 end
 #Write average quantities to file
 open("output_data/$(fissionant_nucleus_identifier)_Average_quantities.OUT", "w") do file
