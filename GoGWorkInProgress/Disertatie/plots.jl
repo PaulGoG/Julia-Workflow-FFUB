@@ -77,7 +77,7 @@ function Scatter_data(plt::Plots.Plot, x, y, σ, plot_label, marker_color, marke
         markercolor = marker_color, markersize = marker_size, markershape = marker_shape
     )
 end
-function Modify_plot(plt::Plots.Plot, xaxisname, yaxisname, xaxislims::Tuple, xaxisscale, yaxislims::Tuple, yaxisscale, plot_title, DPI::Int)
+function Modify_plot(plt::Plots.Plot, xaxisname, yaxisname, xaxislims::Tuple, xaxisscale, yaxislims::Tuple, yaxisscale, plot_title)
     plot!(
         plt,
         xlabel = xaxisname,
@@ -87,7 +87,6 @@ function Modify_plot(plt::Plots.Plot, xaxisname, yaxisname, xaxislims::Tuple, xa
         xscale = xaxisscale,
         yscale = yaxisscale,
         title = plot_title,
-        dpi = DPI
     )
 end
 function Modify_plot(plt::Plots.Plot)
@@ -141,7 +140,7 @@ if secondary_output_avg_ε == "YES"
 
 end
 if secondary_output_TXE_Q == "YES"
-    gr(size = plots_resolution)
+    gr(size = plots_resolution, dpi=300)
     avg_Q = Average_value(Q_AH, y_A, A_H_range)
     plot_Q_AH = Scatter_data(Q_AH.Argument, Q_AH.Value, "", :red, 5, :circle)
     Plot_data(plot_Q_AH, Q_AH.Argument, Q_AH.Value, "", :red)
@@ -149,8 +148,7 @@ if secondary_output_TXE_Q == "YES"
     Modify_plot(
         plot_Q_AH, L"\mathrm{A_H}", "Q [MeV]", 
         (minimum(Q_AH.Argument), maximum(Q_AH.Argument)), :identity, 
-        (minimum(Q_AH.Value)*0.95, maximum(Q_AH.Value)*1.05), :identity,
-        "", 600
+        (minimum(Q_AH.Value)*0.95, maximum(Q_AH.Value)*1.05), :identity, ""
     )
     Plot_textbox(plot_Q_AH, maximum(Q_AH.Argument)*0.95, maximum(Q_AH.Value)*1.025, "<Q> = $(round(avg_Q, digits = 3))")
     xticks!(plot_Q_AH, minimum(Q_AH.Argument):5:maximum(Q_AH.Argument))
@@ -163,8 +161,7 @@ if secondary_output_TXE_Q == "YES"
     Modify_plot(
         plot_TXE_AH, L"\mathrm{A_H}", "TXE [MeV]", 
         (minimum(txe_AH.Argument), maximum(txe_AH.Argument)), :identity, 
-        (minimum(txe_AH.Value)*0.95, maximum(txe_AH.Value)*1.05), :identity,
-        "", 600
+        (minimum(txe_AH.Value)*0.95, maximum(txe_AH.Value)*1.05), :identity, ""
     )
     Plot_textbox(plot_TXE_AH, maximum(txe_AH.Argument)*0.85, maximum(txe_AH.Value)*0.8, "<TXE> = $(round(avg_TXE, digits = 3))")
     Process_plot(plot_TXE_AH, "TXE_AH", fissionant_nucleus_identifier)
@@ -176,6 +173,6 @@ if neutron_spectrum == "YES"
     plot_neutron_spectrum = Plot_data(n_E.E, Ratio_to_Maxwellian, "", :red)
     Modify_plot(
         plot_neutron_spectrum, "E [MeV]", "Nuetron spectrum 1/MeV", (first(n_E.E), last(n_E.E)),
-        :identity, (minimum(n_E.Value), maximum(n_E.Value)), :log10, "Neutron spectrum, linear scale", 300 
+        :identity, (minimum(n_E.Value), maximum(n_E.Value)), :log10, "Neutron spectrum, linear scale"
     )
 end
