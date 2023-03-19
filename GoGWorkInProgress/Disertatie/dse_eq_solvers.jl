@@ -51,31 +51,31 @@ function Neutron_strength_function(A)
     if A <= 23
         return 2.5e-5
     elseif A > 23 && A <= 55
-        return 1.296875e-5 *A - 0.00027328125
+        return 1.29695e-5 *A - 2.7328e-4
     elseif A > 55 && A <= 69
-        return -2.142857142857143e-5 *A + 0.0016185714285714289
+        return -2.1429e-5 *A + 1.6186e-3
     elseif A > 69 && A <= 79
-        return 0.00014
+        return 1.4e-4
     elseif A > 79 && A <= 90
-        return -7.818181818181818e-6 *A + 0.0007576363636363635
+        return -7.8182e-6 *A + 7.5764e-4
     elseif A > 90 && A <= 110
         return 5.4e-5
     elseif A > 110 && A <= 120
-        return -4.4e-6 *A + 0.000538 
+        return -4.4e-6 *A + 5.38e-4 
     elseif A > 120 && A <= 135
-        return 6.666666666666667e-6 *A - 0.00079
+        return 6.6667e-6 *A - 7.9e-4
     elseif A > 135 && A <= 146
-        return 2.4545454545454552e-5 *A - 0.0032036363636363647
+        return 2.4545e-5 *A - 3.2036e-3
     elseif A > 146 && A <= 152
-        return 0.00038
+        return 3.8e-4
     elseif A > 152 && A <= 158
-        return -3.833333333333334e-5 *A + 0.006206666666666668
+        return -3.8333e-5 *A + 6.2067e-3
     elseif A > 158 && A <= 173
-        return 0.00015
+        return 1.5e-4
     elseif A > 173 && A <= 186
-        return 1.0769230769230771e-5 *A - 0.0017130769230769235
+        return 1.0769e-5 *A - 1.7131e-3
     elseif A > 186 && A <= 208
-        return -8.636363636363637e-6 *A + 0.0018963636363636366
+        return -8.6364e-6 *A + 1.8964e-3
     elseif A > 208
         return 1e-4
     end
