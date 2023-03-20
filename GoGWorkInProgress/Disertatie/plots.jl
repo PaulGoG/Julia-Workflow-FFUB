@@ -11,7 +11,7 @@ function Grid_builder(q_x_y::DataFrame)
     end
     return grid
 end
-function Plot_surface(q_x_y::DataFrame, tick_size_xaxis::Int, tick_roundness_xaxis, tick_size_yaxis::Int, tick_roundness_yaxis, camera_angle::Tuple, zaxisname, zaxislims::Tuple, zaxisscale)
+function Plot_surface(q_x_y::DataFrame, tick_size_xaxis::Int, tick_roundness_xaxis, tick_size_yaxis::Int, tick_roundness_yaxis, camera_angle::Tuple, zaxisname, zaxislims::Tuple, zaxisscale, color_scale)
     grid_q_x_y = Grid_builder(q_x_y)
 
     x = sort(unique(q_x_y.x))
@@ -29,9 +29,32 @@ function Plot_surface(q_x_y::DataFrame, tick_size_xaxis::Int, tick_roundness_xax
         xticks = (collect(index_x_range), string.(Int.(round.(x[index_x_range])))), 
         yticks = (collect(index_y_range), string.(Int.(round.(y[index_y_range])))),
         camera = camera_angle,
+        colorscale = color_scale,
         zlabel = zaxisname,
         zlims = zaxislims,
         zscale = zaxisscale
+    )
+    return plt
+end
+function Plot_heatmap(q_x_y::DataFrame, tick_size_xaxis::Int, tick_roundness_xaxis, tick_size_yaxis::Int, tick_roundness_yaxis, zaxisname, color_scale)
+    grid_q_x_y = Grid_builder(q_x_y)
+
+    x = sort(unique(q_x_y.x))
+    first_index_x = findfirst(x -> round(x/tick_roundness_xaxis) == x/tick_roundness_xaxis, x)
+    last_index_x = findlast(x -> round(x/tick_roundness_xaxis) == x/tick_roundness_xaxis, x)
+    index_x_range = first_index_x:tick_size_xaxis:last_index_x
+
+    y = sort(unique(q_x_y.y))
+    first_index_y = findfirst(x -> round(x/tick_roundness_yaxis) == x/tick_roundness_yaxis, y)
+    last_index_y = findlast(x -> round(x/tick_roundness_yaxis) == x/tick_roundness_yaxis, y)
+    index_y_range = first_index_y:tick_size_yaxis:last_index_y
+
+    plt = heatmap(
+        grid_q_x_y', 
+        xticks = (collect(index_x_range), string.(Int.(round.(x[index_x_range])))), 
+        yticks = (collect(index_y_range), string.(Int.(round.(y[index_y_range])))),
+        colorscale = color_scale,
+        colorbar_title = zaxisname,
     )
     return plt
 end
@@ -57,6 +80,20 @@ function Scatter_data(x, y, σ, plot_label, marker_color, marker_size, marker_sh
     )
     return plt
 end
+function Bar_data(x, y, plot_label, color_bars, Δx)
+    plt = bar(
+        x, y, label = plot_label, 
+        bar_edges = true, fillalpha = 0, linecolor = color_bars, bar_width = Δx
+    )
+    return plt
+end
+function Bar_data(x, y, σ, plot_label, color_bars, Δx)
+    plt = bar(
+        x, y, yerror = σ, label = plot_label, 
+        bar_edges = true, fillalpha = 0, linecolor = color_bars, bar_width = Δx
+    )
+    return plt
+end
 function Plot_data(plt::Plots.Plot, x, y, plot_label, plot_color)
     plot!(plt, x, y, label = plot_label, color = plot_color)
 end
@@ -77,6 +114,20 @@ function Scatter_data(plt::Plots.Plot, x, y, σ, plot_label, marker_color, marke
         markercolor = marker_color, markersize = marker_size, markershape = marker_shape
     )
 end
+function Bar_data(plt::Plots.Plot, x, y, plot_label, color_bars, Δx)
+    bar!(
+        plt,
+        x, y, label = plot_label, 
+        bar_edges = true, fillalpha = 0, linecolor = color_bars, bar_width = Δx
+    )
+end
+function Bar_data(plt::Plots.Plot, x, y, σ, plot_label, color_bars, Δx)
+    bar!(
+        plt,
+        x, y, yerror = σ, label = plot_label, 
+        bar_edges = true, fillalpha = 0, linecolor = color_bars, bar_width = Δx
+    )
+end
 function Modify_plot(plt::Plots.Plot, xaxisname, yaxisname, xaxislims::Tuple, xaxisscale, yaxislims::Tuple, yaxisscale, plot_title)
     plot!(
         plt,
@@ -89,6 +140,14 @@ function Modify_plot(plt::Plots.Plot, xaxisname, yaxisname, xaxislims::Tuple, xa
         title = plot_title,
     )
 end
+function Modify_plot(plt::Plots.Plot, xaxisname, yaxisname, plot_title)
+    plot!(
+        plt,
+        xlabel = xaxisname,
+        ylabel = yaxisname,
+        title = plot_title,
+    )
+end
 function Modify_plot(plt::Plots.Plot)
     plot!(plt, minorgrid = true, framestyle = :box)
 end
@@ -98,8 +157,8 @@ end
 function Plot_legend_attributes(plt::Plots.Plot, lposition)
     plot!(plt, legend_position = lposition)
 end
-function Process_plot(plt::Plots.Plot, filename::String, fissionant_nucleus_identifier::String)
-    savefig(plt, "plots/$(fissionant_nucleus_identifier)_$(filename).png")
+function Process_plot(plt::Plots.Plot, filename::String, fissionant_nucleus_identifier::String, plots_resolution)
+    savefig(plt, "plots/$(fissionant_nucleus_identifier)_$(filename).png", width = plots_resolution[1], height = plots_resolution[2])
     println("*plotting $filename done!")
 end
 #####
@@ -109,19 +168,22 @@ if secondary_output_Yield == "YES"
 
 end
 if secondary_output_ν == "YES"
+    plotlyjs(size = plots_resolution, dpi=1200)
     plot_surface_ν_A_TKE = Plot_surface(
         DataFrame(x = ν_A_TKE.A, y = ν_A_TKE.TKE, z = ν_A_TKE.Value),
-        5, 5, Int(round(10/TKE_step)), 10, (120, 30), 
-        "ν(A,TKE)", (minimum(ν_A_TKE.Value), maximum(ν_A_TKE.Value)+0.5), :identity
+        10, 5, 20, Int(round(10/TKE_step)), (160, 25), 
+        "ν(A,TKE)", (minimum(ν_A_TKE.Value), maximum(ν_A_TKE.Value)+0.5), :identity,
+        :turbo
     )
-    display(plot_surface_ν_A_TKE)
+    Modify_plot(plot_surface_ν_A_TKE, "A", "TKE", "")
+    Process_plot(plot_surface_ν_A_TKE, "surface_nu_A_TKE", fissionant_nucleus_identifier, plots_resolution)
     if secondary_output_Ap == "YES"
-        plot_surface_y_Ap_Z = Plot_surface(
+        plot_heatmap_y_Ap_Z = Plot_heatmap(
             DataFrame(x = y_Ap_Z.A, y = y_Ap_Z.Z, z = y_Ap_Z.Value),
-            10, 10, 2, 10, (120, 30),
-            "Y(Aₚ,Z)", (minimum(y_Ap_Z.Value), maximum(y_Ap_Z.Value)), :identity
+            10, 10, 2, 2,
+            "Y(Aₚ,Z)", :turbo
         )
-        display(plot_surface_y_Ap_Z)
+        Process_plot(plot_heatmap_y_Ap_Z, "heatmap_Y_Ap_Z", fissionant_nucleus_identifier)
     end
     if secondary_output_Tₖ == "YES"
 
@@ -151,7 +213,7 @@ if secondary_output_TXE_Q == "YES"
         (minimum(Q_AH.Value)*0.95, maximum(Q_AH.Value)*1.05), :identity, ""
     )
     Plot_textbox(plot_Q_AH, maximum(Q_AH.Argument)*0.95, maximum(Q_AH.Value)*1.025, "<Q> = $(round(avg_Q, digits = 3))")
-    xticks!(plot_Q_AH, minimum(Q_AH.Argument):5:maximum(Q_AH.Argument))
+    xticks!(plot_Q_AH, 10 *div(minimum(Q_AH.Argument), 10):5:maximum(Q_AH.Argument))
     Process_plot(plot_Q_AH, "Q_AH", fissionant_nucleus_identifier)
 
     avg_TXE = Average_value(txe_AH, y_A, A_H_range)
