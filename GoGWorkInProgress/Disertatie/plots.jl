@@ -29,7 +29,7 @@ function Plot_surface(q_x_y::DataFrame, tick_size_xaxis::Int, tick_roundness_xax
         xticks = (collect(index_x_range), string.(Int.(round.(x[index_x_range])))), 
         yticks = (collect(index_y_range), string.(Int.(round.(y[index_y_range])))),
         camera = camera_angle,
-        colorscale = color_scale,
+        c = color_scale,
         zlabel = zaxisname,
         zlims = zaxislims,
         zscale = zaxisscale
@@ -53,7 +53,7 @@ function Plot_heatmap(q_x_y::DataFrame, tick_size_xaxis::Int, tick_roundness_xax
         grid_q_x_y', 
         xticks = (collect(index_x_range), string.(Int.(round.(x[index_x_range])))), 
         yticks = (collect(index_y_range), string.(Int.(round.(y[index_y_range])))),
-        colorscale = color_scale,
+        c = color_scale,
         colorbar_title = zaxisname,
     )
     return plt
@@ -157,8 +157,8 @@ end
 function Plot_legend_attributes(plt::Plots.Plot, lposition)
     plot!(plt, legend_position = lposition)
 end
-function Process_plot(plt::Plots.Plot, filename::String, fissionant_nucleus_identifier::String, plots_resolution)
-    savefig(plt, "plots/$(fissionant_nucleus_identifier)_$(filename).png", width = plots_resolution[1], height = plots_resolution[2])
+function Process_plot(plt::Plots.Plot, filename::String, fissionant_nucleus_identifier::String)
+    savefig(plt, "plots/$(fissionant_nucleus_identifier)_$(filename).png")
     println("*plotting $filename done!")
 end
 #####
@@ -168,22 +168,25 @@ if secondary_output_Yield == "YES"
 
 end
 if secondary_output_ν == "YES"
-    plotlyjs(size = plots_resolution, dpi=1200)
+    plotlyjs(size = (16, 9) .* 90, dpi=300)
     plot_surface_ν_A_TKE = Plot_surface(
         DataFrame(x = ν_A_TKE.A, y = ν_A_TKE.TKE, z = ν_A_TKE.Value),
-        10, 5, 20, Int(round(10/TKE_step)), (160, 25), 
+        10, 5, 20, Int(round(10/TKE_step)), (120, 0), 
         "ν(A,TKE)", (minimum(ν_A_TKE.Value), maximum(ν_A_TKE.Value)+0.5), :identity,
         :turbo
     )
     Modify_plot(plot_surface_ν_A_TKE, "A", "TKE", "")
-    Process_plot(plot_surface_ν_A_TKE, "surface_nu_A_TKE", fissionant_nucleus_identifier, plots_resolution)
+    Modify_plot(plot_surface_ν_A_TKE)
+    display(plot_surface_ν_A_TKE)
     if secondary_output_Ap == "YES"
         plot_heatmap_y_Ap_Z = Plot_heatmap(
             DataFrame(x = y_Ap_Z.A, y = y_Ap_Z.Z, z = y_Ap_Z.Value),
             10, 10, 2, 2,
             "Y(Aₚ,Z)", :turbo
         )
-        Process_plot(plot_heatmap_y_Ap_Z, "heatmap_Y_Ap_Z", fissionant_nucleus_identifier)
+        Modify_plot(plot_heatmap_y_Ap_Z, "Aₚ", "Z", "")
+        Modify_plot(plot_heatmap_y_Ap_Z)
+        display(plot_heatmap_y_Ap_Z)
     end
     if secondary_output_Tₖ == "YES"
 
@@ -225,11 +228,23 @@ if secondary_output_TXE_Q == "YES"
         (minimum(txe_AH.Argument), maximum(txe_AH.Argument)), :identity, 
         (minimum(txe_AH.Value)*0.95, maximum(txe_AH.Value)*1.05), :identity, ""
     )
-    Plot_textbox(plot_TXE_AH, maximum(txe_AH.Argument)*0.85, maximum(txe_AH.Value)*0.8, "<TXE> = $(round(avg_TXE, digits = 3))")
+    Plot_textbox(plot_TXE_AH, maximum(txe_AH.Argument)*0.95, maximum(txe_AH.Value)*1.025, "<TXE> = $(round(avg_TXE, digits = 3))")
+    xticks!(plot_TXE_AH, 10 *div(minimum(txe_AH.Argument), 10):5:maximum(txe_AH.Argument))
     Process_plot(plot_TXE_AH, "TXE_AH", fissionant_nucleus_identifier)
 end
 if secondary_output_E_excitation == "YES"
-
+    gr(size = plots_resolution, dpi=300)
+    avg_E_exi = Average_value(E_excitation_A, y_A, A_range)
+    plot_prob_E_exi = Bar_data(probability_E_excitation.Argument, probability_E_excitation.Value, "", :red, 1.0)
+    Modify_plot(plot_prob_E_exi)
+    Modify_plot(
+        plot_prob_E_exi, "E* [MeV]", "Probability", 
+        (0.0, 40.0), :identity, 
+        (0.0, maximum(probability_E_excitation.Value)*1.05), :identity, ""
+    )
+    Plot_textbox(plot_prob_E_exi, 40.0*0.85, maximum(probability_E_excitation.Value)*1.02, "<E*> = $(round(avg_E_exi, digits = 3))")
+    xticks!(plot_prob_E_exi, 10 *div(minimum(probability_E_excitation.Argument), 10):5:maximum(probability_E_excitation.Argument))
+    Process_plot(plot_prob_E_exi, "probability_E_excitation", fissionant_nucleus_identifier)
 end
 if neutron_spectrum == "YES"
     plot_neutron_spectrum = Plot_data(n_E.E, Ratio_to_Maxwellian, "", :red)
