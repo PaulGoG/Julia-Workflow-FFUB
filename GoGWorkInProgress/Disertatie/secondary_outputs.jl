@@ -369,13 +369,10 @@ function Probability_of_occurrence(q_A_Z_TKE, y_A_Z_TKE::Distribution, Δq::Numb
                 end
             end
             push!(P.Argument, lower_q)
-            push!(P.Value, Frequency)
-            push!(P.σ, Yield)
+            push!(P.Value, Frequency * Yield)
             lower_q = upper_q
             upper_q += Δq
         end
-        Norm = sum(P.Value) * sum(P.σ)
-        P.Value .*= P.σ ./Norm
         P.Value .*= 100/sum(P.Value)
     else
         push!(P.Argument, NaN)
