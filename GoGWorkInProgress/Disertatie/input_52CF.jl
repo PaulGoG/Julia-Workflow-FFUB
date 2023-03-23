@@ -109,7 +109,7 @@ secondary_output_Tₖ = "YES"
 secondary_output_avg_ε = "YES"
 secondary_output_avg_εₖ = "YES"
 secondary_output_Eᵣ = "YES"
-ΔT, ΔTₖ, Δavg_ε, Δavg_εₖ, ΔEᵣ = 5e-2, 5e-2, 5e-2, 5e-2, 5e-1
+ΔT, ΔTₖ, Δavg_ε, Δavg_εₖ, ΔEᵣ = 1e-2, 1e-2, 5e-2, 5e-2, 1e-1
 
 yield_distribution_filename = "$(fissionant_nucleus_identifier)YATKE.VES"
 yield_distribution_header = ["A", "TKE", "Value", "σ"]

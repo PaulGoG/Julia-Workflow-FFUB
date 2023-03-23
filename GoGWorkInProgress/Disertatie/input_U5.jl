@@ -23,7 +23,7 @@ Z₀ = 92
 
 #Heavy fission fragment range 
 A_H_min = 118
-A_H_max = 158
+A_H_max = 160
 
 #Total Kinetic Energy range and step in MeV
 TKE_min = 100.0
@@ -109,9 +109,9 @@ secondary_output_Tₖ = "YES"
 secondary_output_avg_ε = "YES"
 secondary_output_avg_εₖ = "YES"
 secondary_output_Eᵣ = "YES"
-ΔT, ΔTₖ, Δavg_ε, Δavg_εₖ, ΔEᵣ = 1e-2, 1e-2, 5e-2, 5e-2, 5e-1
+ΔT, ΔTₖ, Δavg_ε, Δavg_εₖ, ΔEᵣ = 1e-2, 1e-2, 5e-2, 5e-2, 1e-1
 
-yield_distribution_filename = "U5YATKE.SRE"
+yield_distribution_filename = "$(fissionant_nucleus_identifier)YATKE.SRE"
 yield_distribution_header = ["A", "TKE", "Value", "σ"]
 yield_distribution_delimiter = ' '
 yield_distribution_firstdataline = 2
@@ -121,7 +121,7 @@ neutron_spectrum = "NO"
 E_min = 1e-6
 E_max = 20.0
 E_step = 5e-2
-Yield_cutoff_value = 1e-3
+Yield_cutoff_value = 5e-4
 
 #Plots YES or NO selector
 generate_plots = "YES"

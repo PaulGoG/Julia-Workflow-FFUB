@@ -350,18 +350,33 @@ function Vectorized_TXE_Q_AH(A_0, Z_0, fission_type::String, E_incident, y_A_Z_T
     return Q_AH, txe_AH
 end
 #Calculate probabilities of occurance P(q) of any vectorized generic quantity q with step of Δq
-function Probability_of_occurrence(q::Vector, Δq::Number)
+function Probability_of_occurrence(q_A_Z_TKE, y_A_Z_TKE::Distribution, Δq::Number)
     P = Distribution_unidym(Float64[], Float64[], Float64[])
-    if isassigned(q, 1)
-        lower_q = minimum(q)
+    if isassigned(q_A_Z_TKE.Value, 1)
+        lower_q = minimum(q_A_Z_TKE.Value)
         upper_q = lower_q + Δq
-        while isassigned(q[(q .>= lower_q) .& (q .< upper_q)], 1)
+        while isassigned(q_A_Z_TKE.Value[(q_A_Z_TKE.Value .>= lower_q) .& (q_A_Z_TKE.Value .< upper_q)], 1)
+            Yield = 0.0
+            Frequency = 0.0
+            for A in unique(q_A_Z_TKE.A[(q_A_Z_TKE.Value .>= lower_q) .& (q_A_Z_TKE.Value .< upper_q)])
+                for Z in unique(q_A_Z_TKE.Z[(q_A_Z_TKE.A .== A) .& (q_A_Z_TKE.Value .>= lower_q) .& (q_A_Z_TKE.Value .< upper_q)])
+                    for TKE in q_A_Z_TKE.TKE[(q_A_Z_TKE.A .== A) .& (q_A_Z_TKE.Z .== Z) .& (q_A_Z_TKE.Value .>= lower_q) .& (q_A_Z_TKE.Value .< upper_q)]
+                        if isassigned(y_A_Z_TKE.Value[(y_A_Z_TKE.A .== A) .& (y_A_Z_TKE.Z .== Z) .& (y_A_Z_TKE.TKE .== TKE)], 1)
+                            Yield += y_A_Z_TKE.Value[(y_A_Z_TKE.A .== A) .& (y_A_Z_TKE.Z .== Z) .& (y_A_Z_TKE.TKE .== TKE)][1]
+                            Frequency += 1
+                        end
+                    end
+                end
+            end
             push!(P.Argument, lower_q)
-            push!(P.Value, length(q[(q .>= lower_q) .& (q .< upper_q)]))
+            push!(P.Value, Frequency)
+            push!(P.σ, Yield)
             lower_q = upper_q
             upper_q += Δq
         end
-        P.Value ./= sum(P.Value)
+        Norm = sum(P.Value) * sum(P.σ)
+        P.Value .*= P.σ ./Norm
+        P.Value .*= 100/sum(P.Value)
     else
         push!(P.Argument, NaN)
         push!(P.Value, NaN)
@@ -479,19 +494,33 @@ if secondary_output_ν == "YES"
         DataFrame(TKE = ν_TKE.Argument, ν = ν_TKE.Value), 
         writeheader=true, newline="\r\n", delim=' '
     )
-    probability_ν = Probability_of_occurrence(ν_A_Z_TKE.Value, 1)
+    probability_ν = Probability_of_occurrence(ν_A_Z_TKE, y_A_Z_TKE, 1)
     CSV.write(
         "output_data/nu/$(fissionant_nucleus_identifier)_P_nu.OUT", 
         DataFrame(ν = probability_ν.Argument, P = probability_ν.Value), 
         writeheader=true, newline="\r\n", delim=' '
     )
-    probability_ν_L = Probability_of_occurrence(ν_A_Z_TKE.Value[ν_A_Z_TKE.A .<= A_H_min], 1)
+    probability_ν_L = Probability_of_occurrence(
+        DataFrame(
+            A = ν_A_Z_TKE.A[ν_A_Z_TKE.A .<= A_H_min], 
+            Z = ν_A_Z_TKE.Z[ν_A_Z_TKE.A .<= A_H_min], 
+            TKE = ν_A_Z_TKE.TKE[ν_A_Z_TKE.A .<= A_H_min],
+            Value = ν_A_Z_TKE.Value[ν_A_Z_TKE.A .<= A_H_min]
+        ), y_A_Z_TKE, 1
+        )
     CSV.write(
         "output_data/nu/$(fissionant_nucleus_identifier)_P_nu_L.OUT", 
         DataFrame(ν = probability_ν_L.Argument, P = probability_ν_L.Value), 
         writeheader=true, newline="\r\n", delim=' '
     )
-    probability_ν_H = Probability_of_occurrence(ν_A_Z_TKE.Value[ν_A_Z_TKE.A .>= A_H_min], 1)
+    probability_ν_H = Probability_of_occurrence(
+        DataFrame(
+            A = ν_A_Z_TKE.A[ν_A_Z_TKE.A .>= A_H_min], 
+            Z = ν_A_Z_TKE.Z[ν_A_Z_TKE.A .>= A_H_min], 
+            TKE = ν_A_Z_TKE.TKE[ν_A_Z_TKE.A .>= A_H_min],
+            Value = ν_A_Z_TKE.Value[ν_A_Z_TKE.A .>= A_H_min]
+        ), y_A_Z_TKE, 1
+        )
     CSV.write(
         "output_data/nu/$(fissionant_nucleus_identifier)_P_nu_H.OUT", 
         DataFrame(ν = probability_ν_H.Argument, P = probability_ν_H.Value), 
@@ -579,41 +608,93 @@ if secondary_output_ν == "YES"
         if !isdir("output_data/P_T_k/")
             mkdir("output_data/P_T_k/")
         end
+        if secondary_output_Eᵣ == "YES"
+            if !isdir("output_data/P_Er/")
+                mkdir("output_data/P_Er/")
+            end
+        end
         for k in 1:maximum(ν_A_Z_TKE.Value)
-            Tₖ_A = Average_over_TKE_Z(
-                    DataFrame(
-                        A = Raw_output_datafile.A[Raw_output_datafile.No_Sequence .== k],
-                        Z = Raw_output_datafile.Z[Raw_output_datafile.No_Sequence .== k],
-                        TKE = Raw_output_datafile.TKE[Raw_output_datafile.No_Sequence .== k],
-                        Value = Raw_output_datafile.Tₖ[Raw_output_datafile.No_Sequence .== k]
-                    ),
-                    y_A_Z_TKE)
+            Tₖ_A_Z_TKE = DataFrame(
+                A = Raw_output_datafile.A[Raw_output_datafile.No_Sequence .== k],
+                Z = Raw_output_datafile.Z[Raw_output_datafile.No_Sequence .== k],
+                TKE = Raw_output_datafile.TKE[Raw_output_datafile.No_Sequence .== k],
+                Value = Raw_output_datafile.Tₖ[Raw_output_datafile.No_Sequence .== k]
+            )
+            Tₖ_A = Average_over_TKE_Z(Tₖ_A_Z_TKE, y_A_Z_TKE)
             CSV.write(
                 "output_data/$(fissionant_nucleus_identifier)_T_$(k)_A.OUT", 
                 DataFrame(A = Tₖ_A.Argument, T = Tₖ_A.Value), 
                 writeheader=true, newline="\r\n", delim=' '
             )
-            Tₖ = copy(Raw_output_datafile.Tₖ[Raw_output_datafile.No_Sequence .== k])
-            probability_Tₖ = Probability_of_occurrence(Tₖ, ΔTₖ)
+            probability_Tₖ = Probability_of_occurrence(Tₖ_A_Z_TKE, y_A_Z_TKE, ΔTₖ)
             CSV.write(
                 "output_data/P_T_k/$(fissionant_nucleus_identifier)_P_T_$(k).OUT", 
                 DataFrame(Tₖ = probability_Tₖ.Argument, P = probability_Tₖ.Value), 
                 writeheader=true, newline="\r\n", delim=' '
             )
-            Tₖ_L = copy(Raw_output_datafile.Tₖ[(Raw_output_datafile.No_Sequence .== k) .& (Raw_output_datafile.A .<= A_H_min)])
-            probability_Tₖ_L = Probability_of_occurrence(Tₖ_L, ΔTₖ)
+            probability_Tₖ_L = Probability_of_occurrence(
+                DataFrame(
+                    A = Tₖ_A_Z_TKE.A[Tₖ_A_Z_TKE.A .<= A_H_min], 
+                    Z = Tₖ_A_Z_TKE.Z[Tₖ_A_Z_TKE.A .<= A_H_min], 
+                    TKE = Tₖ_A_Z_TKE.TKE[Tₖ_A_Z_TKE.A .<= A_H_min],
+                    Value = Tₖ_A_Z_TKE.Value[Tₖ_A_Z_TKE.A .<= A_H_min]
+                ), y_A_Z_TKE, ΔTₖ
+                )
             CSV.write(
                 "output_data/P_T_k/$(fissionant_nucleus_identifier)_P_T_$(k)_L.OUT", 
                 DataFrame(Tₖ = probability_Tₖ_L.Argument, P = probability_Tₖ_L.Value), 
                 writeheader=true, newline="\r\n", delim=' '
             )
-            Tₖ_H = copy(Raw_output_datafile.Tₖ[(Raw_output_datafile.No_Sequence .== k) .& (Raw_output_datafile.A .>= A_H_min)])
-            probability_Tₖ_H = Probability_of_occurrence(Tₖ_H, ΔTₖ)
+            probability_Tₖ_H = Probability_of_occurrence(
+                DataFrame(
+                    A = Tₖ_A_Z_TKE.A[Tₖ_A_Z_TKE.A .>= A_H_min], 
+                    Z = Tₖ_A_Z_TKE.Z[Tₖ_A_Z_TKE.A .>= A_H_min], 
+                    TKE = Tₖ_A_Z_TKE.TKE[Tₖ_A_Z_TKE.A .>= A_H_min],
+                    Value = Tₖ_A_Z_TKE.Value[Tₖ_A_Z_TKE.A .>= A_H_min]
+                ), y_A_Z_TKE, ΔTₖ
+                )
             CSV.write(
                 "output_data/P_T_k/$(fissionant_nucleus_identifier)_P_T_$(k)_H.OUT", 
                 DataFrame(Tₖ = probability_Tₖ_H.Argument, P = probability_Tₖ_H.Value), 
                 writeheader=true, newline="\r\n", delim=' '
-            )      
+            )
+            if secondary_output_Eᵣ == "YES"
+                aₖ = copy(Raw_output_datafile.aₖ[Raw_output_datafile.No_Sequence .== k])
+                Eᵣ_A_Z_TKE = copy(Tₖ_A_Z_TKE)
+                Eᵣ_A_Z_TKE.Value .= Energy_FermiGas.(aₖ, Eᵣ_A_Z_TKE.Value)
+                probability_Eᵣ = Probability_of_occurrence(Eᵣ_A_Z_TKE, y_A_Z_TKE, ΔEᵣ)
+                CSV.write(
+                    "output_data/P_Er/$(fissionant_nucleus_identifier)_P_Er_$(k).OUT", 
+                    DataFrame(Eᵣ = probability_Eᵣ.Argument, P = probability_Eᵣ.Value), 
+                    writeheader=true, newline="\r\n", delim=' '
+                )
+                probability_Eᵣ_L = Probability_of_occurrence(
+                    DataFrame(
+                        A = Eᵣ_A_Z_TKE.A[Eᵣ_A_Z_TKE.A .<= A_H_min], 
+                        Z = Eᵣ_A_Z_TKE.Z[Eᵣ_A_Z_TKE.A .<= A_H_min], 
+                        TKE = Eᵣ_A_Z_TKE.TKE[Eᵣ_A_Z_TKE.A .<= A_H_min],
+                        Value = Eᵣ_A_Z_TKE.Value[Eᵣ_A_Z_TKE.A .<= A_H_min]
+                    ), y_A_Z_TKE, ΔEᵣ
+                    )
+                CSV.write(
+                    "output_data/P_Er/$(fissionant_nucleus_identifier)_P_Er_$(k)_L.OUT", 
+                    DataFrame(Eᵣ = probability_Eᵣ_L.Argument, P = probability_Eᵣ_L.Value), 
+                    writeheader=true, newline="\r\n", delim=' '
+                )
+                probability_Eᵣ_H = Probability_of_occurrence(
+                    DataFrame(
+                        A = Eᵣ_A_Z_TKE.A[Eᵣ_A_Z_TKE.A .>= A_H_min], 
+                        Z = Eᵣ_A_Z_TKE.Z[Eᵣ_A_Z_TKE.A .>= A_H_min], 
+                        TKE = Eᵣ_A_Z_TKE.TKE[Eᵣ_A_Z_TKE.A .>= A_H_min],
+                        Value = Eᵣ_A_Z_TKE.Value[Eᵣ_A_Z_TKE.A .>= A_H_min]
+                    ), y_A_Z_TKE, ΔEᵣ
+                    )
+                CSV.write(
+                    "output_data/P_Er/$(fissionant_nucleus_identifier)_P_Er_$(k)_H.OUT", 
+                    DataFrame(Eᵣ = probability_Eᵣ_H.Argument, P = probability_Eᵣ_H.Value), 
+                    writeheader=true, newline="\r\n", delim=' '
+                )
+            end      
         end
     end
     if secondary_output_avg_εₖ == "YES"
@@ -621,59 +702,42 @@ if secondary_output_ν == "YES"
             mkdir("output_data/P_avgE_k/")
         end
         for k in 1:maximum(ν_A_Z_TKE.Value)
-            avg_εₖ =copy(Raw_output_datafile.Avg_εₖ[Raw_output_datafile.No_Sequence .== k])
-            probability_avg_εₖ = Probability_of_occurrence(avg_εₖ, Δavg_εₖ)
+            avg_εₖ_A_Z_TKE = DataFrame(
+                A = Raw_output_datafile.A[Raw_output_datafile.No_Sequence .== k],
+                Z = Raw_output_datafile.Z[Raw_output_datafile.No_Sequence .== k],
+                TKE = Raw_output_datafile.TKE[Raw_output_datafile.No_Sequence .== k],
+                Value = Raw_output_datafile.Avg_εₖ[Raw_output_datafile.No_Sequence .== k]
+            )
+            probability_avg_εₖ = Probability_of_occurrence(avg_εₖ_A_Z_TKE, y_A_Z_TKE, Δavg_εₖ)
             CSV.write(
                 "output_data/P_avgE_k/$(fissionant_nucleus_identifier)_P_avgE_$(k)_SCM.OUT", 
                 DataFrame(Avg_εₖ = probability_avg_εₖ.Argument, P = probability_avg_εₖ.Value), 
                 writeheader=true, newline="\r\n", delim=' '
             )
-            avg_εₖ_L = copy(Raw_output_datafile.Avg_εₖ[(Raw_output_datafile.No_Sequence .== k) .& (Raw_output_datafile.A .<= A_H_min)])
-            probability_avg_εₖ_L = Probability_of_occurrence(avg_εₖ_L, Δavg_εₖ)
+            probability_avg_εₖ_L = Probability_of_occurrence(
+                DataFrame(
+                    A = avg_εₖ_A_Z_TKE.A[avg_εₖ_A_Z_TKE.A .<= A_H_min], 
+                    Z = avg_εₖ_A_Z_TKE.Z[avg_εₖ_A_Z_TKE.A .<= A_H_min], 
+                    TKE = avg_εₖ_A_Z_TKE.TKE[avg_εₖ_A_Z_TKE.A .<= A_H_min],
+                    Value = avg_εₖ_A_Z_TKE.Value[avg_εₖ_A_Z_TKE.A .<= A_H_min]
+                ), y_A_Z_TKE, Δavg_εₖ
+                )
             CSV.write(
                 "output_data/P_avgE_k/$(fissionant_nucleus_identifier)_P_avgE_$(k)_SCM_L.OUT", 
                 DataFrame(avg_εₖ = probability_avg_εₖ_L.Argument, P = probability_avg_εₖ_L.Value), 
                 writeheader=true, newline="\r\n", delim=' '
             )
-            avg_εₖ_H = copy(Raw_output_datafile.Avg_εₖ[(Raw_output_datafile.No_Sequence .== k) .& (Raw_output_datafile.A .>= A_H_min)])
-            probability_avg_εₖ_H = Probability_of_occurrence(avg_εₖ_H, Δavg_εₖ)
+            probability_avg_εₖ_H = Probability_of_occurrence(
+                DataFrame(
+                    A = avg_εₖ_A_Z_TKE.A[avg_εₖ_A_Z_TKE.A .>= A_H_min], 
+                    Z = avg_εₖ_A_Z_TKE.Z[avg_εₖ_A_Z_TKE.A .>= A_H_min], 
+                    TKE = avg_εₖ_A_Z_TKE.TKE[avg_εₖ_A_Z_TKE.A .>= A_H_min],
+                    Value = avg_εₖ_A_Z_TKE.Value[avg_εₖ_A_Z_TKE.A .>= A_H_min]
+                ), y_A_Z_TKE, Δavg_εₖ
+                )
             CSV.write(
                 "output_data/P_avgE_k/$(fissionant_nucleus_identifier)_P_avgE_$(k)_SCM_H.OUT", 
                 DataFrame(avg_εₖ = probability_avg_εₖ_H.Argument, P = probability_avg_εₖ_H.Value), 
-                writeheader=true, newline="\r\n", delim=' '
-            )
-        end
-    end
-    if secondary_output_Eᵣ == "YES"
-        if !isdir("output_data/P_Er/")
-            mkdir("output_data/P_Er/")
-        end
-        for k in 1:maximum(ν_A_Z_TKE.Value)
-            Tₖ = copy(Raw_output_datafile.Tₖ[Raw_output_datafile.No_Sequence .== k])
-            aₖ = copy(Raw_output_datafile.aₖ[Raw_output_datafile.No_Sequence .== k])
-            Eᵣ = Energy_FermiGas.(aₖ, Tₖ)
-            probability_Eᵣ = Probability_of_occurrence(Eᵣ, ΔEᵣ)
-            CSV.write(
-                "output_data/P_Er/$(fissionant_nucleus_identifier)_P_Er_$(k).OUT", 
-                DataFrame(Eᵣ = probability_Eᵣ.Argument, P = probability_Eᵣ.Value), 
-                writeheader=true, newline="\r\n", delim=' '
-            )
-            Tₖ_L = copy(Raw_output_datafile.Tₖ[(Raw_output_datafile.No_Sequence .== k) .& (Raw_output_datafile.A .<= A_H_min)])
-            aₖ_L = copy(Raw_output_datafile.aₖ[(Raw_output_datafile.No_Sequence .== k) .& (Raw_output_datafile.A .<= A_H_min)])
-            Eᵣ_L = Energy_FermiGas.(aₖ_L, Tₖ_L)
-            probability_Eᵣ_L = Probability_of_occurrence(Eᵣ_L, ΔEᵣ)
-            CSV.write(
-                "output_data/P_Er/$(fissionant_nucleus_identifier)_P_Er_$(k)_L.OUT", 
-                DataFrame(Eᵣ = probability_Eᵣ_L.Argument, P = probability_Eᵣ_L.Value), 
-                writeheader=true, newline="\r\n", delim=' '
-            )
-            Tₖ_H = copy(Raw_output_datafile.Tₖ[(Raw_output_datafile.No_Sequence .== k) .& (Raw_output_datafile.A .>= A_H_min)])
-            aₖ_H = copy(Raw_output_datafile.aₖ[(Raw_output_datafile.No_Sequence .== k) .& (Raw_output_datafile.A .>= A_H_min)])
-            Eᵣ_H = Energy_FermiGas.(aₖ_H, Tₖ_H)
-            probability_Eᵣ_H = Probability_of_occurrence(Eᵣ_H, ΔEᵣ)
-            CSV.write(
-                "output_data/P_Er/$(fissionant_nucleus_identifier)_P_Er_$(k)_H.OUT", 
-                DataFrame(Eᵣ = probability_Eᵣ_H.Argument, P = probability_Eᵣ_H.Value), 
                 writeheader=true, newline="\r\n", delim=' '
             )
         end
@@ -693,19 +757,33 @@ if secondary_output_T == "YES"
         DataFrame(A = T_A.Argument, T = T_A.Value), 
         writeheader=true, newline="\r\n", delim=' '
     )
-    probability_T = Probability_of_occurrence(T_A_Z_TKE.Value, ΔT)
+    probability_T = Probability_of_occurrence(T_A_Z_TKE, y_A_Z_TKE, ΔT)
     CSV.write(
         "output_data/$(fissionant_nucleus_identifier)_P_T.OUT", 
         DataFrame(T = probability_T.Argument, P = probability_T.Value), 
         writeheader=true, newline="\r\n", delim=' '
     )
-    probability_T_L = Probability_of_occurrence(T_A_Z_TKE.Value[T_A_Z_TKE.A .<= A_H_min], ΔT)
+    probability_T_L = Probability_of_occurrence(
+        DataFrame(
+            A = T_A_Z_TKE.A[T_A_Z_TKE.A .<= A_H_min], 
+            Z = T_A_Z_TKE.Z[T_A_Z_TKE.A .<= A_H_min], 
+            TKE = T_A_Z_TKE.TKE[T_A_Z_TKE.A .<= A_H_min],
+            Value = T_A_Z_TKE.Value[T_A_Z_TKE.A .<= A_H_min]
+        ), y_A_Z_TKE, ΔT
+        )
     CSV.write(
         "output_data/$(fissionant_nucleus_identifier)_P_T_L.OUT", 
         DataFrame(T = probability_T_L.Argument, P = probability_T_L.Value), 
         writeheader=true, newline="\r\n", delim=' '
     )
-    probability_T_H = Probability_of_occurrence(T_A_Z_TKE.Value[T_A_Z_TKE.A .>= A_H_min], ΔT)
+    probability_T_H = Probability_of_occurrence(
+        DataFrame(
+            A = T_A_Z_TKE.A[T_A_Z_TKE.A .>= A_H_min], 
+            Z = T_A_Z_TKE.Z[T_A_Z_TKE.A .>= A_H_min], 
+            TKE = T_A_Z_TKE.TKE[T_A_Z_TKE.A .>= A_H_min],
+            Value = T_A_Z_TKE.Value[T_A_Z_TKE.A .>= A_H_min]
+        ), y_A_Z_TKE, ΔT
+        )
     CSV.write(
         "output_data/$(fissionant_nucleus_identifier)_P_T_H.OUT", 
         DataFrame(T = probability_T_H.Argument, P = probability_T_H.Value), 
@@ -720,19 +798,33 @@ if secondary_output_avg_ε == "YES"
         No_Sequence = Raw_output_datafile.No_Sequence,
         Value = Raw_output_datafile.Avg_εₖ
     ))
-    probability_avg_ε = Probability_of_occurrence(avg_ε_A_Z_TKE.Value, Δavg_ε)
+    probability_avg_ε = Probability_of_occurrence(avg_ε_A_Z_TKE, y_A_Z_TKE, Δavg_ε)
     CSV.write(
         "output_data/$(fissionant_nucleus_identifier)_P_avgE_SCM.OUT", 
         DataFrame(avg_ε = probability_avg_ε.Argument, P = probability_avg_ε.Value), 
         writeheader=true, newline="\r\n", delim=' '
     )
-    probability_avg_ε_L = Probability_of_occurrence(avg_ε_A_Z_TKE.Value[avg_ε_A_Z_TKE.A .<= A_H_min], Δavg_ε)
+    probability_avg_ε_L = Probability_of_occurrence(
+        DataFrame(
+            A = avg_ε_A_Z_TKE.A[avg_ε_A_Z_TKE.A .<= A_H_min], 
+            Z = avg_ε_A_Z_TKE.Z[avg_ε_A_Z_TKE.A .<= A_H_min], 
+            TKE = avg_ε_A_Z_TKE.TKE[avg_ε_A_Z_TKE.A .<= A_H_min],
+            Value = avg_ε_A_Z_TKE.Value[avg_ε_A_Z_TKE.A .<= A_H_min]
+        ), y_A_Z_TKE, Δavg_ε
+        )
     CSV.write(
         "output_data/$(fissionant_nucleus_identifier)_P_avgE_SCM_L.OUT", 
         DataFrame(avg_ε = probability_avg_ε_L.Argument, P = probability_avg_ε_L.Value), 
         writeheader=true, newline="\r\n", delim=' '
     )
-    probability_avg_ε_H = Probability_of_occurrence(avg_ε_A_Z_TKE.Value[avg_ε_A_Z_TKE.A .>= A_H_min], Δavg_ε)
+    probability_avg_ε_H = Probability_of_occurrence(
+        DataFrame(
+            A = avg_ε_A_Z_TKE.A[avg_ε_A_Z_TKE.A .>= A_H_min], 
+            Z = avg_ε_A_Z_TKE.Z[avg_ε_A_Z_TKE.A .>= A_H_min], 
+            TKE = avg_ε_A_Z_TKE.TKE[avg_ε_A_Z_TKE.A .>= A_H_min],
+            Value = avg_ε_A_Z_TKE.Value[avg_ε_A_Z_TKE.A .>= A_H_min]
+        ), y_A_Z_TKE, Δavg_ε
+        )
     CSV.write(
         "output_data/$(fissionant_nucleus_identifier)_P_avgE_SCM_H.OUT", 
         DataFrame(avg_ε = probability_avg_ε_H.Argument, P = probability_avg_ε_H.Value), 
@@ -749,7 +841,7 @@ if secondary_output_E_excitation == "YES"
         DataFrame(A = E_excitation_A.Argument, E = E_excitation_A.Value), 
         writeheader=true, newline="\r\n", delim=' '
     )
-    probability_E_excitation = Probability_of_occurrence(E_excitation.Value, 1.0)
+    probability_E_excitation = Probability_of_occurrence(E_excitation, y_A_Z_TKE, 1.0)
     CSV.write(
         "output_data/$(fissionant_nucleus_identifier)_P_E_excit.OUT", 
         DataFrame(E = probability_E_excitation.Argument, P = probability_E_excitation.Value), 
@@ -862,4 +954,13 @@ open("output_data/$(fissionant_nucleus_identifier)_Average_quantities.OUT", "w")
         avg_ε = Average_value(avg_ε_A_Z_TKE, y_A_Z_TKE, A_range)
         write(file, "<ε>_L = $avg_ε_L\n<ε>_H = $avg_ε_H\n<ε> = $avg_ε\n\n")
     end  
+    if secondary_output_TXE_Q == "YES"
+        avg_Q = Average_value(Q_AH, y_A, A_H_range)
+        avg_TXE = Average_value(txe_AH, y_A, A_H_range)
+        write(file, "<Q> = $avg_Q\n<TXE>= $avg_TXE\n\n")
+    end
+    if secondary_output_E_excitation == "YES"
+        avg_E_exi = Average_value(E_excitation_A, y_A, A_range)
+        write(file, "<E*> = $avg_E_exi\n\n")
+    end
 end
