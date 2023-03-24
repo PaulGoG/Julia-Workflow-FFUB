@@ -168,26 +168,26 @@ println("*executing data plots")
 if secondary_output_Yield == "YES"
     gr(size = plots_resolution, dpi=300)
 
-    avg_A_L = Average_yield_argument(y_A, y_A.Argument[y_A.Argument .<= A_H_min])
-    avg_A_H = Average_yield_argument(y_A, y_A.Argument[y_A.Argument .>= A_H_min])
     plot_y_A = Scatter_data(y_A.Argument, y_A.Value, "", :red, 5, :circle)
     Plot_data(plot_y_A, y_A.Argument, y_A.Value, "", :red)
     Modify_plot(plot_y_A)
-    Modify_plot(
-        plot_y_A, "A", "Yield %", 
-        (minimum(y_A.Argument), maximum(y_A.Argument)), :identity, 
-        (minimum(y_A.Value)*0.95, maximum(y_A.Value)*1.05), :identity, ""
-    )
-    Plot_textbox(plot_y_A, maximum(y_A.Argument)*0.95, maximum(y_A.Value)*1.025, latexstring("\$\\mathrm{<A_L>}\$ = $(round(avg_A_L[1], digits = 3))"))
-    Plot_textbox(plot_y_A, maximum(y_A.Argument)*0.95, maximum(y_A.Value)*1.015, latexstring("\$\\mathrm{<A_H>}\$ = $(round(avg_A_H[1], digits = 3))"))
     xticks!(plot_y_A, 10 *div(minimum(y_A.Argument), 10):5:maximum(y_A.Argument))
-    Process_plot(plot_y_A, "y_A_lin", fissionant_nucleus_identifier)
     Modify_plot(
         plot_y_A, "A", "Yield %", 
         (minimum(y_A.Argument), maximum(y_A.Argument)), :identity, 
-        (minimum(y_A.Value)*0.95, maximum(y_A.Value)*1.05), :log10, ""
+        (minimum(y_A.Value)*5e-1, maximum(y_A.Value)*2), :log10, ""
     )
     Process_plot(plot_y_A, "y_A_log", fissionant_nucleus_identifier)
+    Modify_plot(
+        plot_y_A, "A", "Yield %", 
+        (minimum(y_A.Argument), maximum(y_A.Argument)), :identity, 
+        (minimum(y_A.Value)*0.9, maximum(y_A.Value)*1.1), :identity, ""
+    )
+    avg_A_L = Average_yield_argument(y_A, y_A.Argument[y_A.Argument .<= A_H_min])
+    avg_A_H = Average_yield_argument(y_A, y_A.Argument[y_A.Argument .>= A_H_min])
+    Plot_textbox(plot_y_A, A_H_min, maximum(y_A.Value)*1.05, latexstring("\$\\mathrm{<A_L>}\$ = $(round(avg_A_L[1], digits = 1))"))
+    Plot_textbox(plot_y_A, A_H_min, maximum(y_A.Value)*1.05 - 0.5, latexstring("\$\\mathrm{<A_H>}\$ = $(round(avg_A_H[1], digits = 1))"))
+    Process_plot(plot_y_A, "y_A_lin", fissionant_nucleus_identifier)
 
     
 end
@@ -214,10 +214,10 @@ if secondary_output_ν == "YES"
     Modify_plot(
         plot_ν_A, "A", "ν", 
         (minimum(ν_A.Argument), maximum(ν_A.Argument)), :identity, 
-        (minimum(ν_A.Value)*0.95, maximum(ν_A.Value)*1.05), :identity, ""
+        (minimum(ν_A.Value)*0.9, maximum(ν_A.Value)*1.1), :identity, ""
     )
-    Plot_textbox(plot_ν_A, maximum(ν_A.Argument)*0.95, maximum(ν_A.Value)*1.025, latexstring("\$\\mathrm{<\\nu_L>}\$ = $(round(avg_ν_L, digits = 3))"))
-    Plot_textbox(plot_ν_A, maximum(ν_A.Argument)*0.95, maximum(ν_A.Value)*1.015, latexstring("\$\\mathrm{<\\nu_H>}\$ = $(round(avg_ν_H, digits = 3))"))
+    Plot_textbox(plot_ν_A, ν_A.Argument[15], maximum(ν_A.Value)*1.05, latexstring("\$\\mathrm{<\\nu_L>}\$ = $(round(avg_ν_L, digits = 2))"))
+    Plot_textbox(plot_ν_A, ν_A.Argument[15], maximum(ν_A.Value)*1.05 - 0.25, latexstring("\$\\mathrm{<\\nu_H>}\$ = $(round(avg_ν_H, digits = 2))"))
     xticks!(plot_ν_A, 10 *div(minimum(ν_A.Argument), 10):5:maximum(ν_A.Argument))
     Process_plot(plot_ν_A, "nu_A", fissionant_nucleus_identifier)
 
@@ -253,12 +253,18 @@ if secondary_output_ν == "YES"
         Modify_plot(
             plot_y_Ap, "Aₚ", "Yield %", 
             (minimum(y_Ap.Argument), maximum(y_Ap.Argument)), :identity, 
-            (minimum(y_Ap.Value)*0.95, maximum(y_Ap.Value)*1.05), :identity, ""
+            (minimum(y_Ap.Value)*0.9, maximum(y_Ap.Value)*1.1), :identity, ""
         )
-        Plot_textbox(plot_y_Ap, maximum(y_Ap.Argument)*0.95, maximum(y_Ap.Value)*1.025, latexstring("\$\\mathrm{<Ap_L>}\$ = $(round(avg_Ap_L[1], digits = 3))"))
-        Plot_textbox(plot_y_Ap, maximum(y_Ap.Argument)*0.95, maximum(y_Ap.Value)*1.015, latexstring("\$\\mathrm{<Ap_H>}\$ = $(round(avg_Ap_H[1], digits = 3))"))
+        Plot_textbox(plot_y_Ap, A_H_min, maximum(y_Ap.Value)*1.05, latexstring("\$\\mathrm{<Ap_L>}\$ = $(round(avg_Ap_L[1], digits = 1))"))
+        Plot_textbox(plot_y_Ap, A_H_min, maximum(y_Ap.Value)*1.05 - 0.5, latexstring("\$\\mathrm{<Ap_H>}\$ = $(round(avg_Ap_H[1], digits = 1))"))
         xticks!(plot_y_Ap, 10 *div(minimum(y_Ap.Argument), 10):5:maximum(y_Ap.Argument))
         Process_plot(plot_y_Ap, "y_Ap_lin", fissionant_nucleus_identifier)
+        Modify_plot(
+            plot_y_Ap, "Aₚ", "Yield %", 
+            (minimum(y_Ap.Argument), maximum(y_Ap.Argument)), :identity, 
+            (minimum(y_Ap.Value)*5e-1, maximum(y_Ap.Value)*2), :log10, ""
+        )
+        Process_plot(plot_y_Ap, "y_Ap_log", fissionant_nucleus_identifier)
     end
     if secondary_output_Tₖ == "YES"
 
@@ -304,9 +310,9 @@ if secondary_output_TXE_Q == "YES"
     Modify_plot(
         plot_Q_AH, L"\mathrm{A_H}", "Q [MeV]", 
         (minimum(Q_AH.Argument), maximum(Q_AH.Argument)), :identity, 
-        (minimum(Q_AH.Value)*0.95, maximum(Q_AH.Value)*1.05), :identity, ""
+        (minimum(Q_AH.Value)*0.95, maximum(Q_AH.Value)*1.1), :identity, ""
     )
-    Plot_textbox(plot_Q_AH, maximum(Q_AH.Argument)*0.95, maximum(Q_AH.Value)*1.025, "<Q> = $(round(avg_Q, digits = 3))")
+    Plot_textbox(plot_Q_AH, maximum(Q_AH.Argument)*0.95, maximum(Q_AH.Value)*1.1 - 5, "<Q> = $(round(avg_Q, digits = 2))")
     xticks!(plot_Q_AH, 10 *div(minimum(Q_AH.Argument), 10):5:maximum(Q_AH.Argument))
     Process_plot(plot_Q_AH, "Q_AH", fissionant_nucleus_identifier)
 
@@ -317,9 +323,9 @@ if secondary_output_TXE_Q == "YES"
     Modify_plot(
         plot_TXE_AH, L"\mathrm{A_H}", "TXE [MeV]", 
         (minimum(txe_AH.Argument), maximum(txe_AH.Argument)), :identity, 
-        (minimum(txe_AH.Value)*0.95, maximum(txe_AH.Value)*1.05), :identity, ""
+        (minimum(txe_AH.Value)*0.9, maximum(txe_AH.Value)*1.1), :identity, ""
     )
-    Plot_textbox(plot_TXE_AH, maximum(txe_AH.Argument)*0.95, maximum(txe_AH.Value)*1.025, "<TXE> = $(round(avg_TXE, digits = 3))")
+    Plot_textbox(plot_TXE_AH, maximum(txe_AH.Argument)*0.95, maximum(txe_AH.Value)*1.1 - 5, "<TXE> = $(round(avg_TXE, digits = 2))")
     xticks!(plot_TXE_AH, 10 *div(minimum(txe_AH.Argument), 10):5:maximum(txe_AH.Argument))
     Process_plot(plot_TXE_AH, "TXE_AH", fissionant_nucleus_identifier)
 end
@@ -331,10 +337,10 @@ if secondary_output_E_excitation == "YES"
     Modify_plot(plot_P_E)
     Modify_plot(
         plot_P_E, "E* [MeV]", "Probability %", 
-        (0.0, 40.0), :identity, 
-        (0.0, maximum(probability_E_excitation.Value)*1.05), :identity, ""
+        (0.0, maximum(probability_E_excitation.Argument)/2), :identity, 
+        (0.0, maximum(probability_E_excitation.Value)*1.1), :identity, ""
     )
-    Plot_textbox(plot_P_E, 40.0*0.85, maximum(probability_E_excitation.Value)*1.02, "<E*> = $(round(avg_E_exi, digits = 3))")
+    Plot_textbox(plot_P_E, maximum(probability_E_excitation.Argument)/2 *0.85, maximum(probability_E_excitation.Value)*1.05, "<E*> = $(round(avg_E_exi, digits = 2))")
     xticks!(plot_P_E, 10 *div(minimum(probability_E_excitation.Argument), 10):5:maximum(probability_E_excitation.Argument))
     Process_plot(plot_P_E, "probability_E_excitation", fissionant_nucleus_identifier)
 end
