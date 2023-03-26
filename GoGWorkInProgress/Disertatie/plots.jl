@@ -345,9 +345,13 @@ if secondary_output_E_excitation == "YES"
     Process_plot(plot_P_E, "probability_E_excitation", fissionant_nucleus_identifier)
 end
 if neutron_spectrum == "YES"
-    plot_neutron_spectrum = Plot_data(n_E.E, Ratio_to_Maxwellian, "", :red)
+    
+
+    plot_Ratio_Maxwellian = Plot_data(n_E.E, Ratio_to_Maxwellian, "", :red)
     Modify_plot(
-        plot_neutron_spectrum, "E [MeV]", "Nuetron spectrum 1/MeV", (first(n_E.E), last(n_E.E)),
+        plot_Ratio_Maxwellian, "E [MeV]", "Nuetron spectrum 1/MeV", (first(n_E.E), last(n_E.E)),
         :identity, (minimum(n_E.Value), maximum(n_E.Value)), :log10, "Neutron spectrum, linear scale"
     )
+    hline!(plot_Ratio_Maxwellian, [1.0], linestyle = :dashdot, color = :black)
+    Process_plot(plot_Ratio_Maxwellian, "Ratio_to_Maxwellian", fissionant_nucleus_identifier)
 end
