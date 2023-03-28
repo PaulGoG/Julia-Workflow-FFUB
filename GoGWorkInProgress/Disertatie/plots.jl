@@ -330,26 +330,39 @@ if secondary_output_ν == "YES"
 
         avg_Ap_L = Average_yield_argument(y_Ap, y_Ap.Argument[y_Ap.Argument .< Ap_H_min])
         avg_Ap_H = Average_yield_argument(y_Ap, y_Ap.Argument[y_Ap.Argument .>= Ap_H_min])
-        plot_y_Ap = Scatter_data(y_Ap.Argument, y_Ap.Value, "", :red, 5, :circle)
-        Plot_data(plot_y_Ap, y_Ap.Argument, y_Ap.Value, "", :red)
-        Modify_plot(plot_y_Ap)
+        plot_y_Ap_lin = Scatter_data(y_Ap.Argument, y_Ap.Value, "", :red, 4, :circle)
+        Plot_data(plot_y_Ap_lin, y_Ap.Argument, y_Ap.Value, "", :red)
+        Modify_plot(plot_y_Ap_lin)
         Modify_plot(
-            plot_y_Ap, "Aₚ", "Yield %", 
+            plot_y_Ap_lin, L"\mathrm{A_p}", "Yield %", 
             (minimum(y_Ap.Argument), maximum(y_Ap.Argument)), :identity, 
             (minimum(y_Ap.Value)*0.9, maximum(y_Ap.Value)*1.1), :identity, ""
         )
-        Plot_textbox(plot_y_Ap, A_H_min, maximum(y_Ap.Value)*1.05, latexstring("\$\\mathrm{<Ap_L>}\$ = $(round(avg_Ap_L[1], digits = 1))"))
-        Plot_textbox(plot_y_Ap, A_H_min, maximum(y_Ap.Value)*1.05 - 0.5, latexstring("\$\\mathrm{<Ap_H>}\$ = $(round(avg_Ap_H[1], digits = 1))"))
-        xticks!(plot_y_Ap, 10 *div(minimum(y_Ap.Argument), 10):5:maximum(y_Ap.Argument))
-        Process_plot(plot_y_Ap, "y_Ap_lin", fissionant_nucleus_identifier)
+        Plot_textbox(plot_y_Ap_lin, A_H_min, maximum(y_Ap.Value)*1.05, latexstring("\$\\mathrm{<A_p>_L}\$ = $(round(avg_Ap_L[1], digits = 1))"))
+        Plot_textbox(plot_y_Ap_lin, A_H_min, maximum(y_Ap.Value)*1.05 - 0.5, latexstring("\$\\mathrm{<A_p>_H}\$ = $(round(avg_Ap_H[1], digits = 1))"))
+        xticks!(plot_y_Ap_lin, 10 *div(minimum(y_Ap.Argument), 10):5:maximum(y_Ap.Argument))
+        Process_plot(plot_y_Ap_lin, "y_Ap_lin", fissionant_nucleus_identifier)
+
+        Scatter_data(plot_y_Ap_lin, y_Ap.Argument, y_Ap.Value, L"\mathrm{Y(A_p)}", :red, 4, :circle)
+        Scatter_data(plot_y_Ap_lin, y_A.Argument, y_A.Value, L"\mathrm{Y(A)}", :blue, 4, :xcross)
+        Plot_data(plot_y_Ap_lin, y_A.Argument, y_A.Value, "", :blue)
+        Process_plot(plot_y_Ap_lin, "y_A_Ap_lin", fissionant_nucleus_identifier)
         
-        #MODIFY LIN VS LOG AND ADD COMPARISSONS W pre-neutron YIELD!
+        plot_y_Ap_log = Scatter_data(y_Ap.Argument, y_Ap.Value, "", :red, 4, :circle)
+        Plot_data(plot_y_Ap_log, y_Ap.Argument, y_Ap.Value, "", :red)
+        Modify_plot(plot_y_Ap_log)
         Modify_plot(
-            plot_y_Ap, "Aₚ", "Yield %", 
+            plot_y_Ap_log, L"\mathrm{A_p}", "Yield %", 
             (minimum(y_Ap.Argument), maximum(y_Ap.Argument)), :identity, 
-            (minimum(y_Ap.Value)*5e-1, maximum(y_Ap.Value)*2), :log10, ""
+            (minimum(y_Ap.Value), maximum(y_Ap.Value)*2), :log10, ""
         )
-        Process_plot(plot_y_Ap, "y_Ap_log", fissionant_nucleus_identifier)
+        xticks!(plot_y_Ap_log, 10 *div(minimum(y_Ap.Argument), 10):5:maximum(y_Ap.Argument))
+        Process_plot(plot_y_Ap_log, "y_Ap_log", fissionant_nucleus_identifier)
+
+        Scatter_data(plot_y_Ap_log, y_Ap.Argument, y_Ap.Value, L"\mathrm{Y(A_p)}", :red, 4, :circle)
+        Scatter_data(plot_y_Ap_log, y_A.Argument, y_A.Value, L"\mathrm{Y(A)}", :blue, 4, :xcross)
+        Plot_data(plot_y_Ap_log, y_A.Argument, y_A.Value, "", :blue)
+        Process_plot(plot_y_Ap_log, "y_A_Ap_log", fissionant_nucleus_identifier)
     end
     if secondary_output_Tₖ == "YES"
 
@@ -383,7 +396,7 @@ if secondary_output_T == "YES"
         (0.0, maximum(probability_T_L.Argument)), :identity, 
         (0.0, maximum(probability_T_L.Value)*1.1), :identity, "P(T) of light fragments"
     )
-    Plot_textbox(plot_P_T_L, 0.25, maximum(probability_T_L.Value)*1.07, latexstring("\$\\mathrm{<T_L>}\$ = $(round(avg_T_L, digits = 2)) MeV"))
+    Plot_textbox(plot_P_T_L, 0.25, maximum(probability_T_L.Value)*1.07, latexstring("\$\\mathrm{<T>_L}\$ = $(round(avg_T_L, digits = 2)) MeV"))
     Process_plot(plot_P_T_L, "P_T_L", fissionant_nucleus_identifier)
 
     avg_T_H = Average_value(T_A_Z_TKE, y_A_Z_TKE, A_H_range)
@@ -394,7 +407,7 @@ if secondary_output_T == "YES"
         (0.0, maximum(probability_T_H.Argument)), :identity, 
         (0.0, maximum(probability_T_H.Value)*1.1), :identity, "P(T) of heavy fragments"
     )
-    Plot_textbox(plot_P_T_H, 0.25, maximum(probability_T_H.Value)*1.07, latexstring("\$\\mathrm{<T_H>}\$ = $(round(avg_T_H, digits = 2)) MeV"))
+    Plot_textbox(plot_P_T_H, 0.25, maximum(probability_T_H.Value)*1.07, latexstring("\$\\mathrm{<T>_H}\$ = $(round(avg_T_H, digits = 2)) MeV"))
     Process_plot(plot_P_T_H, "P_T_H", fissionant_nucleus_identifier)
 end
 if secondary_output_avg_ε == "YES"
@@ -406,7 +419,7 @@ if secondary_output_avg_ε == "YES"
     Modify_plot(
         plot_avgE_SCM, "<ε> [MeV]", "Probability %", 
         (0.0, maximum(probability_avg_ε.Argument)), :identity, 
-        (0.0, maximum(probability_avg_ε.Value)*1.1), :identity, "<ε> of all fragments"
+        (0.0, maximum(probability_avg_ε.Value)*1.1), :identity, "P(<ε>) of all fragments"
     )
     Plot_textbox(plot_avgE_SCM, 0.6, maximum(probability_avg_ε.Value)*1.075, latexstring("\$\\overline{<\\varepsilon>}\$ = $(round(avg_ε, digits = 2)) MeV"))
     Process_plot(plot_avgE_SCM, "P_avgE_SCM", fissionant_nucleus_identifier)
@@ -417,9 +430,9 @@ if secondary_output_avg_ε == "YES"
     Modify_plot(
         plot_avgE_L_SCM, "<ε> [MeV]", "Probability %", 
         (0.0, maximum(probability_avg_ε_L.Argument)), :identity, 
-        (0.0, maximum(probability_avg_ε_L.Value)*1.1), :identity, "<ε> of light fragments"
+        (0.0, maximum(probability_avg_ε_L.Value)*1.1), :identity, "P(<ε>) of light fragments"
     )
-    Plot_textbox(plot_avgE_L_SCM, 0.6, maximum(probability_avg_ε_L.Value)*1.075, "<ε>_avg = $(round(avg_ε_L, digits = 2)) MeV")
+    Plot_textbox(plot_avgE_L_SCM, 0.6, maximum(probability_avg_ε_L.Value)*1.075, latexstring("\$\\overline{<\\varepsilon>_L}\$ = $(round(avg_ε_L, digits = 2)) MeV"))
     Process_plot(plot_avgE_L_SCM, "P_avgE_L_SCM", fissionant_nucleus_identifier)
 
     avg_ε_H = Average_value(avg_ε_A_Z_TKE, y_A_Z_TKE, A_H_range)
@@ -428,9 +441,9 @@ if secondary_output_avg_ε == "YES"
     Modify_plot(
         plot_avgE_H_SCM, "<ε> [MeV]", "Probability %", 
         (0.0, maximum(probability_avg_ε_H.Argument)), :identity, 
-        (0.0, maximum(probability_avg_ε_H.Value)*1.1), :identity, "<ε> of heavy fragments"
+        (0.0, maximum(probability_avg_ε_H.Value)*1.1), :identity, "P(<ε>) of heavy fragments"
     )
-    Plot_textbox(plot_avgE_H_SCM, 0.6, maximum(probability_avg_ε_H.Value)*1.075, "<ε>_avg = $(round(avg_ε_H, digits = 2)) MeV")
+    Plot_textbox(plot_avgE_H_SCM, 0.6, maximum(probability_avg_ε_H.Value)*1.075, latexstring("\$\\overline{<\\varepsilon>_H}\$ = $(round(avg_ε_H, digits = 2)) MeV"))
     Process_plot(plot_avgE_H_SCM, "P_avgE_H_SCM", fissionant_nucleus_identifier)
 end
 if secondary_output_TXE_Q == "YES"
