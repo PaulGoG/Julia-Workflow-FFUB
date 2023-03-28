@@ -22,11 +22,6 @@ end
 #Define value range for TKE
 tkerange = TKE_min:TKE_step:TKE_max
 
-#Define value ranges for fragmentation regions
-A_H_range = A_H_min:A_H_max
-A_L_range = (A₀ - A_H_max):(A₀ - A_H_min)
-A_range = (A₀ - A_H_max):A_H_max
-
 #Input variables corrections according to fission type
 if fission_type == "SF"
     #Null neutron incident energy in spontaneous fission
@@ -35,6 +30,11 @@ elseif fission_type == "(n,f)"
     #Taking into account compound nucleus formation
     A₀ += 1
 end
+
+#Define value ranges for fragmentation regions
+A_H_range = A_H_min:A_H_max
+A_L_range = (A₀ - A_H_max):(A₀ - A_H_min)
+A_range = (A₀ - A_H_max):A_H_max
 
 if evaporation_cs_type == "VARIABLE"
     using Roots

@@ -94,7 +94,7 @@ txe_partitioning_firstdataline = 2
 txe_partitioning_segmentpoints = [(A_H_min, 1.2), (A_H_max, 1.2)]
 
 #Writing out main DSE output file containing detailed sequence data YES or NO selector
-write_primary_output = "YES"
+write_primary_output = "NO"
 
 #Yield-averaged outputs YES or NO selector
 secondary_outputs = "YES"
@@ -111,7 +111,7 @@ secondary_output_avg_εₖ = "YES"
 secondary_output_Eᵣ = "YES"
 ΔT, ΔTₖ, Δavg_ε, Δavg_εₖ, ΔEᵣ = 5e-3, 5e-3, 1e-2, 1e-2, 5e-2
 
-yield_distribution_filename = "$(fissionant_nucleus_identifier)YATKE.SRE"
+yield_distribution_filename = "$(fissionant_nucleus_identifier)YATKE.ANA"
 yield_distribution_header = ["A", "TKE", "Value", "σ"]
 yield_distribution_delimiter = ' '
 yield_distribution_firstdataline = 2
@@ -120,7 +120,7 @@ yield_distribution_firstdataline = 2
 neutron_spectrum = "YES"
 E_min = 1e-6
 E_max = 20.0
-E_step = 5e-2
+E_step = 1
 Yield_cutoff_value = 5e-5
 
 #Plots YES or NO selector
