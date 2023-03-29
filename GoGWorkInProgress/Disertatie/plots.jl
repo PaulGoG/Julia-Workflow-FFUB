@@ -410,9 +410,35 @@ if secondary_output_ν == "YES"
             (0.0, maximum(y_Np.Value)*1.1), :identity, ""
         )
         Process_plot(plot_y_N_comp, "y_Np_comparisson", fissionant_nucleus_identifier)
+
+        plot_tke_AH_comp = Scatter_data(tke_AH.Argument, tke_AH.Value, L"\mathrm{TKE(A)}", :blue, 4, :xcross)
+        Plot_data(plot_tke_AH_comp, tke_AH.Argument, tke_AH.Value, "", :blue)
+        Scatter_data(plot_tke_AH_comp, tke_AHp.Argument, tke_AHp.Value, L"\mathrm{TKE_p(A)}", :red, 4, :circle)
+        Plot_data(plot_tke_AH_comp, tke_AHp.Argument, tke_AHp.Value, "", :red)
+        Modify_plot(plot_tke_AH_comp)
+        Modify_plot(
+            plot_tke_AH_comp, L"\mathrm{A_H}", "TKE [MeV]", 
+            (minimum(tke_AHp.Argument), maximum(tke_AHp.Argument)), :identity, 
+            (minimum(tke_AHp.Value)*0.8, maximum(tke_AHp.Value)*1.2), :identity, latexstring("\$\\mathrm{TKE(A)\\: and\\: TKE_p(A)}\$ comparisson")
+        )
+        xticks!(plot_tke_AH_comp, 10 *div(minimum(tke_AHp.Argument), 10):5:maximum(tke_AHp.Argument))
+        Process_plot(plot_tke_AH_comp, "tke_AHp_comparisson", fissionant_nucleus_identifier)
+    
+        plot_ke_A_comp = Scatter_data(ke_A.Argument, ke_A.Value, L"\mathrm{KE(A)}", :blue, 4, :xcross)
+        Plot_data(plot_ke_A_comp, ke_A.Argument, ke_A.Value, "", :blue)
+        Scatter_data(plot_ke_A_comp, ke_Ap.Argument, ke_Ap.Value, L"\mathrm{KE_p(A)}", :red, 4, :circle)
+        Plot_data(plot_ke_A_comp, ke_Ap.Argument, ke_Ap.Value, "", :red)
+        Modify_plot(plot_ke_A_comp)
+        Modify_plot(
+            plot_ke_A_comp, "A", "KE [MeV]", 
+            (minimum(ke_Ap.Argument), maximum(ke_Ap.Argument)), :identity, 
+            (minimum(ke_Ap.Value)*0.8, maximum(ke_Ap.Value)*1.2), :identity, latexstring("\$\\mathrm{KE(A)\\: and\\: KE_p(A)}\$ comparisson")
+        )
+        xticks!(plot_ke_A_comp, 10 *div(minimum(ke_Ap.Argument), 10):5:maximum(ke_Ap.Argument))
+        Process_plot(plot_ke_A_comp, "ke_Ap_comparisson", fissionant_nucleus_identifier)
     end
     if secondary_output_Tₖ == "YES"
-
+        
     end
     if secondary_output_avg_εₖ == "YES"
 
