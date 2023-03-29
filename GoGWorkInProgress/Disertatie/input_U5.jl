@@ -120,7 +120,7 @@ yield_distribution_firstdataline = 2
 neutron_spectrum = "YES"
 E_min = 1e-6
 E_max = 20.0
-E_step = 1
+E_step = 1e-1
 Yield_cutoff_value = 5e-5
 
 #Plots YES or NO selector
