@@ -634,6 +634,9 @@ if secondary_output_ν == "YES"
         if !isdir("output_data/P_T_k/")
             mkdir("output_data/P_T_k/")
         end
+        if !isdir("output_data/T_k_A/")
+            mkdir("output_data/T_k_A/")
+        end
         if secondary_output_Eᵣ == "YES"
             if !isdir("output_data/P_Er/")
                 mkdir("output_data/P_Er/")
@@ -648,7 +651,7 @@ if secondary_output_ν == "YES"
             )
             Tₖ_A = Average_over_TKE_Z(Tₖ_A_Z_TKE, y_A_Z_TKE)
             CSV.write(
-                "output_data/$(fissionant_nucleus_identifier)_T_$(k)_A.OUT", 
+                "output_data/T_k_A/$(fissionant_nucleus_identifier)_T_$(k)_A.OUT", 
                 DataFrame(A = Tₖ_A.Argument, T = Tₖ_A.Value), 
                 writeheader=true, newline="\r\n", delim=' '
             )

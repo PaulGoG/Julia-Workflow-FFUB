@@ -127,22 +127,22 @@ S0_new = Strength_function_new.(sort(unique(RIPL3_data.A)))
 pltlog = scatter(
     RIPL3_data.A, RIPL3_data.S_0, 
     yscale=:log10, size = (1000, 900), color = :black, xlabel = "A", ylabel = "S₀", 
-    framestyle = :box, minorgrid = true, title = "Log10 scale", 
-    xticks = (20:10:300), label="RIPL3 data"
+    framestyle = :box, minorgrid = true, title = "s-wave neutron strength function in log10 scale", 
+    xticks = (20:10:300), label="RIPL3 data", dpi=300
     )
 pltlog = scatter!(pltlog, sort(unique(RIPL3_data.A)), S0_old, color = :red, label="S₀ old")
 pltlog = plot!(pltlog, sort(unique(RIPL3_data.A)), S0_new, color = :blue, label="S₀ new")
-vline!(pltlog, [76, 160], color = :green, label="")
+vline!(pltlog, [70, 180], color = :green, label="", linestyle=:dashdot)
 
 pltlin = scatter(
     RIPL3_data.A, RIPL3_data.S_0, 
     yscale=:identity, size = (1000, 900), color = :black, xlabel = "A", ylabel = "S₀", 
-    framestyle = :box, minorgrid = true, title = "Lin scale",
-    xticks = (20:10:300), label="RIPL3 data"
+    framestyle = :box, minorgrid = true, title = "s-wave neutron strength function in linear scale",
+    xticks = (20:10:300), label="RIPL3 data", dpi=300, yformatter = :scientific
     )
 pltlin = scatter!(pltlin, sort(unique(RIPL3_data.A)), S0_old, color = :red, label="S₀ old")
 pltlin = plot!(pltlin, sort(unique(RIPL3_data.A)), S0_new, color = :blue, label="S₀ new")
-vline!(pltlin, [76, 160], color = :green, label="")
+vline!(pltlin, [70, 180], color = :green, label="", linestyle=:dashdot)
 =#
 #Generate ΔE_def for given β₀ & β_scission parametrization
 #=

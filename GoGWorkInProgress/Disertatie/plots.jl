@@ -168,7 +168,7 @@ end
 function Plot_P_q_xticks(plt::Plots.Plot, maxval)
     xticks!(
         plt,
-        0.0:0.25:maxval
+        0.0:0.5:maxval
     )
 end
 function Process_plot(plt::Plots.Plot, filename::String, fissionant_nucleus_identifier::String)
