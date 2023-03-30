@@ -305,6 +305,12 @@ function Singular_yield_distributions(y_A_Z_TKE::Distribution, A_0, A_H_min)
             push!(ke_A.σ, KE_A *σTKE_A /TKE_A)
         end
     end
+    Sort_q_Argument(y_A)
+    Sort_q_Argument(y_Z)
+    Sort_q_Argument(y_N)
+    Sort_q_Argument(y_TKE)
+    Sort_q_Argument(tke_AH)
+    Sort_q_Argument(ke_A)
     return y_A, y_Z, y_N, y_TKE, tke_AH, ke_A
 end
 #Get <Argument> from Yield(Argument) singular yield distribution
@@ -387,6 +393,21 @@ function Probability_of_occurrence(q_A_Z_TKE, y_A_Z_TKE::Distribution, Δq::Numb
         push!(P.Value, NaN)
     end
     return P
+end
+#Sort q(Argument) by ascending argument for plotting
+function Sort_q_Argument(q)
+    aux_Argument = sort(unique(q.Argument))
+    aux_Value = [first(q.Value[q.Argument .== Argument]) for Argument in aux_Argument]
+    for index in eachindex(aux_Argument)
+        q.Argument[index] = aux_Argument[index]
+        q.Value[index] = aux_Value[index]
+    end
+    if isassigned(q.σ, 1)
+        aux_σ = [first(q.σ[q.Argument .== Argument]) for Argument in aux_Argument]
+        for index in eachindex(aux_Argument)
+            q.σ[index] = aux_σ[index]
+        end
+    end
 end
 #####
 println("*averaging data over $yield_distribution_filename experimental Yield distribution") 
@@ -646,7 +667,7 @@ if secondary_output_ν == "YES"
                 ), y_A_Z_TKE, ΔTₖ
                 )
             CSV.write(
-                "output_data/P_T_k/$(fissionant_nucleus_identifier)_P_T_$(k)_L.OUT", 
+                "output_data/P_T_k/$(fissionant_nucleus_identifier)_P_T_$(k)_LF.OUT", 
                 DataFrame(Tₖ = probability_Tₖ_L.Argument, P = probability_Tₖ_L.Value), 
                 writeheader=true, newline="\r\n", delim=' '
             )
@@ -659,7 +680,7 @@ if secondary_output_ν == "YES"
                 ), y_A_Z_TKE, ΔTₖ
                 )
             CSV.write(
-                "output_data/P_T_k/$(fissionant_nucleus_identifier)_P_T_$(k)_H.OUT", 
+                "output_data/P_T_k/$(fissionant_nucleus_identifier)_P_T_$(k)_HF.OUT", 
                 DataFrame(Tₖ = probability_Tₖ_H.Argument, P = probability_Tₖ_H.Value), 
                 writeheader=true, newline="\r\n", delim=' '
             )
@@ -682,7 +703,7 @@ if secondary_output_ν == "YES"
                     ), y_A_Z_TKE, ΔEᵣ
                     )
                 CSV.write(
-                    "output_data/P_Er/$(fissionant_nucleus_identifier)_P_Er_$(k)_L.OUT", 
+                    "output_data/P_Er/$(fissionant_nucleus_identifier)_P_Er_$(k)_LF.OUT", 
                     DataFrame(Eᵣ = probability_Eᵣ_L.Argument, P = probability_Eᵣ_L.Value), 
                     writeheader=true, newline="\r\n", delim=' '
                 )
@@ -695,7 +716,7 @@ if secondary_output_ν == "YES"
                     ), y_A_Z_TKE, ΔEᵣ
                     )
                 CSV.write(
-                    "output_data/P_Er/$(fissionant_nucleus_identifier)_P_Er_$(k)_H.OUT", 
+                    "output_data/P_Er/$(fissionant_nucleus_identifier)_P_Er_$(k)_HF.OUT", 
                     DataFrame(Eᵣ = probability_Eᵣ_H.Argument, P = probability_Eᵣ_H.Value), 
                     writeheader=true, newline="\r\n", delim=' '
                 )
@@ -726,9 +747,9 @@ if secondary_output_ν == "YES"
                     TKE = avg_εₖ_A_Z_TKE.TKE[avg_εₖ_A_Z_TKE.A .<= A_H_min],
                     Value = avg_εₖ_A_Z_TKE.Value[avg_εₖ_A_Z_TKE.A .<= A_H_min]
                 ), y_A_Z_TKE, Δavg_εₖ
-                )
+            )
             CSV.write(
-                "output_data/P_avgE_k/$(fissionant_nucleus_identifier)_P_avgE_$(k)_SCM_L.OUT", 
+                "output_data/P_avgE_k/$(fissionant_nucleus_identifier)_P_avgE_$(k)_SCM_LF.OUT", 
                 DataFrame(avg_εₖ = probability_avg_εₖ_L.Argument, P = probability_avg_εₖ_L.Value), 
                 writeheader=true, newline="\r\n", delim=' '
             )
@@ -739,9 +760,9 @@ if secondary_output_ν == "YES"
                     TKE = avg_εₖ_A_Z_TKE.TKE[avg_εₖ_A_Z_TKE.A .>= A_H_min],
                     Value = avg_εₖ_A_Z_TKE.Value[avg_εₖ_A_Z_TKE.A .>= A_H_min]
                 ), y_A_Z_TKE, Δavg_εₖ
-                )
+            )
             CSV.write(
-                "output_data/P_avgE_k/$(fissionant_nucleus_identifier)_P_avgE_$(k)_SCM_H.OUT", 
+                "output_data/P_avgE_k/$(fissionant_nucleus_identifier)_P_avgE_$(k)_SCM_HF.OUT", 
                 DataFrame(avg_εₖ = probability_avg_εₖ_H.Argument, P = probability_avg_εₖ_H.Value), 
                 writeheader=true, newline="\r\n", delim=' '
             )

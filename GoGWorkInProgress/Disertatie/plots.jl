@@ -222,6 +222,7 @@ if secondary_output_Yield == "YES"
     Process_plot(plot_y_Z, "y_Z", fissionant_nucleus_identifier)
 
     plot_y_N = Scatter_data(y_N.Argument, y_N.Value, "", :red, 4, :circle)
+    Plot_data(plot_y_N, y_N.Argument, y_N.Value, "", :red)
     Modify_plot(plot_y_N)
     Modify_plot(
         plot_y_N, "N", "Yield %", 
@@ -329,6 +330,7 @@ if secondary_output_ν == "YES"
         (minimum(probability_ν.Argument), maximum(probability_ν.Argument)), :identity, 
         (minimum(probability_ν.Value)*0.9, maximum(probability_ν.Value)*1.1), :identity, latexstring("Probability of occurance \$\\mathrm{P(\\nu)}\$")
     )
+    xticks!(plot_P_ν, 1:maximum(probability_ν.Argument))
     Process_plot(plot_P_ν, "P_nu", fissionant_nucleus_identifier)
 
     if secondary_output_Ap == "YES"
@@ -401,7 +403,9 @@ if secondary_output_ν == "YES"
         Process_plot(plot_y_Ap_comp_log, "y_Ap_comparisson_log", fissionant_nucleus_identifier)
 
         plot_y_N_comp = Scatter_data(y_N.Argument, y_N.Value, L"\mathrm{Y(N)}", :blue, 4, :xcross)
+        Plot_data(plot_y_N_comp, y_N.Argument, y_N.Value, "", :blue)
         Scatter_data(plot_y_N_comp, y_Np.Argument, y_Np.Value, L"\mathrm{Y(N_p)}", :red, 4, :circle)
+        Plot_data(plot_y_N_comp, y_Np.Argument, y_Np.Value, "", :red)
         Modify_plot(plot_y_N_comp)
         xticks!(plot_y_N_comp, 10 *div(minimum(y_Np.Argument), 10):2:maximum(y_Np.Argument))
         Modify_plot(
@@ -438,13 +442,469 @@ if secondary_output_ν == "YES"
         Process_plot(plot_ke_A_comp, "ke_Ap_comparisson", fissionant_nucleus_identifier)
     end
     if secondary_output_Tₖ == "YES"
-        
+        Tₖ_A_Z_TKE = DataFrame(
+            A = Raw_output_datafile.A[Raw_output_datafile.No_Sequence .== 1],
+            Z = Raw_output_datafile.Z[Raw_output_datafile.No_Sequence .== 1],
+            TKE = Raw_output_datafile.TKE[Raw_output_datafile.No_Sequence .== 1],
+            Value = Raw_output_datafile.Tₖ[Raw_output_datafile.No_Sequence .== 1]
+        )
+        Tₖ_A = Average_over_TKE_Z(Tₖ_A_Z_TKE, y_A_Z_TKE)
+        probability_Tₖ = Probability_of_occurrence(Tₖ_A_Z_TKE, y_A_Z_TKE, ΔTₖ)
+        probability_Tₖ_L = Probability_of_occurrence(
+            DataFrame(
+                A = Tₖ_A_Z_TKE.A[Tₖ_A_Z_TKE.A .<= A_H_min], 
+                Z = Tₖ_A_Z_TKE.Z[Tₖ_A_Z_TKE.A .<= A_H_min], 
+                TKE = Tₖ_A_Z_TKE.TKE[Tₖ_A_Z_TKE.A .<= A_H_min],
+                Value = Tₖ_A_Z_TKE.Value[Tₖ_A_Z_TKE.A .<= A_H_min]
+            ), y_A_Z_TKE, ΔTₖ
+        )
+        probability_Tₖ_H = Probability_of_occurrence(
+            DataFrame(
+                A = Tₖ_A_Z_TKE.A[Tₖ_A_Z_TKE.A .>= A_H_min], 
+                Z = Tₖ_A_Z_TKE.Z[Tₖ_A_Z_TKE.A .>= A_H_min], 
+                TKE = Tₖ_A_Z_TKE.TKE[Tₖ_A_Z_TKE.A .>= A_H_min],
+                Value = Tₖ_A_Z_TKE.Value[Tₖ_A_Z_TKE.A .>= A_H_min]
+            ), y_A_Z_TKE, ΔTₖ
+        )
+
+        gr(size = plots_resolution, dpi=300)
+
+        avg_Tₖ = Average_value(Tₖ_A_Z_TKE, y_A_Z_TKE, A_range)
+        plot_Tₖ_A = Scatter_data(Tₖ_A.Argument, Tₖ_A.Value, latexstring("\$\\mathrm{<T_1>}\$ = $(round(avg_Tₖ, digits = 2)) MeV"), :auto, 4, :auto)
+        Modify_plot(plot_Tₖ_A)
+        Modify_plot(
+            plot_Tₖ_A, "A", "T [MeV]",
+            (first(A_range), last(A_range)), :identity, 
+            (0.0, maximum(Tₖ_A.Value)*1.5), :identity, ""
+        )
+        xticks!(plot_Tₖ_A, 10 *div(first(A_range), 10):5:last(A_range))
+
+        plot_P_Tₖ = Bar_data(probability_Tₖ.Argument, probability_Tₖ.Value, latexstring("\$\\mathrm{<T_1>}\$ = $(round(avg_Tₖ, digits = 2)) MeV"), :auto, ΔTₖ)
+        minimum_P_Tₖ = minimum(probability_Tₖ.Value[probability_Tₖ.Value .> 0])
+        maximum_P_Tₖ = maximum(probability_Tₖ.Value[probability_Tₖ.Value .> 0])
+        maximum_Tₖ = maximum(probability_Tₖ.Argument[probability_Tₖ.Value .> 0])
+    
+        avg_Tₖ_L = Average_value(Tₖ_A_Z_TKE, y_A_Z_TKE, A_L_range)
+        plot_P_Tₖ_L = Bar_data(probability_Tₖ_L.Argument, probability_Tₖ_L.Value, latexstring("\$\\mathrm{<T_1>_L}\$ = $(round(avg_Tₖ_L, digits = 2)) MeV"), :auto, ΔTₖ)
+        minimum_P_Tₖ_L = minimum(probability_Tₖ_L.Value[probability_Tₖ_L.Value .> 0])
+        maximum_P_Tₖ_L = maximum(probability_Tₖ_L.Value[probability_Tₖ_L.Value .> 0])
+        maximum_Tₖ_L = maximum(probability_Tₖ_L.Argument[probability_Tₖ_L.Value .> 0])
+    
+        avg_Tₖ_H = Average_value(Tₖ_A_Z_TKE, y_A_Z_TKE, A_H_range)
+        plot_P_Tₖ_H = Bar_data(probability_Tₖ_H.Argument, probability_Tₖ_H.Value, latexstring("\$\\mathrm{<T_1>_H}\$ = $(round(avg_Tₖ_H, digits = 2)) MeV"), :auto, ΔTₖ)
+        minimum_P_Tₖ_H = minimum(probability_Tₖ_H.Value[probability_Tₖ_H.Value .> 0])
+        maximum_P_Tₖ_H = maximum(probability_Tₖ_H.Value[probability_Tₖ_H.Value .> 0])
+        maximum_Tₖ_H = maximum(probability_Tₖ_H.Argument[probability_Tₖ_H.Value .> 0])
+
+        for k in 2:maximum(ν_A_Z_TKE.Value)
+            local Tₖ_A_Z_TKE = DataFrame(
+                A = Raw_output_datafile.A[Raw_output_datafile.No_Sequence .== k],
+                Z = Raw_output_datafile.Z[Raw_output_datafile.No_Sequence .== k],
+                TKE = Raw_output_datafile.TKE[Raw_output_datafile.No_Sequence .== k],
+                Value = Raw_output_datafile.Tₖ[Raw_output_datafile.No_Sequence .== k]
+            )
+            local Tₖ_A = Average_over_TKE_Z(Tₖ_A_Z_TKE, y_A_Z_TKE)
+            local probability_Tₖ = Probability_of_occurrence(Tₖ_A_Z_TKE, y_A_Z_TKE, ΔTₖ)
+            local probability_Tₖ_L = Probability_of_occurrence(
+                DataFrame(
+                    A = Tₖ_A_Z_TKE.A[Tₖ_A_Z_TKE.A .<= A_H_min], 
+                    Z = Tₖ_A_Z_TKE.Z[Tₖ_A_Z_TKE.A .<= A_H_min], 
+                    TKE = Tₖ_A_Z_TKE.TKE[Tₖ_A_Z_TKE.A .<= A_H_min],
+                    Value = Tₖ_A_Z_TKE.Value[Tₖ_A_Z_TKE.A .<= A_H_min]
+                ), y_A_Z_TKE, ΔTₖ
+            )
+            local probability_Tₖ_H = Probability_of_occurrence(
+                DataFrame(
+                    A = Tₖ_A_Z_TKE.A[Tₖ_A_Z_TKE.A .>= A_H_min], 
+                    Z = Tₖ_A_Z_TKE.Z[Tₖ_A_Z_TKE.A .>= A_H_min], 
+                    TKE = Tₖ_A_Z_TKE.TKE[Tₖ_A_Z_TKE.A .>= A_H_min],
+                    Value = Tₖ_A_Z_TKE.Value[Tₖ_A_Z_TKE.A .>= A_H_min]
+                ), y_A_Z_TKE, ΔTₖ
+            )
+            local avg_Tₖ = Average_value(Tₖ_A_Z_TKE, y_A_Z_TKE, A_range)
+            local avg_Tₖ_L = Average_value(Tₖ_A_Z_TKE, y_A_Z_TKE, A_L_range)
+            local avg_Tₖ_H = Average_value(Tₖ_A_Z_TKE, y_A_Z_TKE, A_H_range)
+            if !isnan(avg_Tₖ)
+                if minimum_P_Tₖ > minimum(probability_Tₖ.Value[probability_Tₖ.Value .> 0])
+                    global minimum_P_Tₖ = minimum(probability_Tₖ.Value[probability_Tₖ.Value .> 0])
+                end
+                if maximum_P_Tₖ < maximum(probability_Tₖ.Value[probability_Tₖ.Value .> 0])
+                    global maximum_P_Tₖ = maximum(probability_Tₖ.Value[probability_Tₖ.Value .> 0])
+                end
+                if maximum_Tₖ < maximum(probability_Tₖ.Argument[probability_Tₖ.Value .> 0])
+                    global maximum_Tₖ = maximum(probability_Tₖ.Argument[probability_Tₖ.Value .> 0])
+                end
+                Scatter_data(plot_Tₖ_A, Tₖ_A.Argument, Tₖ_A.Value, latexstring("\$\\mathrm{<T_$(k)>}\$ = $(round(avg_Tₖ, digits = 2)) MeV"), :auto, 4, :auto)
+                Bar_data(plot_P_Tₖ, probability_Tₖ.Argument, probability_Tₖ.Value, latexstring("\$\\mathrm{<T_$(k)>}\$ = $(round(avg_Tₖ, digits = 2)) MeV"), :auto, ΔTₖ)
+            end
+            if !isnan(avg_Tₖ_L)
+                if minimum_P_Tₖ_L > minimum(probability_Tₖ_L.Value[probability_Tₖ_L.Value .> 0])
+                    global minimum_P_Tₖ_L = minimum(probability_Tₖ_L.Value[probability_Tₖ_L.Value .> 0])
+                end
+                if maximum_P_Tₖ_L < maximum(probability_Tₖ_L.Value[probability_Tₖ_L.Value .> 0])
+                    global maximum_P_Tₖ_L = maximum(probability_Tₖ_L.Value[probability_Tₖ_L.Value .> 0])
+                end
+                if maximum_Tₖ_L < maximum(probability_Tₖ_L.Argument[probability_Tₖ_L.Value .> 0])
+                    global maximum_Tₖ_L = maximum(probability_Tₖ_L.Argument[probability_Tₖ_L.Value .> 0])
+                end
+                Bar_data(plot_P_Tₖ_L, probability_Tₖ_L.Argument, probability_Tₖ_L.Value, latexstring("\$\\mathrm{<T_$(k)>_L}\$ = $(round(avg_Tₖ_L, digits = 2)) MeV"), :auto, ΔTₖ)
+            end
+            if !isnan(avg_Tₖ_H)
+                if minimum_P_Tₖ_H > minimum(probability_Tₖ_H.Value[probability_Tₖ_H.Value .> 0])
+                    global minimum_P_Tₖ_H = minimum(probability_Tₖ_H.Value[probability_Tₖ_H.Value .> 0])
+                end
+                if maximum_P_Tₖ_H < maximum(probability_Tₖ_H.Value[probability_Tₖ_H.Value .> 0])
+                    global maximum_P_Tₖ_H = maximum(probability_Tₖ_H.Value[probability_Tₖ_H.Value .> 0])
+                end
+                if maximum_Tₖ_H < maximum(probability_Tₖ_H.Argument[probability_Tₖ_H.Value .> 0])
+                    global maximum_Tₖ_H = maximum(probability_Tₖ_H.Argument[probability_Tₖ_H.Value .> 0])
+                end
+                Bar_data(plot_P_Tₖ_H, probability_Tₖ_H.Argument, probability_Tₖ_H.Value, latexstring("\$\\mathrm{<T_$(k)>_H}\$ = $(round(avg_Tₖ_H, digits = 2)) MeV"), :auto, ΔTₖ)
+            end
+        end
+        Process_plot(plot_Tₖ_A, "T_k_A", fissionant_nucleus_identifier)
+
+        Modify_plot(plot_P_Tₖ)
+        Modify_plot(
+            plot_P_Tₖ, "T [MeV]", "Probability %", 
+            (0.0, maximum_Tₖ), :identity, 
+            (minimum_P_Tₖ*0.9, maximum_P_Tₖ*1.1), :log10, latexstring("Probability of occurance \$\\mathrm{P(T_k)}\$ for all fragments")
+        )
+        Plot_P_q_xticks(plot_P_Tₖ, maximum_Tₖ)
+        Plot_log10_yticks(plot_P_Tₖ)
+        Process_plot(plot_P_Tₖ, "P_T_k", fissionant_nucleus_identifier)
+
+        Modify_plot(plot_P_Tₖ_L)
+        Modify_plot(
+            plot_P_Tₖ_L, "T [MeV]", "Probability %", 
+            (0.0, maximum_Tₖ_L), :identity, 
+            (minimum_P_Tₖ_L*0.9, maximum_P_Tₖ_L*1.1), :log10, latexstring("Probability of occurance \$\\mathrm{P(T_k)_L}\$ for light fragments")
+        )
+        Plot_P_q_xticks(plot_P_Tₖ_L, maximum_Tₖ_L)
+        Plot_log10_yticks(plot_P_Tₖ_L)
+        Process_plot(plot_P_Tₖ_L, "P_T_k_LF", fissionant_nucleus_identifier)
+
+        Modify_plot(plot_P_Tₖ_H)
+        Modify_plot(
+            plot_P_Tₖ_H, "T [MeV]", "Probability %", 
+            (0.0, maximum_Tₖ_H), :identity, 
+            (minimum_P_Tₖ_H*0.9, maximum_P_Tₖ_H*1.1), :log10, latexstring("Probability of occurance \$\\mathrm{P(T_k)_H}\$ for heavy fragments")
+        )
+        Plot_P_q_xticks(plot_P_Tₖ_H, maximum_Tₖ_H)
+        Plot_log10_yticks(plot_P_Tₖ_H)
+        Process_plot(plot_P_Tₖ_H, "P_T_k_HF", fissionant_nucleus_identifier)
     end
     if secondary_output_avg_εₖ == "YES"
+        avg_εₖ_A_Z_TKE = DataFrame(
+            A = Raw_output_datafile.A[Raw_output_datafile.No_Sequence .== 1],
+            Z = Raw_output_datafile.Z[Raw_output_datafile.No_Sequence .== 1],
+            TKE = Raw_output_datafile.TKE[Raw_output_datafile.No_Sequence .== 1],
+            Value = Raw_output_datafile.Avg_εₖ[Raw_output_datafile.No_Sequence .== 1]
+        )
+        avg_εₖ_A = Average_over_TKE_Z(avg_εₖ_A_Z_TKE, y_A_Z_TKE)
+        probability_avg_εₖ = Probability_of_occurrence(avg_εₖ_A_Z_TKE, y_A_Z_TKE, Δavg_εₖ)
+        probability_avg_εₖ_L = Probability_of_occurrence(
+            DataFrame(
+                A = avg_εₖ_A_Z_TKE.A[avg_εₖ_A_Z_TKE.A .<= A_H_min], 
+                Z = avg_εₖ_A_Z_TKE.Z[avg_εₖ_A_Z_TKE.A .<= A_H_min], 
+                TKE = avg_εₖ_A_Z_TKE.TKE[avg_εₖ_A_Z_TKE.A .<= A_H_min],
+                Value = avg_εₖ_A_Z_TKE.Value[avg_εₖ_A_Z_TKE.A .<= A_H_min]
+            ), y_A_Z_TKE, Δavg_εₖ
+        )
+        probability_avg_εₖ_H = Probability_of_occurrence(
+            DataFrame(
+                A = avg_εₖ_A_Z_TKE.A[avg_εₖ_A_Z_TKE.A .>= A_H_min], 
+                Z = avg_εₖ_A_Z_TKE.Z[avg_εₖ_A_Z_TKE.A .>= A_H_min], 
+                TKE = avg_εₖ_A_Z_TKE.TKE[avg_εₖ_A_Z_TKE.A .>= A_H_min],
+                Value = avg_εₖ_A_Z_TKE.Value[avg_εₖ_A_Z_TKE.A .>= A_H_min]
+            ), y_A_Z_TKE, Δavg_εₖ
+        )
 
+        gr(size = plots_resolution, dpi=300)
+
+        avg_avg_εₖ = Average_value(avg_εₖ_A_Z_TKE, y_A_Z_TKE, A_range)
+        plot_avg_εₖ_A = Scatter_data(avg_εₖ_A.Argument, avg_εₖ_A.Value, latexstring("\$\\overline{<\\varepsilon_1>}\$ = $(round(avg_avg_εₖ, digits = 2)) MeV"), :auto, 4, :auto)
+        Modify_plot(plot_avg_εₖ_A)
+        Modify_plot(
+            plot_avg_εₖ_A, "A", L"<\varepsilon>\: [MeV]",
+            (first(A_range), last(A_range)), :identity, 
+            (0.0, maximum(avg_εₖ_A.Value)*1.5), :identity, ""
+        )
+        xticks!(plot_avg_εₖ_A, 10 *div(first(A_range), 10):5:last(A_range))
+
+        plot_P_avg_εₖ = Bar_data(probability_avg_εₖ.Argument, probability_avg_εₖ.Value, latexstring("\$\\overline{<\\varepsilon_1>}\$ = $(round(avg_avg_εₖ, digits = 2)) MeV"), :auto, Δavg_εₖ)
+        minimum_P_avg_εₖ = minimum(probability_avg_εₖ.Value[probability_avg_εₖ.Value .> 0])
+        maximum_P_avg_εₖ = maximum(probability_avg_εₖ.Value[probability_avg_εₖ.Value .> 0])
+        maximum_avg_εₖ = maximum(probability_avg_εₖ.Argument[probability_avg_εₖ.Value .> 0])
+    
+        avg_avg_εₖ_L = Average_value(avg_εₖ_A_Z_TKE, y_A_Z_TKE, A_L_range)
+        plot_P_avg_εₖ_L = Bar_data(probability_avg_εₖ_L.Argument, probability_avg_εₖ_L.Value, latexstring("\$\\overline{<\\varepsilon_1>}_L\$ = $(round(avg_avg_εₖ_L, digits = 2)) MeV"), :auto, Δavg_εₖ)
+        minimum_P_avg_εₖ_L = minimum(probability_avg_εₖ_L.Value[probability_avg_εₖ_L.Value .> 0])
+        maximum_P_avg_εₖ_L = maximum(probability_avg_εₖ_L.Value[probability_avg_εₖ_L.Value .> 0])
+        maximum_avg_εₖ_L = maximum(probability_avg_εₖ_L.Argument[probability_avg_εₖ_L.Value .> 0])
+    
+        avg_avg_εₖ_H = Average_value(avg_εₖ_A_Z_TKE, y_A_Z_TKE, A_H_range)
+        plot_P_avg_εₖ_H = Bar_data(probability_avg_εₖ_H.Argument, probability_avg_εₖ_H.Value, latexstring("\$\\overline{<\\varepsilon_1>}_H\$ = $(round(avg_avg_εₖ_H, digits = 2)) MeV"), :auto, Δavg_εₖ)
+        minimum_P_avg_εₖ_H = minimum(probability_avg_εₖ_H.Value[probability_avg_εₖ_H.Value .> 0])
+        maximum_P_avg_εₖ_H = maximum(probability_avg_εₖ_H.Value[probability_avg_εₖ_H.Value .> 0])
+        maximum_avg_εₖ_H = maximum(probability_avg_εₖ_H.Argument[probability_avg_εₖ_H.Value .> 0])
+
+        for k in 2:maximum(ν_A_Z_TKE.Value)
+            local avg_εₖ_A_Z_TKE = DataFrame(
+                A = Raw_output_datafile.A[Raw_output_datafile.No_Sequence .== k],
+                Z = Raw_output_datafile.Z[Raw_output_datafile.No_Sequence .== k],
+                TKE = Raw_output_datafile.TKE[Raw_output_datafile.No_Sequence .== k],
+                Value = Raw_output_datafile.Avg_εₖ[Raw_output_datafile.No_Sequence .== k]
+            )
+            local avg_εₖ_A = Average_over_TKE_Z(avg_εₖ_A_Z_TKE, y_A_Z_TKE)
+            local probability_avg_εₖ = Probability_of_occurrence(avg_εₖ_A_Z_TKE, y_A_Z_TKE, Δavg_εₖ)
+            local probability_avg_εₖ_L = Probability_of_occurrence(
+                DataFrame(
+                    A = avg_εₖ_A_Z_TKE.A[avg_εₖ_A_Z_TKE.A .<= A_H_min], 
+                    Z = avg_εₖ_A_Z_TKE.Z[avg_εₖ_A_Z_TKE.A .<= A_H_min], 
+                    TKE = avg_εₖ_A_Z_TKE.TKE[avg_εₖ_A_Z_TKE.A .<= A_H_min],
+                    Value = avg_εₖ_A_Z_TKE.Value[avg_εₖ_A_Z_TKE.A .<= A_H_min]
+                ), y_A_Z_TKE, Δavg_εₖ
+            )
+            local probability_avg_εₖ_H = Probability_of_occurrence(
+                DataFrame(
+                    A = avg_εₖ_A_Z_TKE.A[avg_εₖ_A_Z_TKE.A .>= A_H_min], 
+                    Z = avg_εₖ_A_Z_TKE.Z[avg_εₖ_A_Z_TKE.A .>= A_H_min], 
+                    TKE = avg_εₖ_A_Z_TKE.TKE[avg_εₖ_A_Z_TKE.A .>= A_H_min],
+                    Value = avg_εₖ_A_Z_TKE.Value[avg_εₖ_A_Z_TKE.A .>= A_H_min]
+                ), y_A_Z_TKE, Δavg_εₖ
+            )
+            local avg_avg_εₖ = Average_value(avg_εₖ_A_Z_TKE, y_A_Z_TKE, A_range)
+            local avg_avg_εₖ_L = Average_value(avg_εₖ_A_Z_TKE, y_A_Z_TKE, A_L_range)
+            local avg_avg_εₖ_H = Average_value(avg_εₖ_A_Z_TKE, y_A_Z_TKE, A_H_range)
+            if !isnan(avg_avg_εₖ)
+                if minimum_P_avg_εₖ > minimum(probability_avg_εₖ.Value[probability_avg_εₖ.Value .> 0])
+                    global minimum_P_avg_εₖ = minimum(probability_avg_εₖ.Value[probability_avg_εₖ.Value .> 0])
+                end
+                if maximum_P_avg_εₖ < maximum(probability_avg_εₖ.Value[probability_avg_εₖ.Value .> 0])
+                    global maximum_P_avg_εₖ = maximum(probability_avg_εₖ.Value[probability_avg_εₖ.Value .> 0])
+                end
+                if maximum_avg_εₖ < maximum(probability_avg_εₖ.Argument[probability_avg_εₖ.Value .> 0])
+                    global maximum_avg_εₖ = maximum(probability_avg_εₖ.Argument[probability_avg_εₖ.Value .> 0])
+                end
+                Scatter_data(plot_avg_εₖ_A, avg_εₖ_A.Argument, avg_εₖ_A.Value, latexstring("\$\\overline{<\\varepsilon_$(k)>}\$ = $(round(avg_avg_εₖ, digits = 2)) MeV"), :auto, 4, :auto)
+                Bar_data(plot_P_avg_εₖ, probability_avg_εₖ.Argument, probability_avg_εₖ.Value, latexstring("\$\\overline{<\\varepsilon_$(k)>}\$ = $(round(avg_avg_εₖ, digits = 2)) MeV"), :auto, Δavg_εₖ)
+            end
+            if !isnan(avg_avg_εₖ_L)
+                if minimum_P_avg_εₖ_L > minimum(probability_avg_εₖ_L.Value[probability_avg_εₖ_L.Value .> 0])
+                    global minimum_P_avg_εₖ_L = minimum(probability_avg_εₖ_L.Value[probability_avg_εₖ_L.Value .> 0])
+                end
+                if maximum_P_avg_εₖ_L < maximum(probability_avg_εₖ_L.Value[probability_avg_εₖ_L.Value .> 0])
+                    global maximum_P_avg_εₖ_L = maximum(probability_avg_εₖ_L.Value[probability_avg_εₖ_L.Value .> 0])
+                end
+                if maximum_avg_εₖ_L < maximum(probability_avg_εₖ_L.Argument[probability_avg_εₖ_L.Value .> 0])
+                    global maximum_avg_εₖ_L = maximum(probability_avg_εₖ_L.Argument[probability_avg_εₖ_L.Value .> 0])
+                end
+                Bar_data(plot_P_avg_εₖ_L, probability_avg_εₖ_L.Argument, probability_avg_εₖ_L.Value, latexstring("\$\\overline{<\\varepsilon_$(k)>}_L\$ = $(round(avg_avg_εₖ_L, digits = 2)) MeV"), :auto, Δavg_εₖ)
+            end
+            if !isnan(avg_avg_εₖ_H)
+                if minimum_P_avg_εₖ_H > minimum(probability_avg_εₖ_H.Value[probability_avg_εₖ_H.Value .> 0])
+                    global minimum_P_avg_εₖ_H = minimum(probability_avg_εₖ_H.Value[probability_avg_εₖ_H.Value .> 0])
+                end
+                if maximum_P_avg_εₖ_H < maximum(probability_avg_εₖ_H.Value[probability_avg_εₖ_H.Value .> 0])
+                    global maximum_P_avg_εₖ_H = maximum(probability_avg_εₖ_H.Value[probability_avg_εₖ_H.Value .> 0])
+                end
+                if maximum_avg_εₖ_H < maximum(probability_avg_εₖ_H.Argument[probability_avg_εₖ_H.Value .> 0])
+                    global maximum_avg_εₖ_H = maximum(probability_avg_εₖ_H.Argument[probability_avg_εₖ_H.Value .> 0])
+                end
+                Bar_data(plot_P_avg_εₖ_H, probability_avg_εₖ_H.Argument, probability_avg_εₖ_H.Value, latexstring("\$\\overline{<\\varepsilon_$(k)>}_H\$ = $(round(avg_avg_εₖ_H, digits = 2)) MeV"), :auto, Δavg_εₖ)
+            end
+        end
+        Process_plot(plot_avg_εₖ_A, "avgE_SCM_k_A", fissionant_nucleus_identifier)
+
+        Modify_plot(plot_P_avg_εₖ)
+        Modify_plot(
+            plot_P_avg_εₖ, L"<\varepsilon>\: [MeV]", "Probability %", 
+            (0.0, maximum_avg_εₖ), :identity, 
+            (minimum_P_avg_εₖ*0.9, maximum_P_avg_εₖ*1.1), :log10, latexstring("Probability of occurance \$\\mathrm{P(<\\varepsilon_k>)}\$ for all fragments")
+        )
+        Plot_P_q_xticks(plot_P_avg_εₖ, maximum_avg_εₖ)
+        Plot_log10_yticks(plot_P_avg_εₖ)
+        Process_plot(plot_P_avg_εₖ, "P_avgE_SCM_k", fissionant_nucleus_identifier)
+
+        Modify_plot(plot_P_avg_εₖ_L)
+        Modify_plot(
+            plot_P_avg_εₖ_L, L"<\varepsilon>\: [MeV]", "Probability %", 
+            (0.0, maximum_avg_εₖ_L), :identity, 
+            (minimum_P_avg_εₖ_L*0.9, maximum_P_avg_εₖ_L*1.1), :log10, latexstring("Probability of occurance \$\\mathrm{P(<\\varepsilon_k>)_L}\$ for light fragments")
+        )
+        Plot_P_q_xticks(plot_P_avg_εₖ_L, maximum_avg_εₖ_L)
+        Plot_log10_yticks(plot_P_avg_εₖ_L)
+        Process_plot(plot_P_avg_εₖ_L, "P_avgE_SCM_k_LF", fissionant_nucleus_identifier)
+
+        Modify_plot(plot_P_avg_εₖ_H)
+        Modify_plot(
+            plot_P_avg_εₖ_H, L"<\varepsilon>\: [MeV]", "Probability %", 
+            (0.0, maximum_avg_εₖ_H), :identity, 
+            (minimum_P_avg_εₖ_H*0.9, maximum_P_avg_εₖ_H*1.1), :log10, latexstring("Probability of occurance \$\\mathrm{P(<\\varepsilon_k>)_H}\$ for heavy fragments")
+        )
+        Plot_P_q_xticks(plot_P_avg_εₖ_H, maximum_avg_εₖ_H)
+        Plot_log10_yticks(plot_P_avg_εₖ_H)
+        Process_plot(plot_P_avg_εₖ_H, "P_avgE_SCM_k_HF", fissionant_nucleus_identifier)
     end
     if secondary_output_Eᵣ == "YES"
+        Tₖ_A_Z_TKE = DataFrame(
+            A = Raw_output_datafile.A[Raw_output_datafile.No_Sequence .== 1],
+            Z = Raw_output_datafile.Z[Raw_output_datafile.No_Sequence .== 1],
+            TKE = Raw_output_datafile.TKE[Raw_output_datafile.No_Sequence .== 1],
+            Value = Raw_output_datafile.Tₖ[Raw_output_datafile.No_Sequence .== 1]
+        )
+        aₖ = copy(Raw_output_datafile.aₖ[Raw_output_datafile.No_Sequence .== 1])
+        Eᵣ_A_Z_TKE = copy(Tₖ_A_Z_TKE)
+        Eᵣ_A_Z_TKE.Value .= Energy_FermiGas.(aₖ, Eᵣ_A_Z_TKE.Value)
+        Eᵣ_A = Average_over_TKE_Z(Eᵣ_A_Z_TKE, y_A_Z_TKE)
+        probability_Eᵣ = Probability_of_occurrence(Eᵣ_A_Z_TKE, y_A_Z_TKE, ΔEᵣ)
+        probability_Eᵣ_L = Probability_of_occurrence(
+            DataFrame(
+                A = Eᵣ_A_Z_TKE.A[Eᵣ_A_Z_TKE.A .<= A_H_min], 
+                Z = Eᵣ_A_Z_TKE.Z[Eᵣ_A_Z_TKE.A .<= A_H_min], 
+                TKE = Eᵣ_A_Z_TKE.TKE[Eᵣ_A_Z_TKE.A .<= A_H_min],
+                Value = Eᵣ_A_Z_TKE.Value[Eᵣ_A_Z_TKE.A .<= A_H_min]
+            ), y_A_Z_TKE, ΔEᵣ
+        )
+        probability_Eᵣ_H = Probability_of_occurrence(
+            DataFrame(
+                A = Eᵣ_A_Z_TKE.A[Eᵣ_A_Z_TKE.A .>= A_H_min], 
+                Z = Eᵣ_A_Z_TKE.Z[Eᵣ_A_Z_TKE.A .>= A_H_min], 
+                TKE = Eᵣ_A_Z_TKE.TKE[Eᵣ_A_Z_TKE.A .>= A_H_min],
+                Value = Eᵣ_A_Z_TKE.Value[Eᵣ_A_Z_TKE.A .>= A_H_min]
+            ), y_A_Z_TKE, ΔEᵣ
+        )
 
+        gr(size = plots_resolution, dpi=300)
+
+        avg_Eᵣ = Average_value(Eᵣ_A_Z_TKE, y_A_Z_TKE, A_range)
+        plot_Eᵣ_A = Scatter_data(Eᵣ_A.Argument, Eᵣ_A.Value, latexstring("\$\\mathrm{<E_1>}\$ = $(round(avg_Eᵣ, digits = 2)) MeV"), :auto, 4, :auto)
+        Modify_plot(plot_Eᵣ_A)
+        Modify_plot(
+            plot_Eᵣ_A, "A", L"\mathrm{E^r\: [MeV]}",
+            (first(A_range), last(A_range)), :identity, 
+            (0.0, maximum(Eᵣ_A.Value)*1.5), :identity, ""
+        )
+        xticks!(plot_Eᵣ_A, 10 *div(first(A_range), 10):5:last(A_range))
+
+        plot_P_Eᵣ = Bar_data(probability_Eᵣ.Argument, probability_Eᵣ.Value, latexstring("\$\\mathrm{<E_1>}\$ = $(round(avg_Eᵣ, digits = 2)) MeV"), :auto, ΔEᵣ)
+        minimum_P_Eᵣ = minimum(probability_Eᵣ.Value[probability_Eᵣ.Value .> 0])
+        maximum_P_Eᵣ = maximum(probability_Eᵣ.Value[probability_Eᵣ.Value .> 0])
+        maximum_Eᵣ = maximum(probability_Eᵣ.Argument[probability_Eᵣ.Value .> 0])
+    
+        avg_Eᵣ_L = Average_value(Eᵣ_A_Z_TKE, y_A_Z_TKE, A_L_range)
+        plot_P_Eᵣ_L = Bar_data(probability_Eᵣ_L.Argument, probability_Eᵣ_L.Value, latexstring("\$\\mathrm{<E_1>_L}\$ = $(round(avg_Eᵣ_L, digits = 2)) MeV"), :auto, ΔEᵣ)
+        minimum_P_Eᵣ_L = minimum(probability_Eᵣ_L.Value[probability_Eᵣ_L.Value .> 0])
+        maximum_P_Eᵣ_L = maximum(probability_Eᵣ_L.Value[probability_Eᵣ_L.Value .> 0])
+        maximum_Eᵣ_L = maximum(probability_Eᵣ_L.Argument[probability_Eᵣ_L.Value .> 0])
+    
+        avg_Eᵣ_H = Average_value(Eᵣ_A_Z_TKE, y_A_Z_TKE, A_H_range)
+        plot_P_Eᵣ_H = Bar_data(probability_Eᵣ_H.Argument, probability_Eᵣ_H.Value, latexstring("\$\\mathrm{<E_1>_H}\$ = $(round(avg_Eᵣ_H, digits = 2)) MeV"), :auto, ΔEᵣ)
+        minimum_P_Eᵣ_H = minimum(probability_Eᵣ_H.Value[probability_Eᵣ_H.Value .> 0])
+        maximum_P_Eᵣ_H = maximum(probability_Eᵣ_H.Value[probability_Eᵣ_H.Value .> 0])
+        maximum_Eᵣ_H = maximum(probability_Eᵣ_H.Argument[probability_Eᵣ_H.Value .> 0])
+
+        for k in 2:maximum(ν_A_Z_TKE.Value)
+            local Tₖ_A_Z_TKE = DataFrame(
+                A = Raw_output_datafile.A[Raw_output_datafile.No_Sequence .== k],
+                Z = Raw_output_datafile.Z[Raw_output_datafile.No_Sequence .== k],
+                TKE = Raw_output_datafile.TKE[Raw_output_datafile.No_Sequence .== k],
+                Value = Raw_output_datafile.Tₖ[Raw_output_datafile.No_Sequence .== k]
+            )
+            local aₖ = copy(Raw_output_datafile.aₖ[Raw_output_datafile.No_Sequence .== k])
+            local Eᵣ_A_Z_TKE = copy(Tₖ_A_Z_TKE)
+            Eᵣ_A_Z_TKE.Value .= Energy_FermiGas.(aₖ, Eᵣ_A_Z_TKE.Value)
+            local Eᵣ_A = Average_over_TKE_Z(Eᵣ_A_Z_TKE, y_A_Z_TKE)
+            local probability_Eᵣ = Probability_of_occurrence(Eᵣ_A_Z_TKE, y_A_Z_TKE, ΔEᵣ)
+            local probability_Eᵣ_L = Probability_of_occurrence(
+                DataFrame(
+                    A = Eᵣ_A_Z_TKE.A[Eᵣ_A_Z_TKE.A .<= A_H_min], 
+                    Z = Eᵣ_A_Z_TKE.Z[Eᵣ_A_Z_TKE.A .<= A_H_min], 
+                    TKE = Eᵣ_A_Z_TKE.TKE[Eᵣ_A_Z_TKE.A .<= A_H_min],
+                    Value = Eᵣ_A_Z_TKE.Value[Eᵣ_A_Z_TKE.A .<= A_H_min]
+                ), y_A_Z_TKE, ΔEᵣ
+            )
+            local probability_Eᵣ_H = Probability_of_occurrence(
+                DataFrame(
+                    A = Eᵣ_A_Z_TKE.A[Eᵣ_A_Z_TKE.A .>= A_H_min], 
+                    Z = Eᵣ_A_Z_TKE.Z[Eᵣ_A_Z_TKE.A .>= A_H_min], 
+                    TKE = Eᵣ_A_Z_TKE.TKE[Eᵣ_A_Z_TKE.A .>= A_H_min],
+                    Value = Eᵣ_A_Z_TKE.Value[Eᵣ_A_Z_TKE.A .>= A_H_min]
+                ), y_A_Z_TKE, ΔEᵣ
+            )
+            local avg_Eᵣ = Average_value(Eᵣ_A_Z_TKE, y_A_Z_TKE, A_range)
+            local avg_Eᵣ_L = Average_value(Eᵣ_A_Z_TKE, y_A_Z_TKE, A_L_range)
+            local avg_Eᵣ_H = Average_value(Eᵣ_A_Z_TKE, y_A_Z_TKE, A_H_range)
+            if !isnan(avg_Eᵣ)
+                if minimum_P_Eᵣ > minimum(probability_Eᵣ.Value[probability_Eᵣ.Value .> 0])
+                    global minimum_P_Eᵣ = minimum(probability_Eᵣ.Value[probability_Eᵣ.Value .> 0])
+                end
+                if maximum_P_Eᵣ < maximum(probability_Eᵣ.Value[probability_Eᵣ.Value .> 0])
+                    global maximum_P_Eᵣ = maximum(probability_Eᵣ.Value[probability_Eᵣ.Value .> 0])
+                end
+                if maximum_Eᵣ < maximum(probability_Eᵣ.Argument[probability_Eᵣ.Value .> 0])
+                    global maximum_Eᵣ = maximum(probability_Eᵣ.Argument[probability_Eᵣ.Value .> 0])
+                end
+                Scatter_data(plot_Eᵣ_A, Eᵣ_A.Argument, Eᵣ_A.Value, latexstring("\$\\mathrm{<E_$(k)>}\$ = $(round(avg_Eᵣ, digits = 2)) MeV"), :auto, 4, :auto)
+                Bar_data(plot_P_Eᵣ, probability_Eᵣ.Argument, probability_Eᵣ.Value, latexstring("\$\\mathrm{<E_$(k)>}\$ = $(round(avg_Eᵣ, digits = 2)) MeV"), :auto, ΔEᵣ)
+            end
+            if !isnan(avg_Eᵣ_L)
+                if minimum_P_Eᵣ_L > minimum(probability_Eᵣ_L.Value[probability_Eᵣ_L.Value .> 0])
+                    global minimum_P_Eᵣ_L = minimum(probability_Eᵣ_L.Value[probability_Eᵣ_L.Value .> 0])
+                end
+                if maximum_P_Eᵣ_L < maximum(probability_Eᵣ_L.Value[probability_Eᵣ_L.Value .> 0])
+                    global maximum_P_Eᵣ_L = maximum(probability_Eᵣ_L.Value[probability_Eᵣ_L.Value .> 0])
+                end
+                if maximum_Eᵣ_L < maximum(probability_Eᵣ_L.Argument[probability_Eᵣ_L.Value .> 0])
+                    global maximum_Eᵣ_L = maximum(probability_Eᵣ_L.Argument[probability_Eᵣ_L.Value .> 0])
+                end
+                Bar_data(plot_P_Eᵣ_L, probability_Eᵣ_L.Argument, probability_Eᵣ_L.Value, latexstring("\$\\mathrm{<E_$(k)>_L}\$ = $(round(avg_Eᵣ_L, digits = 2)) MeV"), :auto, ΔEᵣ)
+            end
+            if !isnan(avg_Eᵣ_H)
+                if minimum_P_Eᵣ_H > minimum(probability_Eᵣ_H.Value[probability_Eᵣ_H.Value .> 0])
+                    global minimum_P_Eᵣ_H = minimum(probability_Eᵣ_H.Value[probability_Eᵣ_H.Value .> 0])
+                end
+                if maximum_P_Eᵣ_H < maximum(probability_Eᵣ_H.Value[probability_Eᵣ_H.Value .> 0])
+                    global maximum_P_Eᵣ_H = maximum(probability_Eᵣ_H.Value[probability_Eᵣ_H.Value .> 0])
+                end
+                if maximum_Eᵣ_H < maximum(probability_Eᵣ_H.Argument[probability_Eᵣ_H.Value .> 0])
+                    global maximum_Eᵣ_H = maximum(probability_Eᵣ_H.Argument[probability_Eᵣ_H.Value .> 0])
+                end
+                Bar_data(plot_P_Eᵣ_H, probability_Eᵣ_H.Argument, probability_Eᵣ_H.Value, latexstring("\$\\mathrm{<E_$(k)>_H}\$ = $(round(avg_Eᵣ_H, digits = 2)) MeV"), :auto, ΔEᵣ)
+            end
+        end
+        Process_plot(plot_Eᵣ_A, "Er_A", fissionant_nucleus_identifier)
+
+        Modify_plot(plot_P_Eᵣ)
+        Modify_plot(
+            plot_P_Eᵣ, L"\mathrm{E^r\: [MeV]}", "Probability %", 
+            (0.0, maximum_Eᵣ), :identity, 
+            (minimum_P_Eᵣ*0.9, maximum_P_Eᵣ*1.1), :log10, latexstring("Probability of occurance \$\\mathrm{P(E^r_k)}\$ for all fragments")
+        )
+        xticks!(plot_P_Eᵣ, 0:5:maximum_Eᵣ)
+        Plot_log10_yticks(plot_P_Eᵣ)
+        Process_plot(plot_P_Eᵣ, "P_Er", fissionant_nucleus_identifier)
+
+        Modify_plot(plot_P_Eᵣ_L)
+        Modify_plot(
+            plot_P_Eᵣ_L, L"\mathrm{E^r\: [MeV]}", "Probability %", 
+            (0.0, maximum_Eᵣ_L), :identity, 
+            (minimum_P_Eᵣ_L*0.9, maximum_P_Eᵣ_L*1.1), :log10, latexstring("Probability of occurance \$\\mathrm{P(E^r_k)_L}\$ for light fragments")
+        )
+        xticks!(plot_P_Eᵣ_L, 0:5:maximum_Eᵣ_L)
+        Plot_log10_yticks(plot_P_Eᵣ_L)
+        Process_plot(plot_P_Eᵣ_L, "P_Er_LF", fissionant_nucleus_identifier)
+
+        Modify_plot(plot_P_Eᵣ_H)
+        Modify_plot(
+            plot_P_Eᵣ_H, L"\mathrm{E^r\: [MeV]}", "Probability %", 
+            (0.0, maximum_Eᵣ_H), :identity, 
+            (minimum_P_Eᵣ_H*0.9, maximum_P_Eᵣ_H*1.1), :log10, latexstring("Probability of occurance \$\\mathrm{P(E^r_k)_H}\$ for heavy fragments")
+        )
+        xticks!(plot_P_Eᵣ_H, 0:5:maximum_Eᵣ_H)
+        Plot_log10_yticks(plot_P_Eᵣ_H)
+        Process_plot(plot_P_Eᵣ_H, "P_Er_HF", fissionant_nucleus_identifier)
     end
 end
 if secondary_output_T == "YES"
