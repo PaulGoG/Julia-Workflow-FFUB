@@ -109,7 +109,7 @@ secondary_output_Tₖ = "YES"
 secondary_output_avg_ε = "YES"
 secondary_output_avg_εₖ = "YES"
 secondary_output_Eᵣ = "YES"
-ΔT, ΔTₖ, Δavg_ε, Δavg_εₖ, ΔEᵣ = 5e-3, 5e-3, 1e-2, 1e-2, 5e-2
+ΔT, ΔTₖ, Δavg_ε, Δavg_εₖ, ΔEᵣ = 1e-2, 2.5e-2, 1e-2, 5e-2, 1.0
 
 yield_distribution_filename = "$(fissionant_nucleus_identifier)YATKE.ANA"
 yield_distribution_header = ["A", "TKE", "Value", "σ"]
@@ -117,14 +117,15 @@ yield_distribution_delimiter = ' '
 yield_distribution_firstdataline = 2
 
 #Neutron spectrum calculation YES or NO selector   
-neutron_spectrum = "YES"
+neutron_spectrum = "NO"
 E_min = 1e-6
 E_max = 20.0
-E_step = 1e-1
+E_step = 5e-2
 Yield_cutoff_value = 5e-5
 
 #Plots YES or NO selector
 generate_plots = "YES"
+multidim_plots = "NO"
 
 resolution_scale = 250
 aspect_ratio = (3, 2)

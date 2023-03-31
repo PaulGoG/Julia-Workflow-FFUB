@@ -159,7 +159,7 @@ function Plot_legend_attributes(plt::Plots.Plot, lposition)
     plot!(plt, legend_position = lposition)
 end
 function Plot_log10_yticks(plt::Plots.Plot)
-    ticks = [10.0^i for i in -10:10]
+    ticks = [10.0^i for i in -20:20]
     yticks!(
         plt,
         ticks
@@ -266,18 +266,19 @@ if secondary_output_Yield == "YES"
     Process_plot(plot_ke_A, "ke_A", fissionant_nucleus_identifier)
 end
 if secondary_output_ν == "YES"
-    #
-    plotlyjs(size = (16, 9) .* 90, dpi=600)
-    plot_surface_ν_A_TKE = Plot_surface(
-        DataFrame(x = ν_A_TKE.A, y = ν_A_TKE.TKE, z = ν_A_TKE.Value),
-        10, 10, 20, Int(round(10/TKE_step)), (120, 0), 
-        "ν(A,TKE)", (0.0, maximum(ν_A_TKE.Value) + 0.5), :identity,
-        :turbo
-    )
-    Modify_plot(plot_surface_ν_A_TKE, "A", "TKE", "")
-    Modify_plot(plot_surface_ν_A_TKE)
-    display(plot_surface_ν_A_TKE)
-    #
+    if multidim_plots == "YES"
+        plotlyjs(size = (16, 9) .* 90, dpi=600)
+        plot_surface_ν_A_TKE = Plot_surface(
+            DataFrame(x = ν_A_TKE.A, y = ν_A_TKE.TKE, z = ν_A_TKE.Value),
+            10, 10, 20, Int(round(10/TKE_step)), (120, 0), 
+            "ν(A,TKE)", (0.0, maximum(ν_A_TKE.Value) + 0.5), :identity,
+            :turbo
+        )
+        Modify_plot(plot_surface_ν_A_TKE, "A", "TKE", "")
+        Modify_plot(plot_surface_ν_A_TKE)
+        display(plot_surface_ν_A_TKE)
+    end
+
     gr(size = plots_resolution, dpi=300)
 
     avg_ν_L = Average_value(ν_A_Z_TKE, y_A_Z_TKE, A_L_range)
@@ -334,17 +335,18 @@ if secondary_output_ν == "YES"
     Process_plot(plot_P_ν, "P_nu", fissionant_nucleus_identifier)
 
     if secondary_output_Ap == "YES"
-        #
-        plotlyjs(size = (16, 9) .* 90, dpi=300)
-        plot_heatmap_y_Ap_Z = Plot_heatmap(
-            DataFrame(x = y_Ap_Z.A, y = y_Ap_Z.Z, z = y_Ap_Z.Value),
-            10, 10, 2, 2,
-            "Y(Aₚ,Z)", :turbo
-        )
-        Modify_plot(plot_heatmap_y_Ap_Z, "Aₚ", "Z", "")
-        Modify_plot(plot_heatmap_y_Ap_Z)
-        display(plot_heatmap_y_Ap_Z)
-        #
+        if multidim_plots == "YES"
+            plotlyjs(size = (16, 9) .* 90, dpi=300)
+            plot_heatmap_y_Ap_Z = Plot_heatmap(
+                DataFrame(x = y_Ap_Z.A, y = y_Ap_Z.Z, z = y_Ap_Z.Value),
+                10, 10, 2, 2,
+                "Y(Aₚ,Z)", :turbo
+            )
+            Modify_plot(plot_heatmap_y_Ap_Z, "Aₚ", "Z", "")
+            Modify_plot(plot_heatmap_y_Ap_Z)
+            display(plot_heatmap_y_Ap_Z)
+        end
+        
         gr(size = plots_resolution, dpi=300)
 
         avg_Ap_L = Average_yield_argument(y_Ap, y_Ap.Argument[y_Ap.Argument .< Ap_H_min])
