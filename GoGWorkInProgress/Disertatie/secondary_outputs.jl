@@ -372,7 +372,7 @@ function Probability_of_occurrence(q_A_Z_TKE, y_A_Z_TKE::Distribution, Δq::Numb
     if isassigned(q_values, 1)
         lower_q = floor(minimum(q_values))
         upper_q = lower_q + Δq
-        while lower_q <= ceil(maximum(q_values))
+        while lower_q <= maximum(q_values)
             Frequency = 0.0
             for A in unique(q_A_Z_TKE.A[(q_A_Z_TKE.Value .>= lower_q) .& (q_A_Z_TKE.Value .< upper_q)])
                 for Z in unique(q_A_Z_TKE.Z[(q_A_Z_TKE.A .== A) .& (q_A_Z_TKE.Value .>= lower_q) .& (q_A_Z_TKE.Value .< upper_q)])

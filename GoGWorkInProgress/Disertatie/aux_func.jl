@@ -336,13 +336,16 @@ function SeqAvg_A_Z_TKE(output_df_A_Z_TKE_NoSequence_Value::DataFrame)
     for A in unique(output_df_A_Z_TKE_NoSequence_Value.A)
         for Z in unique(output_df_A_Z_TKE_NoSequence_Value.Z[output_df_A_Z_TKE_NoSequence_Value.A .== A])
             for TKE in unique(output_df_A_Z_TKE_NoSequence_Value.TKE[(output_df_A_Z_TKE_NoSequence_Value.A .== A) .& (output_df_A_Z_TKE_NoSequence_Value.Z .== Z)])
-                n = last(output_df_A_Z_TKE_NoSequence_Value.No_Sequence[(output_df_A_Z_TKE_NoSequence_Value.A .== A) .& (output_df_A_Z_TKE_NoSequence_Value.Z .== Z) .& (output_df_A_Z_TKE_NoSequence_Value.TKE .== TKE)])
+                #TEST!
+                if isassigned(output_df_A_Z_TKE_NoSequence_Value.No_Sequence[(output_df_A_Z_TKE_NoSequence_Value.A .== A) .& (output_df_A_Z_TKE_NoSequence_Value.Z .== Z) .& (output_df_A_Z_TKE_NoSequence_Value.TKE .== TKE) .& (output_df_A_Z_TKE_NoSequence_Value.Value .>= 0)], 1)
+                n = last(output_df_A_Z_TKE_NoSequence_Value.No_Sequence[(output_df_A_Z_TKE_NoSequence_Value.A .== A) .& (output_df_A_Z_TKE_NoSequence_Value.Z .== Z) .& (output_df_A_Z_TKE_NoSequence_Value.TKE .== TKE) .& (output_df_A_Z_TKE_NoSequence_Value.Value .>= 0)])
                 if n > 0
                     val = sum(filter(!isnan, output_df_A_Z_TKE_NoSequence_Value.Value[(output_df_A_Z_TKE_NoSequence_Value.A .== A) .& (output_df_A_Z_TKE_NoSequence_Value.Z .== Z) .& (output_df_A_Z_TKE_NoSequence_Value.TKE .== TKE)]))
                     push!(avg.A, A)
                     push!(avg.Z, Z)
                     push!(avg.TKE, TKE)
                     push!(avg.Value, val /n)
+                end
                 end
             end
         end
