@@ -84,32 +84,32 @@ Data provided in each case:
 *Extra deformation energies for MSCZ via datafile
 *Segment points in Vector of Tuples (txe_partitioning_segmentpoints) for PARAM & RT
 =#
-txe_partitioning_type = "RT"
+txe_partitioning_type = "PARAM"
 
 txe_partitioning_filename = ""
 txe_partitioning_header = ["A", "Z", "Value"]
 txe_partitioning_delimiter = ' '
 txe_partitioning_firstdataline = 2
 
-txe_partitioning_segmentpoints = [(126, 1.0), (130, 1.734), (134, 1.28), (138, 1.28), (150, 0.9), (167, 0.68), (174, 0.59)]
+txe_partitioning_segmentpoints = [(126, 0.5), (130, 0.14), (150, 0.607), (174, 0.865)]
 
 #Writing out main DSE output file containing detailed sequence data YES or NO selector
-write_primary_output = "NO"
+write_primary_output = "YES"
 
 #Yield-averaged outputs YES or NO selector
 secondary_outputs = "YES"
 
 secondary_output_Yield = "YES"
-secondary_output_TXE_Q = "YES"
+secondary_output_TXE_Q = "NO"
 secondary_output_E_excitation = "YES"
 secondary_output_ν = "YES"
-secondary_output_Ap = "YES"
+secondary_output_Ap = "NO"
 secondary_output_T = "YES"
 secondary_output_Tₖ = "YES"
 secondary_output_avg_ε = "YES"
 secondary_output_avg_εₖ = "YES"
 secondary_output_Eᵣ = "YES"
-ΔT, ΔTₖ, Δavg_ε, Δavg_εₖ, ΔEᵣ = 1e-2, 2.5e-2, 1e-2, 5e-2, 1.0
+ΔT, ΔTₖ, Δavg_ε, Δavg_εₖ, ΔEᵣ = 1e-2, 1e-2, 5e-2, 5e-2, 5e-1
 
 yield_distribution_filename = "$(fissionant_nucleus_identifier)YATKE.VES"
 yield_distribution_header = ["A", "TKE", "Value", "σ"]
@@ -117,7 +117,7 @@ yield_distribution_delimiter = ' '
 yield_distribution_firstdataline = 2
 
 #Neutron spectrum calculation YES or NO selector   
-neutron_spectrum = "YES"
+neutron_spectrum = "NO"
 E_min = 1e-6
 E_max = 20.0
 E_step = 5e-2

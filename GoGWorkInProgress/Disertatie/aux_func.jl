@@ -320,10 +320,11 @@ function Neutron_multiplicity_A_Z_TKE(output_df_A_Z_TKE_NoSequence::DataFrame)
     for A in unique(output_df_A_Z_TKE_NoSequence.A)
         for Z in unique(output_df_A_Z_TKE_NoSequence.Z[output_df_A_Z_TKE_NoSequence.A .== A])
             for TKE in unique(output_df_A_Z_TKE_NoSequence.TKE[(output_df_A_Z_TKE_NoSequence.A .== A) .& (output_df_A_Z_TKE_NoSequence.Z .== Z)])
+                val = last(output_df_A_Z_TKE_NoSequence.No_Sequence[(output_df_A_Z_TKE_NoSequence.A .== A) .& (output_df_A_Z_TKE_NoSequence.Z .== Z) .& (output_df_A_Z_TKE_NoSequence.TKE .== TKE)])
                 push!(ν.A, A)
                 push!(ν.Z, Z)
                 push!(ν.TKE, TKE)
-                push!(ν.Value, last(output_df_A_Z_TKE_NoSequence.No_Sequence[(output_df_A_Z_TKE_NoSequence.A .== A) .& (output_df_A_Z_TKE_NoSequence.Z .== Z) .& (output_df_A_Z_TKE_NoSequence.TKE .== TKE)]))
+                push!(ν.Value, val)
             end
         end
     end
@@ -337,10 +338,11 @@ function SeqAvg_A_Z_TKE(output_df_A_Z_TKE_NoSequence_Value::DataFrame)
             for TKE in unique(output_df_A_Z_TKE_NoSequence_Value.TKE[(output_df_A_Z_TKE_NoSequence_Value.A .== A) .& (output_df_A_Z_TKE_NoSequence_Value.Z .== Z)])
                 n = last(output_df_A_Z_TKE_NoSequence_Value.No_Sequence[(output_df_A_Z_TKE_NoSequence_Value.A .== A) .& (output_df_A_Z_TKE_NoSequence_Value.Z .== Z) .& (output_df_A_Z_TKE_NoSequence_Value.TKE .== TKE)])
                 if n > 0
+                    val = sum(filter(!isnan, output_df_A_Z_TKE_NoSequence_Value.Value[(output_df_A_Z_TKE_NoSequence_Value.A .== A) .& (output_df_A_Z_TKE_NoSequence_Value.Z .== Z) .& (output_df_A_Z_TKE_NoSequence_Value.TKE .== TKE)]))
                     push!(avg.A, A)
                     push!(avg.Z, Z)
                     push!(avg.TKE, TKE)
-                    push!(avg.Value, sum(output_df_A_Z_TKE_NoSequence_Value.Value[(output_df_A_Z_TKE_NoSequence_Value.A .== A) .& (output_df_A_Z_TKE_NoSequence_Value.Z .== Z) .& (output_df_A_Z_TKE_NoSequence_Value.TKE .== TKE)]) /n)
+                    push!(avg.Value, val /n)
                 end
             end
         end

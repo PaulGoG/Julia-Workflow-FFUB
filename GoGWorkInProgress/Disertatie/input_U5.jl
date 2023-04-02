@@ -84,7 +84,7 @@ Data provided in each case:
 *Extra deformation energies for MSCZ via datafile
 *Segment points in Vector of Tuples (txe_partitioning_segmentpoints) for PARAM & RT
 =#
-txe_partitioning_type = "MSCZ"
+txe_partitioning_type = "RT"
 
 txe_partitioning_filename = "EXTRADEF.$fissionant_nucleus_identifier"
 txe_partitioning_header = ["A", "Z", "Value"]
@@ -100,7 +100,7 @@ write_primary_output = "NO"
 secondary_outputs = "YES"
 
 secondary_output_Yield = "YES"
-secondary_output_TXE_Q = "YES"
+secondary_output_TXE_Q = "NO"
 secondary_output_E_excitation = "YES"
 secondary_output_ν = "YES"
 secondary_output_Ap = "YES"
@@ -109,7 +109,7 @@ secondary_output_Tₖ = "YES"
 secondary_output_avg_ε = "YES"
 secondary_output_avg_εₖ = "YES"
 secondary_output_Eᵣ = "YES"
-ΔT, ΔTₖ, Δavg_ε, Δavg_εₖ, ΔEᵣ = 1e-2, 2.5e-2, 1e-2, 5e-2, 1.0
+ΔT, ΔTₖ, Δavg_ε, Δavg_εₖ, ΔEᵣ = 1e-2, 1e-2, 5e-2, 5e-2, 5e-1
 
 yield_distribution_filename = "$(fissionant_nucleus_identifier)YATKE.ANA"
 yield_distribution_header = ["A", "TKE", "Value", "σ"]

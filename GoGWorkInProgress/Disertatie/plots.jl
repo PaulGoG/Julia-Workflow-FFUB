@@ -281,8 +281,8 @@ if secondary_output_ν == "YES"
 
     gr(size = plots_resolution, dpi=300)
 
-    avg_ν_L = Average_value(ν_A_Z_TKE, y_A_Z_TKE, A_L_range)
-    avg_ν_H = Average_value(ν_A_Z_TKE, y_A_Z_TKE, A_H_range)
+    avg_ν_L = Average_value(ν_A_Z_TKE_normalised, y_A_Z_TKE, A_L_range)
+    avg_ν_H = Average_value(ν_A_Z_TKE_normalised, y_A_Z_TKE, A_H_range)
     plot_ν_A = Scatter_data(ν_A.Argument, ν_A.Value, "", :red, 5, :circle)
     Plot_data(plot_ν_A, ν_A.Argument, ν_A.Value, "", :red)
     Modify_plot(plot_ν_A)
@@ -322,7 +322,7 @@ if secondary_output_ν == "YES"
     xticks!(plot_Ratio_ν_AH, 10 *div(minimum(ν_AH_Pair.Argument), 10):5:maximum(ν_AH_Pair.Argument))
     Process_plot(plot_Ratio_ν_AH, "Ratio_nuH_nuPair", fissionant_nucleus_identifier)
 
-    avg_ν = Average_value(ν_A_Z_TKE, y_A_Z_TKE, A_range)
+    avg_ν = Average_value(ν_A_Z_TKE_normalised, y_A_Z_TKE, A_range)
     plot_P_ν = Scatter_data(probability_ν.Argument, probability_ν.Value, "", :red, 5, :circle)
     Plot_data(plot_P_ν, probability_ν.Argument, probability_ν.Value, latexstring("\$<\\nu>\$ = $(round(avg_ν, digits=2))"), :red)
     Modify_plot(plot_P_ν)
@@ -498,7 +498,7 @@ if secondary_output_ν == "YES"
         maximum_P_Tₖ_H = maximum(probability_Tₖ_H.Value[probability_Tₖ_H.Value .> 0])
         maximum_Tₖ_H = maximum(probability_Tₖ_H.Argument[probability_Tₖ_H.Value .> 0])
 
-        for k in 2:maximum(ν_A_Z_TKE.Value)
+        for k in 2:maximum(ν_A_Z_TKE_rounded.Value)
             local Tₖ_A_Z_TKE = DataFrame(
                 A = Raw_output_datafile.A[Raw_output_datafile.No_Sequence .== k],
                 Z = Raw_output_datafile.Z[Raw_output_datafile.No_Sequence .== k],
@@ -651,7 +651,7 @@ if secondary_output_ν == "YES"
         maximum_P_avg_εₖ_H = maximum(probability_avg_εₖ_H.Value[probability_avg_εₖ_H.Value .> 0])
         maximum_avg_εₖ_H = maximum(probability_avg_εₖ_H.Argument[probability_avg_εₖ_H.Value .> 0])
 
-        for k in 2:maximum(ν_A_Z_TKE.Value)
+        for k in 2:maximum(ν_A_Z_TKE_rounded.Value)
             local avg_εₖ_A_Z_TKE = DataFrame(
                 A = Raw_output_datafile.A[Raw_output_datafile.No_Sequence .== k],
                 Z = Raw_output_datafile.Z[Raw_output_datafile.No_Sequence .== k],
@@ -807,7 +807,7 @@ if secondary_output_ν == "YES"
         maximum_P_Eᵣ_H = maximum(probability_Eᵣ_H.Value[probability_Eᵣ_H.Value .> 0])
         maximum_Eᵣ_H = maximum(probability_Eᵣ_H.Argument[probability_Eᵣ_H.Value .> 0])
 
-        for k in 2:maximum(ν_A_Z_TKE.Value)
+        for k in 2:maximum(ν_A_Z_TKE_rounded.Value)
             local Tₖ_A_Z_TKE = DataFrame(
                 A = Raw_output_datafile.A[Raw_output_datafile.No_Sequence .== k],
                 Z = Raw_output_datafile.Z[Raw_output_datafile.No_Sequence .== k],

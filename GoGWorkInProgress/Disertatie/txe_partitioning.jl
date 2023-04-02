@@ -211,8 +211,8 @@ function Sort_TXE_partitioning(E_excit, fragmdomain)
         for TKE in unique(E_excit.TKE[(E_excit.A .== fragmdomain.A[index_fragmdomain]) .& (E_excit.Z .== fragmdomain.Z[index_fragmdomain])])
             aux_A[aux_index] = fragmdomain.A[index_fragmdomain]
             aux_Z[aux_index] = fragmdomain.Z[index_fragmdomain]
+            aux_TKE[aux_index] = TKE
             aux_Value[aux_index] = E_excit.Value[(E_excit.A .== fragmdomain.A[index_fragmdomain]) .& (E_excit.Z .== fragmdomain.Z[index_fragmdomain]) .& (E_excit.TKE .== TKE)][1]
-            aux_TKE[aux_index] = E_excit.TKE[(E_excit.A .== fragmdomain.A[index_fragmdomain]) .& (E_excit.Z .== fragmdomain.Z[index_fragmdomain]) .& (E_excit.TKE .== TKE)][1]
             aux_index += 1
         end
     end
