@@ -28,7 +28,7 @@ A_H_max = 174
 #Total Kinetic Energy range and step in MeV
 TKE_min = 130.0
 TKE_max = 230.0
-TKE_step = 1.0
+TKE_step = 2.0
 
 #=
 Fission type: 
