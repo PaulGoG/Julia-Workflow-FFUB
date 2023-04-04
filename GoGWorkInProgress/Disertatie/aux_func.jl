@@ -316,36 +316,53 @@ function Write_seq_output(A_0, Z_0, A_H_min, A_H_max, No_ZperA, E_incident, tker
 end
 #Neutron multiplicity from raw output data
 function Neutron_multiplicity_A_Z_TKE(output_df_A_Z_TKE_NoSequence::DataFrame)
-    ν = Distribution(Int[], Int[], Float64[], Int[], Int[], Float64[])
+    ν = Distribution(Int[], Int[], Float64[], Int[], Float64[], Float64[])
     for A in unique(output_df_A_Z_TKE_NoSequence.A)
         for Z in unique(output_df_A_Z_TKE_NoSequence.Z[output_df_A_Z_TKE_NoSequence.A .== A])
             for TKE in unique(output_df_A_Z_TKE_NoSequence.TKE[(output_df_A_Z_TKE_NoSequence.A .== A) .& (output_df_A_Z_TKE_NoSequence.Z .== Z)])
-                val = last(output_df_A_Z_TKE_NoSequence.No_Sequence[(output_df_A_Z_TKE_NoSequence.A .== A) .& (output_df_A_Z_TKE_NoSequence.Z .== Z) .& (output_df_A_Z_TKE_NoSequence.TKE .== TKE)])
                 push!(ν.A, A)
                 push!(ν.Z, Z)
                 push!(ν.TKE, TKE)
-                push!(ν.Value, val)
+                val = last(output_df_A_Z_TKE_NoSequence.No_Sequence[(output_df_A_Z_TKE_NoSequence.A .== A) .& (output_df_A_Z_TKE_NoSequence.Z .== Z) .& (output_df_A_Z_TKE_NoSequence.TKE .== TKE)])
+                if val == 0 || val == 1
+                    push!(ν.Value, val)
+                else
+                    push!(ν.Value, (val + 1) /2)
+                end
             end
         end
     end
     return ν
 end
-#Average raw output data over emission sequences
+#Maximum number of sequences from raw output data
+function Maximum_sequences_A_Z_TKE(output_df_A_Z_TKE_NoSequence::DataFrame)
+    sequences = Distribution(Int[], Int[], Float64[], Int[], Int[], Float64[])
+    for A in unique(output_df_A_Z_TKE_NoSequence.A)
+        for Z in unique(output_df_A_Z_TKE_NoSequence.Z[output_df_A_Z_TKE_NoSequence.A .== A])
+            for TKE in unique(output_df_A_Z_TKE_NoSequence.TKE[(output_df_A_Z_TKE_NoSequence.A .== A) .& (output_df_A_Z_TKE_NoSequence.Z .== Z)])
+                val = last(output_df_A_Z_TKE_NoSequence.No_Sequence[(output_df_A_Z_TKE_NoSequence.A .== A) .& (output_df_A_Z_TKE_NoSequence.Z .== Z) .& (output_df_A_Z_TKE_NoSequence.TKE .== TKE)])
+                push!(sequences.A, A)
+                push!(sequences.Z, Z)
+                push!(sequences.TKE, TKE)
+                push!(sequences.Value, val)
+            end
+        end
+    end
+    return sequences
+end
+#Average raw output data over valid emission sequences
 function SeqAvg_A_Z_TKE(output_df_A_Z_TKE_NoSequence_Value::DataFrame)
     avg = Distribution(Int[], Int[], Float64[], Int[], Float64[], Float64[])
     for A in unique(output_df_A_Z_TKE_NoSequence_Value.A)
         for Z in unique(output_df_A_Z_TKE_NoSequence_Value.Z[output_df_A_Z_TKE_NoSequence_Value.A .== A])
             for TKE in unique(output_df_A_Z_TKE_NoSequence_Value.TKE[(output_df_A_Z_TKE_NoSequence_Value.A .== A) .& (output_df_A_Z_TKE_NoSequence_Value.Z .== Z)])
-                #TEST!
                 if isassigned(output_df_A_Z_TKE_NoSequence_Value.No_Sequence[(output_df_A_Z_TKE_NoSequence_Value.A .== A) .& (output_df_A_Z_TKE_NoSequence_Value.Z .== Z) .& (output_df_A_Z_TKE_NoSequence_Value.TKE .== TKE) .& (output_df_A_Z_TKE_NoSequence_Value.Value .>= 0)], 1)
-                n = last(output_df_A_Z_TKE_NoSequence_Value.No_Sequence[(output_df_A_Z_TKE_NoSequence_Value.A .== A) .& (output_df_A_Z_TKE_NoSequence_Value.Z .== Z) .& (output_df_A_Z_TKE_NoSequence_Value.TKE .== TKE) .& (output_df_A_Z_TKE_NoSequence_Value.Value .>= 0)])
-                if n > 0
+                    n = last(output_df_A_Z_TKE_NoSequence_Value.No_Sequence[(output_df_A_Z_TKE_NoSequence_Value.A .== A) .& (output_df_A_Z_TKE_NoSequence_Value.Z .== Z) .& (output_df_A_Z_TKE_NoSequence_Value.TKE .== TKE) .& (output_df_A_Z_TKE_NoSequence_Value.Value .>= 0)])
                     val = sum(filter(!isnan, output_df_A_Z_TKE_NoSequence_Value.Value[(output_df_A_Z_TKE_NoSequence_Value.A .== A) .& (output_df_A_Z_TKE_NoSequence_Value.Z .== Z) .& (output_df_A_Z_TKE_NoSequence_Value.TKE .== TKE)]))
                     push!(avg.A, A)
                     push!(avg.Z, Z)
                     push!(avg.TKE, TKE)
                     push!(avg.Value, val /n)
-                end
                 end
             end
         end

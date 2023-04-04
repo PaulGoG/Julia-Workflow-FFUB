@@ -18,22 +18,26 @@ function DSE_equation_solver_CONSTANT_cs(E_excitation::Distribution, density_par
                     a_k = a_1
                     k = 1
                     Sum_avg_ε = 0.0
+
                     while Eᵣ_k_last - Sₙ_k_last >= 0
                         T_k = (sqrt(1 + a_k *(Eᵣ_k_last - Sₙ_k_last)) - 1) /a_k
-                        Sum_avg_ε += Average_neutron_energy(T_k)
+                        
                         push!(Tₖ.A, A)
                         push!(Tₖ.Z, Z)
                         push!(Tₖ.TKE, TKE)
                         push!(Tₖ.Value, T_k)
                         push!(aₖ, a_k)
                         push!(Tₖ.No_Sequence, k)
-                        #Advance the sequence one step forward to be verified by the while loop
+
+                        Sum_avg_ε += Average_neutron_energy(T_k)
                         Eᵣ_k_last = Energy_FermiGas(a_k, T_k)
                         Sₙ_k_last = Separation_energy(1, 0, A - k, Z, dm)[1]
                         k += 1
                         a_k = density_parameter(density_parameter_type, A - k, Z, density_parameter_data)
                     end
+
                     Eᵣ_k_last += Sum_avg_ε
+
                     while Eᵣ_k_last - Sₙ_k_last >= 0
                         push!(Tₖ.A, A)
                         push!(Tₖ.Z, Z)
@@ -41,6 +45,7 @@ function DSE_equation_solver_CONSTANT_cs(E_excitation::Distribution, density_par
                         push!(Tₖ.Value, NaN)
                         push!(aₖ, a_k)
                         push!(Tₖ.No_Sequence, k)
+                        
                         Eᵣ_k_last -= Sₙ_k_last
                         Sₙ_k_last = Separation_energy(1, 0, A - k, Z, dm)[1]
                         k += 1
