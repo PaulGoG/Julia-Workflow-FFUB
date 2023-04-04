@@ -15,11 +15,11 @@ function DSE_equation_solver_CONSTANT_cs(E_excitation::Distribution, density_par
                 for TKE in E_excitation.TKE[(E_excitation.A .== A) .& (E_excitation.Z .== Z)]
                     Eᵣ_k_last = E_excitation.Value[(E_excitation.A .== A) .& (E_excitation.Z .== Z) .& (E_excitation.TKE .== TKE)][1]
                     Sₙ_k_last = Sₙ
+                    Sum_avg_ε = 0.0
                     a_k = a_1
                     k = 1
-                    Sum_avg_ε = 0.0
 
-                    while Eᵣ_k_last - Sₙ_k_last >= 0
+                    while Eᵣ_k_last >= Sₙ_k_last
                         T_k = (sqrt(1 + a_k *(Eᵣ_k_last - Sₙ_k_last)) - 1) /a_k
                         
                         push!(Tₖ.A, A)
@@ -38,7 +38,7 @@ function DSE_equation_solver_CONSTANT_cs(E_excitation::Distribution, density_par
 
                     Eᵣ_k_last += Sum_avg_ε
 
-                    while Eᵣ_k_last - Sₙ_k_last >= 0
+                    while Eᵣ_k_last >= Sₙ_k_last
                         push!(Tₖ.A, A)
                         push!(Tₖ.Z, Z)
                         push!(Tₖ.TKE, TKE)
@@ -51,6 +51,7 @@ function DSE_equation_solver_CONSTANT_cs(E_excitation::Distribution, density_par
                         k += 1
                         a_k = density_parameter(density_parameter_type, A - k, Z, density_parameter_data)
                     end
+
                     if k == 1
                         push!(Tₖ.A, A)
                         push!(Tₖ.Z, Z)
@@ -108,6 +109,12 @@ function Solve_transcendental_eq(Eᵣ_k_last, Sₙ_k_last, a_k, A, k)
     epsilon_SCM(Tₖ) = Tₖ*(2*sqrt(Tₖ) + αₖ*3*sqrt(π)/4)/(sqrt(Tₖ) + αₖ*sqrt(π)/2)
     trans_eq(Tₖ) = a_k *Tₖ^2 + epsilon_SCM(Tₖ) + (Sₙ_k_last - Eᵣ_k_last)
     T_k = find_zero(trans_eq, (0.0, Inf))
+    
+    #Intentional cutoff values to match old Fortran code
+    if T_k > 2 || T_k < 0.01
+        T_k = NaN
+    end
+
     return T_k, αₖ
 end
 function DSE_equation_solver_VARIABLE_cs(E_excitation::Distribution, density_parameter_type, density_parameter_data, dm::DataFrame)
@@ -122,12 +129,15 @@ function DSE_equation_solver_VARIABLE_cs(E_excitation::Distribution, density_par
                 for TKE in E_excitation.TKE[(E_excitation.A .== A) .& (E_excitation.Z .== Z)]
                     Eᵣ_k_last = E_excitation.Value[(E_excitation.A .== A) .& (E_excitation.Z .== Z) .& (E_excitation.TKE .== TKE)][1]
                     Sₙ_k_last = Sₙ
+                    Sum_avg_ε = 0.0
                     a_k = a_1
                     k = 1
-                    Sum_avg_ε = 0.0
-                    while Eᵣ_k_last - Sₙ_k_last >= 0
+                    
+                    while Eᵣ_k_last >= Sₙ_k_last
                         T_k, α_k = Solve_transcendental_eq(Eᵣ_k_last, Sₙ_k_last, a_k, A, k)
-                        Sum_avg_ε += Average_neutron_energy(α_k, T_k)
+
+                        #####
+                        if !isnan(T_k)
                         push!(Tₖ.A, A)
                         push!(Tₖ.Z, Z)
                         push!(Tₖ.TKE, TKE)
@@ -135,14 +145,20 @@ function DSE_equation_solver_VARIABLE_cs(E_excitation::Distribution, density_par
                         push!(aₖ, a_k)
                         push!(αₖ, α_k)
                         push!(Tₖ.No_Sequence, k)
-                        #Advance the sequence one step forward to be verified by the while loop
+
+                        Sum_avg_ε += Average_neutron_energy(α_k, T_k)
                         Eᵣ_k_last = Energy_FermiGas(a_k, T_k)
                         Sₙ_k_last = Separation_energy(1, 0, A - k, Z, dm)[1]
                         k += 1
                         a_k = density_parameter(density_parameter_type, A - k, Z, density_parameter_data)
+                        else
+                            break
+                        end
                     end
+
                     Eᵣ_k_last += Sum_avg_ε
-                    while Eᵣ_k_last - Sₙ_k_last >= 0
+
+                    while Eᵣ_k_last >= Sₙ_k_last
                         push!(Tₖ.A, A)
                         push!(Tₖ.Z, Z)
                         push!(Tₖ.TKE, TKE)
@@ -150,11 +166,13 @@ function DSE_equation_solver_VARIABLE_cs(E_excitation::Distribution, density_par
                         push!(aₖ, a_k)
                         push!(αₖ, NaN)
                         push!(Tₖ.No_Sequence, k)
+
                         Eᵣ_k_last -= Sₙ_k_last
                         Sₙ_k_last = Separation_energy(1, 0, A - k, Z, dm)[1]
                         k += 1
                         a_k = density_parameter(density_parameter_type, A - k, Z, density_parameter_data)
                     end
+
                     if k == 1
                         push!(Tₖ.A, A)
                         push!(Tₖ.Z, Z)

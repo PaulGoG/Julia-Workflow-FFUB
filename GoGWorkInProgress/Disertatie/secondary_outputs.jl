@@ -496,26 +496,20 @@ if secondary_output_ν == "YES"
     if !isdir("output_data/nu/")
         mkdir("output_data/nu/")
     end
-    ν_A_Z_TKE_normalised = DataFrame(
-        A = ν_A_Z_TKE.A,
-        Z = ν_A_Z_TKE.Z,
-        TKE = ν_A_Z_TKE.TKE,
-        Value = (ν_A_Z_TKE.Value .+ 1) ./2
+    max_seq_A_Z_TKE = Maximum_sequences_A_Z_TKE(DataFrame(
+        A = Raw_output_datafile.A,
+        Z = Raw_output_datafile.Z,
+        TKE = Raw_output_datafile.TKE,
+        No_Sequence = Raw_output_datafile.No_Sequence
+        )
     )
-    ν_A_Z_TKE_normalised.Value[ν_A_Z_TKE_normalised.Value .< 1] .= 0.0
-    ν_A_Z_TKE_rounded = DataFrame(
-        A = ν_A_Z_TKE.A,
-        Z = ν_A_Z_TKE.Z,
-        TKE = ν_A_Z_TKE.TKE,
-        Value = Int.(round.(((ν_A_Z_TKE.Value .+ 1) ./2)))
-    )
-    ν_A_TKE = Average_over_Z(ν_A_Z_TKE_normalised, fragmdomain)
+    ν_A_TKE = Average_over_Z(ν_A_Z_TKE, fragmdomain)
     CSV.write(
         "output_data/nu/$(fissionant_nucleus_identifier)_nu_A_TKE.OUT", 
         DataFrame(A = ν_A_TKE.A, TKE = ν_A_TKE.TKE, ν = ν_A_TKE.Value), 
         writeheader=true, newline="\r\n", delim=' '
     )
-    ν_A = Average_over_TKE_Z(ν_A_Z_TKE_normalised, y_A_Z_TKE)
+    ν_A = Average_over_TKE_Z(ν_A_Z_TKE, y_A_Z_TKE)
     CSV.write(
         "output_data/nu/$(fissionant_nucleus_identifier)_nu_A.OUT", 
         DataFrame(A = ν_A.Argument, ν = ν_A.Value), 
@@ -530,13 +524,13 @@ if secondary_output_ν == "YES"
         DataFrame(A = ν_AH_Pair.Argument, ν_Pair = ν_AH_Pair.Value), 
         writeheader=true, newline="\r\n", delim=' '
     )
-    ν_TKE = Average_over_A_Z(ν_A_Z_TKE_normalised, y_A_Z_TKE)
+    ν_TKE = Average_over_A_Z(ν_A_Z_TKE, y_A_Z_TKE)
     CSV.write(
         "output_data/nu/$(fissionant_nucleus_identifier)_nu_TKE.OUT", 
         DataFrame(TKE = ν_TKE.Argument, ν = ν_TKE.Value), 
         writeheader=true, newline="\r\n", delim=' '
     )
-    probability_ν = Probability_of_occurrence(ν_A_Z_TKE_normalised, y_A_Z_TKE, 1)
+    probability_ν = Probability_of_occurrence(ν_A_Z_TKE, y_A_Z_TKE, 1)
     CSV.write(
         "output_data/nu/$(fissionant_nucleus_identifier)_P_nu.OUT", 
         DataFrame(ν = probability_ν.Argument, P = probability_ν.Value), 
@@ -544,10 +538,10 @@ if secondary_output_ν == "YES"
     )
     probability_ν_L = Probability_of_occurrence(
         DataFrame(
-            A = ν_A_Z_TKE_normalised.A[ν_A_Z_TKE_normalised.A .<= A_H_min], 
-            Z = ν_A_Z_TKE_normalised.Z[ν_A_Z_TKE_normalised.A .<= A_H_min], 
-            TKE = ν_A_Z_TKE_normalised.TKE[ν_A_Z_TKE_normalised.A .<= A_H_min],
-            Value = ν_A_Z_TKE_normalised.Value[ν_A_Z_TKE_normalised.A .<= A_H_min]
+            A = ν_A_Z_TKE.A[ν_A_Z_TKE.A .<= A_H_min], 
+            Z = ν_A_Z_TKE.Z[ν_A_Z_TKE.A .<= A_H_min], 
+            TKE = ν_A_Z_TKE.TKE[ν_A_Z_TKE.A .<= A_H_min],
+            Value = ν_A_Z_TKE.Value[ν_A_Z_TKE.A .<= A_H_min]
         ), y_A_Z_TKE, 1
     )
     CSV.write(
@@ -557,10 +551,10 @@ if secondary_output_ν == "YES"
     )
     probability_ν_H = Probability_of_occurrence(
         DataFrame(
-            A = ν_A_Z_TKE_normalised.A[ν_A_Z_TKE_normalised.A .>= A_H_min], 
-            Z = ν_A_Z_TKE_normalised.Z[ν_A_Z_TKE_normalised.A .>= A_H_min], 
-            TKE = ν_A_Z_TKE_normalised.TKE[ν_A_Z_TKE_normalised.A .>= A_H_min],
-            Value = ν_A_Z_TKE_normalised.Value[ν_A_Z_TKE_normalised.A .>= A_H_min]
+            A = ν_A_Z_TKE.A[ν_A_Z_TKE.A .>= A_H_min], 
+            Z = ν_A_Z_TKE.Z[ν_A_Z_TKE.A .>= A_H_min], 
+            TKE = ν_A_Z_TKE.TKE[ν_A_Z_TKE.A .>= A_H_min],
+            Value = ν_A_Z_TKE.Value[ν_A_Z_TKE.A .>= A_H_min]
         ), y_A_Z_TKE, 1
     )
     CSV.write(
@@ -569,7 +563,7 @@ if secondary_output_ν == "YES"
         writeheader=true, newline="\r\n", delim=' '
     )
     if secondary_output_Ap == "YES"
-        y_Ap_Z_TKE, y_Ap_Z = Yield_post_neutron(y_A_Z_TKE, ν_A_Z_TKE_rounded)
+        y_Ap_Z_TKE, y_Ap_Z = Yield_post_neutron(y_A_Z_TKE, max_seq_A_Z_TKE)
         Ap_H_min = A_H_min - ceil(ν_A.Value[ν_A.Argument .== A_H_min][1])
         y_Ap, y_Zp, y_Np, y_TKEp, tke_AHp, ke_Ap = Singular_yield_distributions(y_Ap_Z_TKE, A₀, Ap_H_min)
         if !isdir("output_data/Yield_Ap/")
@@ -920,9 +914,9 @@ open("output_data/$(fissionant_nucleus_identifier)_Average_quantities.OUT", "w")
         end
     end
     if secondary_output_ν == "YES"
-        avg_ν_L = Average_value(ν_A_Z_TKE_normalised, y_A_Z_TKE, A_L_range)
-        avg_ν_H = Average_value(ν_A_Z_TKE_normalised, y_A_Z_TKE, A_H_range)
-        avg_ν = Average_value(ν_A_Z_TKE_normalised, y_A_Z_TKE, A_range)
+        avg_ν_L = Average_value(ν_A_Z_TKE, y_A_Z_TKE, A_L_range)
+        avg_ν_H = Average_value(ν_A_Z_TKE, y_A_Z_TKE, A_H_range)
+        avg_ν = Average_value(ν_A_Z_TKE, y_A_Z_TKE, A_range)
         avg_ν_Pair = Average_value(ν_AH_Pair, y_A, A_H_range)
         write(file, "<ν>_L = $avg_ν_L\n<ν>_H = $avg_ν_H\n<ν> = $avg_ν\n<ν>_pair = $avg_ν_Pair\n\n")
         if secondary_output_Ap == "YES"
