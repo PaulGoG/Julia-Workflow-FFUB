@@ -111,7 +111,7 @@ function Solve_transcendental_eq(Eᵣ_k_last, Sₙ_k_last, a_k, A, k)
     T_k = find_zero(trans_eq, (0.0, Inf))
     
     #Intentional cutoff values to match old Fortran code
-    if T_k > 2 || T_k < 0.01
+    if T_k > 2 || T_k < 1e-2
         T_k = NaN
     end
 
@@ -188,6 +188,7 @@ function DSE_equation_solver_VARIABLE_cs(E_excitation::Distribution, density_par
     end
     return Tₖ, aₖ, αₖ
 end
+#Function selector
 function DSE_equation_solver(evaporation_cs_type, E_excitation, density_parameter_type, density_parameter_data, dm)
     println("*solving DSE energy conservation equations")
     if evaporation_cs_type == "CONSTANT"

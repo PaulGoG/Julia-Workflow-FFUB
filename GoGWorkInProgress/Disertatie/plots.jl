@@ -281,8 +281,8 @@ if secondary_output_ν == "YES"
 
     gr(size = plots_resolution, dpi=300)
 
-    avg_ν_L = Average_value(ν_A_Z_TKE_normalised, y_A_Z_TKE, A_L_range)
-    avg_ν_H = Average_value(ν_A_Z_TKE_normalised, y_A_Z_TKE, A_H_range)
+    avg_ν_L = Average_value(ν_A_Z_TKE, y_A_Z_TKE, A_L_range)
+    avg_ν_H = Average_value(ν_A_Z_TKE, y_A_Z_TKE, A_H_range)
     plot_ν_A = Scatter_data(ν_A.Argument, ν_A.Value, "", :red, 5, :circle)
     Plot_data(plot_ν_A, ν_A.Argument, ν_A.Value, "", :red)
     Modify_plot(plot_ν_A)
@@ -322,7 +322,7 @@ if secondary_output_ν == "YES"
     xticks!(plot_Ratio_ν_AH, 10 *div(minimum(ν_AH_Pair.Argument), 10):5:maximum(ν_AH_Pair.Argument))
     Process_plot(plot_Ratio_ν_AH, "Ratio_nuH_nuPair", fissionant_nucleus_identifier)
 
-    avg_ν = Average_value(ν_A_Z_TKE_normalised, y_A_Z_TKE, A_range)
+    avg_ν = Average_value(ν_A_Z_TKE, y_A_Z_TKE, A_range)
     plot_P_ν = Scatter_data(probability_ν.Argument, probability_ν.Value, "", :red, 5, :circle)
     Plot_data(plot_P_ν, probability_ν.Argument, probability_ν.Value, latexstring("\$<\\nu>\$ = $(round(avg_ν, digits=2))"), :red)
     Modify_plot(plot_P_ν)
@@ -349,7 +349,7 @@ if secondary_output_ν == "YES"
         
         gr(size = plots_resolution, dpi=300)
 
-        avg_Ap_L = Average_yield_argument(y_Ap, y_Ap.Argument[y_Ap.Argument .< Ap_H_min])
+        avg_Ap_L = Average_yield_argument(y_Ap, y_Ap.Argument[y_Ap.Argument .<= Ap_H_min])
         avg_Ap_H = Average_yield_argument(y_Ap, y_Ap.Argument[y_Ap.Argument .>= Ap_H_min])
         plot_y_Ap_lin = Scatter_data(y_Ap.Argument, y_Ap.Value, "", :red, 4, :circle)
         Plot_data(plot_y_Ap_lin, y_Ap.Argument, y_Ap.Value, "", :red)
@@ -445,10 +445,10 @@ if secondary_output_ν == "YES"
     end
     if secondary_output_Tₖ == "YES"
         Tₖ_A_Z_TKE = DataFrame(
-            A = Raw_output_datafile.A[Raw_output_datafile.No_Sequence .== 1],
-            Z = Raw_output_datafile.Z[Raw_output_datafile.No_Sequence .== 1],
-            TKE = Raw_output_datafile.TKE[Raw_output_datafile.No_Sequence .== 1],
-            Value = Raw_output_datafile.Tₖ[Raw_output_datafile.No_Sequence .== 1]
+            A = Raw_output_datafile.A[(Raw_output_datafile.No_Sequence .== 1) .& (Raw_output_datafile.Tₖ .>= 0)],
+            Z = Raw_output_datafile.Z[(Raw_output_datafile.No_Sequence .== 1) .& (Raw_output_datafile.Tₖ .>= 0)],
+            TKE = Raw_output_datafile.TKE[(Raw_output_datafile.No_Sequence .== 1) .& (Raw_output_datafile.Tₖ .>= 0)],
+            Value = Raw_output_datafile.Tₖ[(Raw_output_datafile.No_Sequence .== 1) .& (Raw_output_datafile.Tₖ .>= 0)]
         )
         Tₖ_A = Average_over_TKE_Z(Tₖ_A_Z_TKE, y_A_Z_TKE)
         probability_Tₖ = Probability_of_occurrence(Tₖ_A_Z_TKE, y_A_Z_TKE, ΔTₖ)
@@ -482,28 +482,28 @@ if secondary_output_ν == "YES"
         xticks!(plot_Tₖ_A, 10 *div(first(A_range), 10):5:last(A_range))
 
         plot_P_Tₖ = Bar_data(probability_Tₖ.Argument, probability_Tₖ.Value, latexstring("\$\\mathrm{<T_1>}\$ = $(round(avg_Tₖ, digits = 2)) MeV"), :auto, ΔTₖ)
-        minimum_P_Tₖ = minimum(probability_Tₖ.Value[probability_Tₖ.Value .> 0])
-        maximum_P_Tₖ = maximum(probability_Tₖ.Value[probability_Tₖ.Value .> 0])
-        maximum_Tₖ = maximum(probability_Tₖ.Argument[probability_Tₖ.Value .> 0])
+        minimum_P_Tₖ = minimum(probability_Tₖ.Value[probability_Tₖ.Value .>= 0])
+        maximum_P_Tₖ = maximum(probability_Tₖ.Value[probability_Tₖ.Value .>= 0])
+        maximum_Tₖ = maximum(probability_Tₖ.Argument[probability_Tₖ.Value .>= 0])
     
         avg_Tₖ_L = Average_value(Tₖ_A_Z_TKE, y_A_Z_TKE, A_L_range)
         plot_P_Tₖ_L = Bar_data(probability_Tₖ_L.Argument, probability_Tₖ_L.Value, latexstring("\$\\mathrm{<T_1>_L}\$ = $(round(avg_Tₖ_L, digits = 2)) MeV"), :auto, ΔTₖ)
-        minimum_P_Tₖ_L = minimum(probability_Tₖ_L.Value[probability_Tₖ_L.Value .> 0])
-        maximum_P_Tₖ_L = maximum(probability_Tₖ_L.Value[probability_Tₖ_L.Value .> 0])
-        maximum_Tₖ_L = maximum(probability_Tₖ_L.Argument[probability_Tₖ_L.Value .> 0])
+        minimum_P_Tₖ_L = minimum(probability_Tₖ_L.Value[probability_Tₖ_L.Value .>= 0])
+        maximum_P_Tₖ_L = maximum(probability_Tₖ_L.Value[probability_Tₖ_L.Value .>= 0])
+        maximum_Tₖ_L = maximum(probability_Tₖ_L.Argument[probability_Tₖ_L.Value .>= 0])
     
         avg_Tₖ_H = Average_value(Tₖ_A_Z_TKE, y_A_Z_TKE, A_H_range)
-        plot_P_Tₖ_H = Bar_data(probability_Tₖ_H.Argument, probability_Tₖ_H.Value, latexstring("\$\\mathrm{<T_1>_H}\$ = $(round(avg_Tₖ_H, digits = 2)) MeV"), :auto, ΔTₖ)
-        minimum_P_Tₖ_H = minimum(probability_Tₖ_H.Value[probability_Tₖ_H.Value .> 0])
-        maximum_P_Tₖ_H = maximum(probability_Tₖ_H.Value[probability_Tₖ_H.Value .> 0])
-        maximum_Tₖ_H = maximum(probability_Tₖ_H.Argument[probability_Tₖ_H.Value .> 0])
+        plot_P_Tₖ_H = Bar_data(probability_Tₖ_H.Argument, probability_Tₖ_H.Value, latexstring("\$\\mathrm{<T_1>_H}\$ = $(round(avg_Tₖ_H, digits = 2)) MeV"), :auto, ΔTₖ) 
+        minimum_P_Tₖ_H = minimum(probability_Tₖ_H.Value[probability_Tₖ_H.Value .>= 0])
+        maximum_P_Tₖ_H = maximum(probability_Tₖ_H.Value[probability_Tₖ_H.Value .>= 0])
+        maximum_Tₖ_H = maximum(probability_Tₖ_H.Argument[probability_Tₖ_H.Value .>= 0])
 
-        for k in 2:maximum(ν_A_Z_TKE_rounded.Value)
+        for k in 2:maximum(Raw_output_datafile.No_Sequence[Raw_output_datafile.Tₖ .>= 0])
             local Tₖ_A_Z_TKE = DataFrame(
-                A = Raw_output_datafile.A[Raw_output_datafile.No_Sequence .== k],
-                Z = Raw_output_datafile.Z[Raw_output_datafile.No_Sequence .== k],
-                TKE = Raw_output_datafile.TKE[Raw_output_datafile.No_Sequence .== k],
-                Value = Raw_output_datafile.Tₖ[Raw_output_datafile.No_Sequence .== k]
+                A = Raw_output_datafile.A[(Raw_output_datafile.No_Sequence .== k) .& (Raw_output_datafile.Tₖ .>= 0)],
+                Z = Raw_output_datafile.Z[(Raw_output_datafile.No_Sequence .== k) .& (Raw_output_datafile.Tₖ .>= 0)],
+                TKE = Raw_output_datafile.TKE[(Raw_output_datafile.No_Sequence .== k) .& (Raw_output_datafile.Tₖ .>= 0)],
+                Value = Raw_output_datafile.Tₖ[(Raw_output_datafile.No_Sequence .== k) .& (Raw_output_datafile.Tₖ .>= 0)]
             )
             local Tₖ_A = Average_over_TKE_Z(Tₖ_A_Z_TKE, y_A_Z_TKE)
             local probability_Tₖ = Probability_of_occurrence(Tₖ_A_Z_TKE, y_A_Z_TKE, ΔTₖ)
@@ -527,39 +527,39 @@ if secondary_output_ν == "YES"
             local avg_Tₖ_L = Average_value(Tₖ_A_Z_TKE, y_A_Z_TKE, A_L_range)
             local avg_Tₖ_H = Average_value(Tₖ_A_Z_TKE, y_A_Z_TKE, A_H_range)
             if !isnan(avg_Tₖ)
-                if minimum_P_Tₖ > minimum(probability_Tₖ.Value[probability_Tₖ.Value .> 0])
-                    global minimum_P_Tₖ = minimum(probability_Tₖ.Value[probability_Tₖ.Value .> 0])
+                if minimum_P_Tₖ > minimum(probability_Tₖ.Value[probability_Tₖ.Value .>= 0])
+                    global minimum_P_Tₖ = minimum(probability_Tₖ.Value[probability_Tₖ.Value .>= 0])
                 end
-                if maximum_P_Tₖ < maximum(probability_Tₖ.Value[probability_Tₖ.Value .> 0])
-                    global maximum_P_Tₖ = maximum(probability_Tₖ.Value[probability_Tₖ.Value .> 0])
+                if maximum_P_Tₖ < maximum(probability_Tₖ.Value[probability_Tₖ.Value .>= 0])
+                    global maximum_P_Tₖ = maximum(probability_Tₖ.Value[probability_Tₖ.Value .>= 0])
                 end
-                if maximum_Tₖ < maximum(probability_Tₖ.Argument[probability_Tₖ.Value .> 0])
-                    global maximum_Tₖ = maximum(probability_Tₖ.Argument[probability_Tₖ.Value .> 0])
+                if maximum_Tₖ < maximum(probability_Tₖ.Argument[probability_Tₖ.Value .>= 0])
+                    global maximum_Tₖ = maximum(probability_Tₖ.Argument[probability_Tₖ.Value .>= 0])
                 end
                 Scatter_data(plot_Tₖ_A, Tₖ_A.Argument, Tₖ_A.Value, latexstring("\$\\mathrm{<T_$(k)>}\$ = $(round(avg_Tₖ, digits = 2)) MeV"), :auto, 4, :auto)
                 Bar_data(plot_P_Tₖ, probability_Tₖ.Argument, probability_Tₖ.Value, latexstring("\$\\mathrm{<T_$(k)>}\$ = $(round(avg_Tₖ, digits = 2)) MeV"), :auto, ΔTₖ)
             end
             if !isnan(avg_Tₖ_L)
-                if minimum_P_Tₖ_L > minimum(probability_Tₖ_L.Value[probability_Tₖ_L.Value .> 0])
-                    global minimum_P_Tₖ_L = minimum(probability_Tₖ_L.Value[probability_Tₖ_L.Value .> 0])
+                if minimum_P_Tₖ_L > minimum(probability_Tₖ_L.Value[probability_Tₖ_L.Value .>= 0])
+                    global minimum_P_Tₖ_L = minimum(probability_Tₖ_L.Value[probability_Tₖ_L.Value .>= 0])
                 end
-                if maximum_P_Tₖ_L < maximum(probability_Tₖ_L.Value[probability_Tₖ_L.Value .> 0])
-                    global maximum_P_Tₖ_L = maximum(probability_Tₖ_L.Value[probability_Tₖ_L.Value .> 0])
+                if maximum_P_Tₖ_L < maximum(probability_Tₖ_L.Value[probability_Tₖ_L.Value .>= 0])
+                    global maximum_P_Tₖ_L = maximum(probability_Tₖ_L.Value[probability_Tₖ_L.Value .>= 0])
                 end
-                if maximum_Tₖ_L < maximum(probability_Tₖ_L.Argument[probability_Tₖ_L.Value .> 0])
-                    global maximum_Tₖ_L = maximum(probability_Tₖ_L.Argument[probability_Tₖ_L.Value .> 0])
+                if maximum_Tₖ_L < maximum(probability_Tₖ_L.Argument[probability_Tₖ_L.Value .>= 0])
+                    global maximum_Tₖ_L = maximum(probability_Tₖ_L.Argument[probability_Tₖ_L.Value .>= 0])
                 end
                 Bar_data(plot_P_Tₖ_L, probability_Tₖ_L.Argument, probability_Tₖ_L.Value, latexstring("\$\\mathrm{<T_$(k)>_L}\$ = $(round(avg_Tₖ_L, digits = 2)) MeV"), :auto, ΔTₖ)
             end
             if !isnan(avg_Tₖ_H)
-                if minimum_P_Tₖ_H > minimum(probability_Tₖ_H.Value[probability_Tₖ_H.Value .> 0])
-                    global minimum_P_Tₖ_H = minimum(probability_Tₖ_H.Value[probability_Tₖ_H.Value .> 0])
+                if minimum_P_Tₖ_H > minimum(probability_Tₖ_H.Value[probability_Tₖ_H.Value .>= 0])
+                    global minimum_P_Tₖ_H = minimum(probability_Tₖ_H.Value[probability_Tₖ_H.Value .>= 0])
                 end
-                if maximum_P_Tₖ_H < maximum(probability_Tₖ_H.Value[probability_Tₖ_H.Value .> 0])
-                    global maximum_P_Tₖ_H = maximum(probability_Tₖ_H.Value[probability_Tₖ_H.Value .> 0])
+                if maximum_P_Tₖ_H < maximum(probability_Tₖ_H.Value[probability_Tₖ_H.Value .>= 0])
+                    global maximum_P_Tₖ_H = maximum(probability_Tₖ_H.Value[probability_Tₖ_H.Value .>= 0])
                 end
-                if maximum_Tₖ_H < maximum(probability_Tₖ_H.Argument[probability_Tₖ_H.Value .> 0])
-                    global maximum_Tₖ_H = maximum(probability_Tₖ_H.Argument[probability_Tₖ_H.Value .> 0])
+                if maximum_Tₖ_H < maximum(probability_Tₖ_H.Argument[probability_Tₖ_H.Value .>= 0])
+                    global maximum_Tₖ_H = maximum(probability_Tₖ_H.Argument[probability_Tₖ_H.Value .>= 0])
                 end
                 Bar_data(plot_P_Tₖ_H, probability_Tₖ_H.Argument, probability_Tₖ_H.Value, latexstring("\$\\mathrm{<T_$(k)>_H}\$ = $(round(avg_Tₖ_H, digits = 2)) MeV"), :auto, ΔTₖ)
             end
@@ -598,10 +598,10 @@ if secondary_output_ν == "YES"
     end
     if secondary_output_avg_εₖ == "YES"
         avg_εₖ_A_Z_TKE = DataFrame(
-            A = Raw_output_datafile.A[Raw_output_datafile.No_Sequence .== 1],
-            Z = Raw_output_datafile.Z[Raw_output_datafile.No_Sequence .== 1],
-            TKE = Raw_output_datafile.TKE[Raw_output_datafile.No_Sequence .== 1],
-            Value = Raw_output_datafile.Avg_εₖ[Raw_output_datafile.No_Sequence .== 1]
+            A = Raw_output_datafile.A[(Raw_output_datafile.No_Sequence .== 1) .& (Raw_output_datafile.Tₖ .>= 0)],
+            Z = Raw_output_datafile.Z[(Raw_output_datafile.No_Sequence .== 1) .& (Raw_output_datafile.Tₖ .>= 0)],
+            TKE = Raw_output_datafile.TKE[(Raw_output_datafile.No_Sequence .== 1) .& (Raw_output_datafile.Tₖ .>= 0)],
+            Value = Raw_output_datafile.Avg_εₖ[(Raw_output_datafile.No_Sequence .== 1) .& (Raw_output_datafile.Tₖ .>= 0)]
         )
         avg_εₖ_A = Average_over_TKE_Z(avg_εₖ_A_Z_TKE, y_A_Z_TKE)
         probability_avg_εₖ = Probability_of_occurrence(avg_εₖ_A_Z_TKE, y_A_Z_TKE, Δavg_εₖ)
@@ -635,28 +635,28 @@ if secondary_output_ν == "YES"
         xticks!(plot_avg_εₖ_A, 10 *div(first(A_range), 10):5:last(A_range))
 
         plot_P_avg_εₖ = Bar_data(probability_avg_εₖ.Argument, probability_avg_εₖ.Value, latexstring("\$\\overline{<\\varepsilon_1>}\$ = $(round(avg_avg_εₖ, digits = 2)) MeV"), :auto, Δavg_εₖ)
-        minimum_P_avg_εₖ = minimum(probability_avg_εₖ.Value[probability_avg_εₖ.Value .> 0])
-        maximum_P_avg_εₖ = maximum(probability_avg_εₖ.Value[probability_avg_εₖ.Value .> 0])
-        maximum_avg_εₖ = maximum(probability_avg_εₖ.Argument[probability_avg_εₖ.Value .> 0])
+        minimum_P_avg_εₖ = minimum(probability_avg_εₖ.Value[probability_avg_εₖ.Value .>= 0])
+        maximum_P_avg_εₖ = maximum(probability_avg_εₖ.Value[probability_avg_εₖ.Value .>= 0])
+        maximum_avg_εₖ = maximum(probability_avg_εₖ.Argument[probability_avg_εₖ.Value .>= 0])
     
         avg_avg_εₖ_L = Average_value(avg_εₖ_A_Z_TKE, y_A_Z_TKE, A_L_range)
         plot_P_avg_εₖ_L = Bar_data(probability_avg_εₖ_L.Argument, probability_avg_εₖ_L.Value, latexstring("\$\\overline{<\\varepsilon_1>}_L\$ = $(round(avg_avg_εₖ_L, digits = 2)) MeV"), :auto, Δavg_εₖ)
-        minimum_P_avg_εₖ_L = minimum(probability_avg_εₖ_L.Value[probability_avg_εₖ_L.Value .> 0])
-        maximum_P_avg_εₖ_L = maximum(probability_avg_εₖ_L.Value[probability_avg_εₖ_L.Value .> 0])
-        maximum_avg_εₖ_L = maximum(probability_avg_εₖ_L.Argument[probability_avg_εₖ_L.Value .> 0])
+        minimum_P_avg_εₖ_L = minimum(probability_avg_εₖ_L.Value[probability_avg_εₖ_L.Value .>= 0])
+        maximum_P_avg_εₖ_L = maximum(probability_avg_εₖ_L.Value[probability_avg_εₖ_L.Value .>= 0])
+        maximum_avg_εₖ_L = maximum(probability_avg_εₖ_L.Argument[probability_avg_εₖ_L.Value .>= 0])
     
         avg_avg_εₖ_H = Average_value(avg_εₖ_A_Z_TKE, y_A_Z_TKE, A_H_range)
         plot_P_avg_εₖ_H = Bar_data(probability_avg_εₖ_H.Argument, probability_avg_εₖ_H.Value, latexstring("\$\\overline{<\\varepsilon_1>}_H\$ = $(round(avg_avg_εₖ_H, digits = 2)) MeV"), :auto, Δavg_εₖ)
-        minimum_P_avg_εₖ_H = minimum(probability_avg_εₖ_H.Value[probability_avg_εₖ_H.Value .> 0])
-        maximum_P_avg_εₖ_H = maximum(probability_avg_εₖ_H.Value[probability_avg_εₖ_H.Value .> 0])
-        maximum_avg_εₖ_H = maximum(probability_avg_εₖ_H.Argument[probability_avg_εₖ_H.Value .> 0])
+        minimum_P_avg_εₖ_H = minimum(probability_avg_εₖ_H.Value[probability_avg_εₖ_H.Value .>= 0])
+        maximum_P_avg_εₖ_H = maximum(probability_avg_εₖ_H.Value[probability_avg_εₖ_H.Value .>= 0])
+        maximum_avg_εₖ_H = maximum(probability_avg_εₖ_H.Argument[probability_avg_εₖ_H.Value .>= 0])
 
-        for k in 2:maximum(ν_A_Z_TKE_rounded.Value)
+        for k in 2:maximum(Raw_output_datafile.No_Sequence[Raw_output_datafile.Tₖ .>= 0])
             local avg_εₖ_A_Z_TKE = DataFrame(
-                A = Raw_output_datafile.A[Raw_output_datafile.No_Sequence .== k],
-                Z = Raw_output_datafile.Z[Raw_output_datafile.No_Sequence .== k],
-                TKE = Raw_output_datafile.TKE[Raw_output_datafile.No_Sequence .== k],
-                Value = Raw_output_datafile.Avg_εₖ[Raw_output_datafile.No_Sequence .== k]
+                A = Raw_output_datafile.A[(Raw_output_datafile.No_Sequence .== k) .& (Raw_output_datafile.Tₖ .>= 0)],
+                Z = Raw_output_datafile.Z[(Raw_output_datafile.No_Sequence .== k) .& (Raw_output_datafile.Tₖ .>= 0)],
+                TKE = Raw_output_datafile.TKE[(Raw_output_datafile.No_Sequence .== k) .& (Raw_output_datafile.Tₖ .>= 0)],
+                Value = Raw_output_datafile.Avg_εₖ[(Raw_output_datafile.No_Sequence .== k) .& (Raw_output_datafile.Tₖ .>= 0)]
             )
             local avg_εₖ_A = Average_over_TKE_Z(avg_εₖ_A_Z_TKE, y_A_Z_TKE)
             local probability_avg_εₖ = Probability_of_occurrence(avg_εₖ_A_Z_TKE, y_A_Z_TKE, Δavg_εₖ)
@@ -680,39 +680,39 @@ if secondary_output_ν == "YES"
             local avg_avg_εₖ_L = Average_value(avg_εₖ_A_Z_TKE, y_A_Z_TKE, A_L_range)
             local avg_avg_εₖ_H = Average_value(avg_εₖ_A_Z_TKE, y_A_Z_TKE, A_H_range)
             if !isnan(avg_avg_εₖ)
-                if minimum_P_avg_εₖ > minimum(probability_avg_εₖ.Value[probability_avg_εₖ.Value .> 0])
-                    global minimum_P_avg_εₖ = minimum(probability_avg_εₖ.Value[probability_avg_εₖ.Value .> 0])
+                if minimum_P_avg_εₖ > minimum(probability_avg_εₖ.Value[probability_avg_εₖ.Value .>= 0])
+                    global minimum_P_avg_εₖ = minimum(probability_avg_εₖ.Value[probability_avg_εₖ.Value .>= 0])
                 end
-                if maximum_P_avg_εₖ < maximum(probability_avg_εₖ.Value[probability_avg_εₖ.Value .> 0])
-                    global maximum_P_avg_εₖ = maximum(probability_avg_εₖ.Value[probability_avg_εₖ.Value .> 0])
+                if maximum_P_avg_εₖ < maximum(probability_avg_εₖ.Value[probability_avg_εₖ.Value .>= 0])
+                    global maximum_P_avg_εₖ = maximum(probability_avg_εₖ.Value[probability_avg_εₖ.Value .>= 0])
                 end
-                if maximum_avg_εₖ < maximum(probability_avg_εₖ.Argument[probability_avg_εₖ.Value .> 0])
-                    global maximum_avg_εₖ = maximum(probability_avg_εₖ.Argument[probability_avg_εₖ.Value .> 0])
+                if maximum_avg_εₖ < maximum(probability_avg_εₖ.Argument[probability_avg_εₖ.Value .>= 0])
+                    global maximum_avg_εₖ = maximum(probability_avg_εₖ.Argument[probability_avg_εₖ.Value .>= 0])
                 end
                 Scatter_data(plot_avg_εₖ_A, avg_εₖ_A.Argument, avg_εₖ_A.Value, latexstring("\$\\overline{<\\varepsilon_$(k)>}\$ = $(round(avg_avg_εₖ, digits = 2)) MeV"), :auto, 4, :auto)
                 Bar_data(plot_P_avg_εₖ, probability_avg_εₖ.Argument, probability_avg_εₖ.Value, latexstring("\$\\overline{<\\varepsilon_$(k)>}\$ = $(round(avg_avg_εₖ, digits = 2)) MeV"), :auto, Δavg_εₖ)
             end
             if !isnan(avg_avg_εₖ_L)
-                if minimum_P_avg_εₖ_L > minimum(probability_avg_εₖ_L.Value[probability_avg_εₖ_L.Value .> 0])
-                    global minimum_P_avg_εₖ_L = minimum(probability_avg_εₖ_L.Value[probability_avg_εₖ_L.Value .> 0])
+                if minimum_P_avg_εₖ_L > minimum(probability_avg_εₖ_L.Value[probability_avg_εₖ_L.Value .>= 0])
+                    global minimum_P_avg_εₖ_L = minimum(probability_avg_εₖ_L.Value[probability_avg_εₖ_L.Value .>= 0])
                 end
-                if maximum_P_avg_εₖ_L < maximum(probability_avg_εₖ_L.Value[probability_avg_εₖ_L.Value .> 0])
-                    global maximum_P_avg_εₖ_L = maximum(probability_avg_εₖ_L.Value[probability_avg_εₖ_L.Value .> 0])
+                if maximum_P_avg_εₖ_L < maximum(probability_avg_εₖ_L.Value[probability_avg_εₖ_L.Value .>= 0])
+                    global maximum_P_avg_εₖ_L = maximum(probability_avg_εₖ_L.Value[probability_avg_εₖ_L.Value .>= 0])
                 end
-                if maximum_avg_εₖ_L < maximum(probability_avg_εₖ_L.Argument[probability_avg_εₖ_L.Value .> 0])
-                    global maximum_avg_εₖ_L = maximum(probability_avg_εₖ_L.Argument[probability_avg_εₖ_L.Value .> 0])
+                if maximum_avg_εₖ_L < maximum(probability_avg_εₖ_L.Argument[probability_avg_εₖ_L.Value .>= 0])
+                    global maximum_avg_εₖ_L = maximum(probability_avg_εₖ_L.Argument[probability_avg_εₖ_L.Value .>= 0])
                 end
                 Bar_data(plot_P_avg_εₖ_L, probability_avg_εₖ_L.Argument, probability_avg_εₖ_L.Value, latexstring("\$\\overline{<\\varepsilon_$(k)>}_L\$ = $(round(avg_avg_εₖ_L, digits = 2)) MeV"), :auto, Δavg_εₖ)
             end
             if !isnan(avg_avg_εₖ_H)
-                if minimum_P_avg_εₖ_H > minimum(probability_avg_εₖ_H.Value[probability_avg_εₖ_H.Value .> 0])
-                    global minimum_P_avg_εₖ_H = minimum(probability_avg_εₖ_H.Value[probability_avg_εₖ_H.Value .> 0])
+                if minimum_P_avg_εₖ_H > minimum(probability_avg_εₖ_H.Value[probability_avg_εₖ_H.Value .>= 0])
+                    global minimum_P_avg_εₖ_H = minimum(probability_avg_εₖ_H.Value[probability_avg_εₖ_H.Value .>= 0])
                 end
-                if maximum_P_avg_εₖ_H < maximum(probability_avg_εₖ_H.Value[probability_avg_εₖ_H.Value .> 0])
-                    global maximum_P_avg_εₖ_H = maximum(probability_avg_εₖ_H.Value[probability_avg_εₖ_H.Value .> 0])
+                if maximum_P_avg_εₖ_H < maximum(probability_avg_εₖ_H.Value[probability_avg_εₖ_H.Value .>= 0])
+                    global maximum_P_avg_εₖ_H = maximum(probability_avg_εₖ_H.Value[probability_avg_εₖ_H.Value .>= 0])
                 end
-                if maximum_avg_εₖ_H < maximum(probability_avg_εₖ_H.Argument[probability_avg_εₖ_H.Value .> 0])
-                    global maximum_avg_εₖ_H = maximum(probability_avg_εₖ_H.Argument[probability_avg_εₖ_H.Value .> 0])
+                if maximum_avg_εₖ_H < maximum(probability_avg_εₖ_H.Argument[probability_avg_εₖ_H.Value .>= 0])
+                    global maximum_avg_εₖ_H = maximum(probability_avg_εₖ_H.Argument[probability_avg_εₖ_H.Value .>= 0])
                 end
                 Bar_data(plot_P_avg_εₖ_H, probability_avg_εₖ_H.Argument, probability_avg_εₖ_H.Value, latexstring("\$\\overline{<\\varepsilon_$(k)>}_H\$ = $(round(avg_avg_εₖ_H, digits = 2)) MeV"), :auto, Δavg_εₖ)
             end
@@ -751,12 +751,12 @@ if secondary_output_ν == "YES"
     end
     if secondary_output_Eᵣ == "YES"
         Tₖ_A_Z_TKE = DataFrame(
-            A = Raw_output_datafile.A[Raw_output_datafile.No_Sequence .== 1],
-            Z = Raw_output_datafile.Z[Raw_output_datafile.No_Sequence .== 1],
-            TKE = Raw_output_datafile.TKE[Raw_output_datafile.No_Sequence .== 1],
-            Value = Raw_output_datafile.Tₖ[Raw_output_datafile.No_Sequence .== 1]
+            A = Raw_output_datafile.A[(Raw_output_datafile.No_Sequence .== 1) .& (Raw_output_datafile.Tₖ .>= 0)],
+            Z = Raw_output_datafile.Z[(Raw_output_datafile.No_Sequence .== 1) .& (Raw_output_datafile.Tₖ .>= 0)],
+            TKE = Raw_output_datafile.TKE[(Raw_output_datafile.No_Sequence .== 1) .& (Raw_output_datafile.Tₖ .>= 0)],
+            Value = Raw_output_datafile.Tₖ[(Raw_output_datafile.No_Sequence .== 1) .& (Raw_output_datafile.Tₖ .>= 0)]
         )
-        aₖ = copy(Raw_output_datafile.aₖ[Raw_output_datafile.No_Sequence .== 1])
+        aₖ = copy(Raw_output_datafile.aₖ[(Raw_output_datafile.No_Sequence .== 1) .& (Raw_output_datafile.Tₖ .>= 0)])
         Eᵣ_A_Z_TKE = copy(Tₖ_A_Z_TKE)
         Eᵣ_A_Z_TKE.Value .= Energy_FermiGas.(aₖ, Eᵣ_A_Z_TKE.Value)
         Eᵣ_A = Average_over_TKE_Z(Eᵣ_A_Z_TKE, y_A_Z_TKE)
@@ -791,23 +791,23 @@ if secondary_output_ν == "YES"
         xticks!(plot_Eᵣ_A, 10 *div(first(A_range), 10):5:last(A_range))
 
         plot_P_Eᵣ = Bar_data(probability_Eᵣ.Argument, probability_Eᵣ.Value, latexstring("\$\\mathrm{<E_1>}\$ = $(round(avg_Eᵣ, digits = 2)) MeV"), :auto, ΔEᵣ)
-        minimum_P_Eᵣ = minimum(probability_Eᵣ.Value[probability_Eᵣ.Value .> 0])
-        maximum_P_Eᵣ = maximum(probability_Eᵣ.Value[probability_Eᵣ.Value .> 0])
-        maximum_Eᵣ = maximum(probability_Eᵣ.Argument[probability_Eᵣ.Value .> 0])
+        minimum_P_Eᵣ = minimum(probability_Eᵣ.Value[probability_Eᵣ.Value .>= 0])
+        maximum_P_Eᵣ = maximum(probability_Eᵣ.Value[probability_Eᵣ.Value .>= 0])
+        maximum_Eᵣ = maximum(probability_Eᵣ.Argument[probability_Eᵣ.Value .>= 0])
     
         avg_Eᵣ_L = Average_value(Eᵣ_A_Z_TKE, y_A_Z_TKE, A_L_range)
         plot_P_Eᵣ_L = Bar_data(probability_Eᵣ_L.Argument, probability_Eᵣ_L.Value, latexstring("\$\\mathrm{<E_1>_L}\$ = $(round(avg_Eᵣ_L, digits = 2)) MeV"), :auto, ΔEᵣ)
-        minimum_P_Eᵣ_L = minimum(probability_Eᵣ_L.Value[probability_Eᵣ_L.Value .> 0])
-        maximum_P_Eᵣ_L = maximum(probability_Eᵣ_L.Value[probability_Eᵣ_L.Value .> 0])
-        maximum_Eᵣ_L = maximum(probability_Eᵣ_L.Argument[probability_Eᵣ_L.Value .> 0])
+        minimum_P_Eᵣ_L = minimum(probability_Eᵣ_L.Value[probability_Eᵣ_L.Value .>= 0])
+        maximum_P_Eᵣ_L = maximum(probability_Eᵣ_L.Value[probability_Eᵣ_L.Value .>= 0])
+        maximum_Eᵣ_L = maximum(probability_Eᵣ_L.Argument[probability_Eᵣ_L.Value .>= 0])
     
         avg_Eᵣ_H = Average_value(Eᵣ_A_Z_TKE, y_A_Z_TKE, A_H_range)
         plot_P_Eᵣ_H = Bar_data(probability_Eᵣ_H.Argument, probability_Eᵣ_H.Value, latexstring("\$\\mathrm{<E_1>_H}\$ = $(round(avg_Eᵣ_H, digits = 2)) MeV"), :auto, ΔEᵣ)
-        minimum_P_Eᵣ_H = minimum(probability_Eᵣ_H.Value[probability_Eᵣ_H.Value .> 0])
-        maximum_P_Eᵣ_H = maximum(probability_Eᵣ_H.Value[probability_Eᵣ_H.Value .> 0])
-        maximum_Eᵣ_H = maximum(probability_Eᵣ_H.Argument[probability_Eᵣ_H.Value .> 0])
+        minimum_P_Eᵣ_H = minimum(probability_Eᵣ_H.Value[probability_Eᵣ_H.Value .>= 0])
+        maximum_P_Eᵣ_H = maximum(probability_Eᵣ_H.Value[probability_Eᵣ_H.Value .>= 0])
+        maximum_Eᵣ_H = maximum(probability_Eᵣ_H.Argument[probability_Eᵣ_H.Value .>= 0])
 
-        for k in 2:maximum(ν_A_Z_TKE_rounded.Value)
+        for k in 2:maximum(Raw_output_datafile.No_Sequence[Raw_output_datafile.Tₖ .>= 0])
             local Tₖ_A_Z_TKE = DataFrame(
                 A = Raw_output_datafile.A[Raw_output_datafile.No_Sequence .== k],
                 Z = Raw_output_datafile.Z[Raw_output_datafile.No_Sequence .== k],
@@ -839,39 +839,39 @@ if secondary_output_ν == "YES"
             local avg_Eᵣ_L = Average_value(Eᵣ_A_Z_TKE, y_A_Z_TKE, A_L_range)
             local avg_Eᵣ_H = Average_value(Eᵣ_A_Z_TKE, y_A_Z_TKE, A_H_range)
             if !isnan(avg_Eᵣ)
-                if minimum_P_Eᵣ > minimum(probability_Eᵣ.Value[probability_Eᵣ.Value .> 0])
-                    global minimum_P_Eᵣ = minimum(probability_Eᵣ.Value[probability_Eᵣ.Value .> 0])
+                if minimum_P_Eᵣ > minimum(probability_Eᵣ.Value[probability_Eᵣ.Value .>= 0])
+                    global minimum_P_Eᵣ = minimum(probability_Eᵣ.Value[probability_Eᵣ.Value .>= 0])
                 end
-                if maximum_P_Eᵣ < maximum(probability_Eᵣ.Value[probability_Eᵣ.Value .> 0])
-                    global maximum_P_Eᵣ = maximum(probability_Eᵣ.Value[probability_Eᵣ.Value .> 0])
+                if maximum_P_Eᵣ < maximum(probability_Eᵣ.Value[probability_Eᵣ.Value .>= 0])
+                    global maximum_P_Eᵣ = maximum(probability_Eᵣ.Value[probability_Eᵣ.Value .>= 0])
                 end
-                if maximum_Eᵣ < maximum(probability_Eᵣ.Argument[probability_Eᵣ.Value .> 0])
-                    global maximum_Eᵣ = maximum(probability_Eᵣ.Argument[probability_Eᵣ.Value .> 0])
+                if maximum_Eᵣ < maximum(probability_Eᵣ.Argument[probability_Eᵣ.Value .>= 0])
+                    global maximum_Eᵣ = maximum(probability_Eᵣ.Argument[probability_Eᵣ.Value .>= 0])
                 end
                 Scatter_data(plot_Eᵣ_A, Eᵣ_A.Argument, Eᵣ_A.Value, latexstring("\$\\mathrm{<E_$(k)>}\$ = $(round(avg_Eᵣ, digits = 2)) MeV"), :auto, 4, :auto)
                 Bar_data(plot_P_Eᵣ, probability_Eᵣ.Argument, probability_Eᵣ.Value, latexstring("\$\\mathrm{<E_$(k)>}\$ = $(round(avg_Eᵣ, digits = 2)) MeV"), :auto, ΔEᵣ)
             end
             if !isnan(avg_Eᵣ_L)
-                if minimum_P_Eᵣ_L > minimum(probability_Eᵣ_L.Value[probability_Eᵣ_L.Value .> 0])
-                    global minimum_P_Eᵣ_L = minimum(probability_Eᵣ_L.Value[probability_Eᵣ_L.Value .> 0])
+                if minimum_P_Eᵣ_L > minimum(probability_Eᵣ_L.Value[probability_Eᵣ_L.Value .>= 0])
+                    global minimum_P_Eᵣ_L = minimum(probability_Eᵣ_L.Value[probability_Eᵣ_L.Value .>= 0])
                 end
-                if maximum_P_Eᵣ_L < maximum(probability_Eᵣ_L.Value[probability_Eᵣ_L.Value .> 0])
-                    global maximum_P_Eᵣ_L = maximum(probability_Eᵣ_L.Value[probability_Eᵣ_L.Value .> 0])
+                if maximum_P_Eᵣ_L < maximum(probability_Eᵣ_L.Value[probability_Eᵣ_L.Value .>= 0])
+                    global maximum_P_Eᵣ_L = maximum(probability_Eᵣ_L.Value[probability_Eᵣ_L.Value .>= 0])
                 end
-                if maximum_Eᵣ_L < maximum(probability_Eᵣ_L.Argument[probability_Eᵣ_L.Value .> 0])
-                    global maximum_Eᵣ_L = maximum(probability_Eᵣ_L.Argument[probability_Eᵣ_L.Value .> 0])
+                if maximum_Eᵣ_L < maximum(probability_Eᵣ_L.Argument[probability_Eᵣ_L.Value .>= 0])
+                    global maximum_Eᵣ_L = maximum(probability_Eᵣ_L.Argument[probability_Eᵣ_L.Value .>= 0])
                 end
                 Bar_data(plot_P_Eᵣ_L, probability_Eᵣ_L.Argument, probability_Eᵣ_L.Value, latexstring("\$\\mathrm{<E_$(k)>_L}\$ = $(round(avg_Eᵣ_L, digits = 2)) MeV"), :auto, ΔEᵣ)
             end
             if !isnan(avg_Eᵣ_H)
-                if minimum_P_Eᵣ_H > minimum(probability_Eᵣ_H.Value[probability_Eᵣ_H.Value .> 0])
-                    global minimum_P_Eᵣ_H = minimum(probability_Eᵣ_H.Value[probability_Eᵣ_H.Value .> 0])
+                if minimum_P_Eᵣ_H > minimum(probability_Eᵣ_H.Value[probability_Eᵣ_H.Value .>= 0])
+                    global minimum_P_Eᵣ_H = minimum(probability_Eᵣ_H.Value[probability_Eᵣ_H.Value .>= 0])
                 end
-                if maximum_P_Eᵣ_H < maximum(probability_Eᵣ_H.Value[probability_Eᵣ_H.Value .> 0])
-                    global maximum_P_Eᵣ_H = maximum(probability_Eᵣ_H.Value[probability_Eᵣ_H.Value .> 0])
+                if maximum_P_Eᵣ_H < maximum(probability_Eᵣ_H.Value[probability_Eᵣ_H.Value .>= 0])
+                    global maximum_P_Eᵣ_H = maximum(probability_Eᵣ_H.Value[probability_Eᵣ_H.Value .>= 0])
                 end
-                if maximum_Eᵣ_H < maximum(probability_Eᵣ_H.Argument[probability_Eᵣ_H.Value .> 0])
-                    global maximum_Eᵣ_H = maximum(probability_Eᵣ_H.Argument[probability_Eᵣ_H.Value .> 0])
+                if maximum_Eᵣ_H < maximum(probability_Eᵣ_H.Argument[probability_Eᵣ_H.Value .>= 0])
+                    global maximum_Eᵣ_H = maximum(probability_Eᵣ_H.Argument[probability_Eᵣ_H.Value .>= 0])
                 end
                 Bar_data(plot_P_Eᵣ_H, probability_Eᵣ_H.Argument, probability_Eᵣ_H.Value, latexstring("\$\\mathrm{<E_$(k)>_H}\$ = $(round(avg_Eᵣ_H, digits = 2)) MeV"), :auto, ΔEᵣ)
             end

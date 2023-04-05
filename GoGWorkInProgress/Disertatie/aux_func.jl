@@ -324,7 +324,7 @@ function Neutron_multiplicity_A_Z_TKE(output_df_A_Z_TKE_NoSequence::DataFrame)
                 push!(ν.Z, Z)
                 push!(ν.TKE, TKE)
                 val = last(output_df_A_Z_TKE_NoSequence.No_Sequence[(output_df_A_Z_TKE_NoSequence.A .== A) .& (output_df_A_Z_TKE_NoSequence.Z .== Z) .& (output_df_A_Z_TKE_NoSequence.TKE .== TKE)])
-                if val == 0 || val == 1
+                if val == 0
                     push!(ν.Value, val)
                 else
                     push!(ν.Value, (val + 1) /2)

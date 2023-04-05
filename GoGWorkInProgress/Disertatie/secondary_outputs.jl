@@ -81,7 +81,7 @@ function Average_over_Z(q_A_Z_TKE, fragmdomain::Distribution)
                 if !isnan(value)
                     P_A_Z = fragmdomain.Value[(fragmdomain.A .== A) .& (fragmdomain.Z .== Z)][1]
                     Denominator += P_A_Z
-                    Numerator += P_A_Z * value
+                    Numerator += P_A_Z *value
                 end
             end
             if Denominator > 0
@@ -106,7 +106,7 @@ function Average_over_TKE_Z(q_A_Z_TKE, y_A_Z_TKE::Distribution)
                     if isassigned(y_A_Z_TKE.Value[(y_A_Z_TKE.A .== A) .& (y_A_Z_TKE.Z .== Z) .& (y_A_Z_TKE.TKE .== TKE)], 1)
                         Y_A_Z_TKE = y_A_Z_TKE.Value[(y_A_Z_TKE.A .== A) .& (y_A_Z_TKE.Z .== Z) .& (y_A_Z_TKE.TKE .== TKE)][1]
                         Denominator += Y_A_Z_TKE
-                        Numerator += Y_A_Z_TKE * value
+                        Numerator += Y_A_Z_TKE *value
                     end
                 end
             end
@@ -131,7 +131,7 @@ function Average_over_A_Z(q_A_Z_TKE, y_A_Z_TKE::Distribution)
                     if isassigned(y_A_Z_TKE.Value[(y_A_Z_TKE.A .== A) .& (y_A_Z_TKE.Z .== Z) .& (y_A_Z_TKE.TKE .== TKE)], 1)
                         Y_A_Z_TKE = y_A_Z_TKE.Value[(y_A_Z_TKE.A .== A) .& (y_A_Z_TKE.Z .== Z) .& (y_A_Z_TKE.TKE .== TKE)][1]
                         Denominator += Y_A_Z_TKE
-                        Numerator += Y_A_Z_TKE * value
+                        Numerator += Y_A_Z_TKE *value
                     end
                 end
             end
@@ -169,10 +169,10 @@ function Average_value(q, y::Distribution_unidym, Argument_range)
     Numerator = 0.0
     for Argument in Argument_range
         if isassigned(q.Value[q.Argument .== Argument], 1) && isassigned(y.Value[y.Argument .== Argument], 1)
-            Value = q.Value[q.Argument .== Argument][1]
+            value = q.Value[q.Argument .== Argument][1]
             Y = y.Value[y.Argument .== Argument][1]
             Denominator += Y
-            Numerator += Value *Y
+            Numerator += Y *value
         end
     end
     return Numerator/Denominator
@@ -183,8 +183,8 @@ function Pair_value(q_A::Distribution_unidym, A_0, A_H)
     val_H = q_A.Value[q_A.Argument .== A_H][1]
     return val_L + val_H
 end
-#Obtain Y(Z,Aₚ,TKE), Y(Z,Aₚ) & Y(Aₚ) distributions from Y(A,Z,TKE) & ν(A,Z,TKE)
-function Yield_post_neutron(y_A_Z_TKE::Distribution, ν_A_Z_TKE)
+#Obtain Y(Z,Aₚ,TKE), Y(Z,Aₚ) & Y(Aₚ) distributions from Y(A,Z,TKE) & n(A,Z,TKE)
+function Yield_post_neutron(y_A_Z_TKE::Distribution, n_A_Z_TKE)
     y_Aₚ_Z_TKE = Distribution(Int[], Int[], Float64[], Int[], Float64[], Float64[])
     y_Aₚ_Z = Distribution(Int[], Int[], Float64[], Int[], Float64[], Float64[])
     for A in unique(y_A_Z_TKE.A)
@@ -192,9 +192,9 @@ function Yield_post_neutron(y_A_Z_TKE::Distribution, ν_A_Z_TKE)
             for TKE in y_A_Z_TKE.TKE[(y_A_Z_TKE.A .== A) .& (y_A_Z_TKE.Z .== Z)]
                 Y_A_Z_TKE = y_A_Z_TKE.Value[(y_A_Z_TKE.A .== A) .& (y_A_Z_TKE.Z .== Z) .& (y_A_Z_TKE.TKE .== TKE)][1]
                 σY_A_Z_TKE = y_A_Z_TKE.σ[(y_A_Z_TKE.A .== A) .& (y_A_Z_TKE.Z .== Z) .& (y_A_Z_TKE.TKE .== TKE)][1]
-                if isassigned(ν_A_Z_TKE.Value[(ν_A_Z_TKE.A .== A) .& (ν_A_Z_TKE.Z .== Z) .& (ν_A_Z_TKE.TKE .== TKE)], 1)
-                    ν = ν_A_Z_TKE.Value[(ν_A_Z_TKE.A .== A) .& (ν_A_Z_TKE.Z .== Z) .& (ν_A_Z_TKE.TKE .== TKE)][1]
-                    Aₚ = A - ν
+                if isassigned(n_A_Z_TKE.Value[(n_A_Z_TKE.A .== A) .& (n_A_Z_TKE.Z .== Z) .& (n_A_Z_TKE.TKE .== TKE)], 1)
+                    n = n_A_Z_TKE.Value[(n_A_Z_TKE.A .== A) .& (n_A_Z_TKE.Z .== Z) .& (n_A_Z_TKE.TKE .== TKE)][1]
+                    Aₚ = A - n
                 else 
                     Aₚ = A 
                 end
@@ -404,7 +404,7 @@ function Sort_q_Argument(q)
         q.Argument[index] = aux_Argument[index]
         q.Value[index] = aux_Value[index]
     end
-    if isassigned(q.σ, 1)
+    if isassigned(filter(!isnan, q.σ), 1)
         aux_σ = [first(q.σ[q.Argument .== Argument]) for Argument in aux_Argument]
         for index in eachindex(aux_Argument)
             q.σ[index] = aux_σ[index]
@@ -545,7 +545,7 @@ if secondary_output_ν == "YES"
         ), y_A_Z_TKE, 1
     )
     CSV.write(
-        "output_data/nu/$(fissionant_nucleus_identifier)_P_nu_L.OUT", 
+        "output_data/nu/$(fissionant_nucleus_identifier)_P_nu_LF.OUT", 
         DataFrame(ν = probability_ν_L.Argument, P = probability_ν_L.Value), 
         writeheader=true, newline="\r\n", delim=' '
     )
@@ -558,7 +558,7 @@ if secondary_output_ν == "YES"
         ), y_A_Z_TKE, 1
     )
     CSV.write(
-        "output_data/nu/$(fissionant_nucleus_identifier)_P_nu_H.OUT", 
+        "output_data/nu/$(fissionant_nucleus_identifier)_P_nu_HF.OUT", 
         DataFrame(ν = probability_ν_H.Argument, P = probability_ν_H.Value), 
         writeheader=true, newline="\r\n", delim=' '
     )
@@ -652,12 +652,12 @@ if secondary_output_ν == "YES"
                 mkdir("output_data/P_Er/")
             end
         end
-        for k in 1:maximum(ν_A_Z_TKE_rounded.Value)
+        for k in 1:maximum(Raw_output_datafile.No_Sequence[Raw_output_datafile.Tₖ .>= 0])
             Tₖ_A_Z_TKE = DataFrame(
-                A = Raw_output_datafile.A[Raw_output_datafile.No_Sequence .== k],
-                Z = Raw_output_datafile.Z[Raw_output_datafile.No_Sequence .== k],
-                TKE = Raw_output_datafile.TKE[Raw_output_datafile.No_Sequence .== k],
-                Value = Raw_output_datafile.Tₖ[Raw_output_datafile.No_Sequence .== k]
+                A = Raw_output_datafile.A[(Raw_output_datafile.No_Sequence .== k) .& (Raw_output_datafile.Tₖ .>= 0)],
+                Z = Raw_output_datafile.Z[(Raw_output_datafile.No_Sequence .== k) .& (Raw_output_datafile.Tₖ .>= 0)],
+                TKE = Raw_output_datafile.TKE[(Raw_output_datafile.No_Sequence .== k) .& (Raw_output_datafile.Tₖ .>= 0)],
+                Value = Raw_output_datafile.Tₖ[(Raw_output_datafile.No_Sequence .== k) .& (Raw_output_datafile.Tₖ .>= 0)]
             )
             Tₖ_A = Average_over_TKE_Z(Tₖ_A_Z_TKE, y_A_Z_TKE)
             CSV.write(
@@ -698,7 +698,7 @@ if secondary_output_ν == "YES"
                 writeheader=true, newline="\r\n", delim=' '
             )
             if secondary_output_Eᵣ == "YES"
-                aₖ = copy(Raw_output_datafile.aₖ[Raw_output_datafile.No_Sequence .== k])
+                aₖ = copy(Raw_output_datafile.aₖ[(Raw_output_datafile.No_Sequence .== k) .& (Raw_output_datafile.Tₖ .>= 0)])
                 Eᵣ_A_Z_TKE = copy(Tₖ_A_Z_TKE)
                 Eᵣ_A_Z_TKE.Value .= Energy_FermiGas.(aₖ, Eᵣ_A_Z_TKE.Value)
                 probability_Eᵣ = Probability_of_occurrence(Eᵣ_A_Z_TKE, y_A_Z_TKE, ΔEᵣ)
@@ -740,12 +740,12 @@ if secondary_output_ν == "YES"
         if !isdir("output_data/P_avgE_k/")
             mkdir("output_data/P_avgE_k/")
         end
-        for k in 1:maximum(ν_A_Z_TKE_rounded.Value)
+        for k in 1:maximum(Raw_output_datafile.No_Sequence[Raw_output_datafile.Tₖ .>= 0])
             avg_εₖ_A_Z_TKE = DataFrame(
-                A = Raw_output_datafile.A[Raw_output_datafile.No_Sequence .== k],
-                Z = Raw_output_datafile.Z[Raw_output_datafile.No_Sequence .== k],
-                TKE = Raw_output_datafile.TKE[Raw_output_datafile.No_Sequence .== k],
-                Value = Raw_output_datafile.Avg_εₖ[Raw_output_datafile.No_Sequence .== k]
+                A = Raw_output_datafile.A[(Raw_output_datafile.No_Sequence .== k) .& (Raw_output_datafile.Tₖ .>= 0)],
+                Z = Raw_output_datafile.Z[(Raw_output_datafile.No_Sequence .== k) .& (Raw_output_datafile.Tₖ .>= 0)],
+                TKE = Raw_output_datafile.TKE[(Raw_output_datafile.No_Sequence .== k) .& (Raw_output_datafile.Tₖ .>= 0)],
+                Value = Raw_output_datafile.Avg_εₖ[(Raw_output_datafile.No_Sequence .== k) .& (Raw_output_datafile.Tₖ .>= 0)]
             )
             probability_avg_εₖ = Probability_of_occurrence(avg_εₖ_A_Z_TKE, y_A_Z_TKE, Δavg_εₖ)
             CSV.write(
@@ -811,7 +811,7 @@ if secondary_output_T == "YES"
         ), y_A_Z_TKE, ΔT
         )
     CSV.write(
-        "output_data/$(fissionant_nucleus_identifier)_P_T_L.OUT", 
+        "output_data/$(fissionant_nucleus_identifier)_P_T_LF.OUT", 
         DataFrame(T = probability_T_L.Argument, P = probability_T_L.Value), 
         writeheader=true, newline="\r\n", delim=' '
     )
@@ -824,7 +824,7 @@ if secondary_output_T == "YES"
         ), y_A_Z_TKE, ΔT
         )
     CSV.write(
-        "output_data/$(fissionant_nucleus_identifier)_P_T_H.OUT", 
+        "output_data/$(fissionant_nucleus_identifier)_P_T_HF.OUT", 
         DataFrame(T = probability_T_H.Argument, P = probability_T_H.Value), 
         writeheader=true, newline="\r\n", delim=' '
     )
@@ -852,7 +852,7 @@ if secondary_output_avg_ε == "YES"
         ), y_A_Z_TKE, Δavg_ε
         )
     CSV.write(
-        "output_data/$(fissionant_nucleus_identifier)_P_avgE_SCM_L.OUT", 
+        "output_data/$(fissionant_nucleus_identifier)_P_avgE_SCM_LF.OUT", 
         DataFrame(avg_ε = probability_avg_ε_L.Argument, P = probability_avg_ε_L.Value), 
         writeheader=true, newline="\r\n", delim=' '
     )
@@ -865,7 +865,7 @@ if secondary_output_avg_ε == "YES"
         ), y_A_Z_TKE, Δavg_ε
         )
     CSV.write(
-        "output_data/$(fissionant_nucleus_identifier)_P_avgE_SCM_H.OUT", 
+        "output_data/$(fissionant_nucleus_identifier)_P_avgE_SCM_HF.OUT", 
         DataFrame(avg_ε = probability_avg_ε_H.Argument, P = probability_avg_ε_H.Value), 
         writeheader=true, newline="\r\n", delim=' '
     )
@@ -880,7 +880,7 @@ if secondary_output_E_excitation == "YES"
         DataFrame(A = E_excitation_A.Argument, E = E_excitation_A.Value), 
         writeheader=true, newline="\r\n", delim=' '
     )
-    probability_E_excitation = Probability_of_occurrence(E_excitation, y_A_Z_TKE, 5e-1)
+    probability_E_excitation = Probability_of_occurrence(E_excitation, y_A_Z_TKE, 1.0)
     CSV.write(
         "output_data/$(fissionant_nucleus_identifier)_P_E_excit.OUT", 
         DataFrame(E = probability_E_excitation.Argument, P = probability_E_excitation.Value), 
@@ -931,45 +931,41 @@ open("output_data/$(fissionant_nucleus_identifier)_Average_quantities.OUT", "w")
             end
         end
         if secondary_output_Tₖ == "YES"
-            for k in 1:maximum(ν_A_Z_TKE_rounded.Value)
+            for k in 1:maximum(Raw_output_datafile.No_Sequence[Raw_output_datafile.Tₖ .>= 0])
                 Tₖ_A_Z_TKE = DataFrame(
-                    A = Raw_output_datafile.A[Raw_output_datafile.No_Sequence .== k],
-                    Z = Raw_output_datafile.Z[Raw_output_datafile.No_Sequence .== k],
-                    TKE = Raw_output_datafile.TKE[Raw_output_datafile.No_Sequence .== k],
-                    Value = Raw_output_datafile.Tₖ[Raw_output_datafile.No_Sequence .== k]
+                    A = Raw_output_datafile.A[(Raw_output_datafile.No_Sequence .== k) .& (Raw_output_datafile.Tₖ .>= 0)],
+                    Z = Raw_output_datafile.Z[(Raw_output_datafile.No_Sequence .== k) .& (Raw_output_datafile.Tₖ .>= 0)],
+                    TKE = Raw_output_datafile.TKE[(Raw_output_datafile.No_Sequence .== k) .& (Raw_output_datafile.Tₖ .>= 0)],
+                    Value = Raw_output_datafile.Tₖ[(Raw_output_datafile.No_Sequence .== k) .& (Raw_output_datafile.Tₖ .>= 0)]
                 )
                 avg_Tₖ_L = Average_value(Tₖ_A_Z_TKE, y_A_Z_TKE, A_L_range)
                 avg_Tₖ_H = Average_value(Tₖ_A_Z_TKE, y_A_Z_TKE, A_H_range)
                 avg_Tₖ = Average_value(Tₖ_A_Z_TKE, y_A_Z_TKE, A_range)
-                if !isnan(avg_Tₖ)
-                    write(file, "<T_$(k)>_L = $avg_Tₖ_L\n<T_$(k)>_H = $avg_Tₖ_H\n<T_$(k)> = $avg_Tₖ\n\n")
-                end
+                write(file, "<T_$(k)>_L = $avg_Tₖ_L\n<T_$(k)>_H = $avg_Tₖ_H\n<T_$(k)> = $avg_Tₖ\n\n")
             end
         end    
         if secondary_output_avg_εₖ == "YES"
-            for k in 1:maximum(ν_A_Z_TKE_rounded.Value)
+            for k in 1:maximum(Raw_output_datafile.No_Sequence[Raw_output_datafile.Tₖ .>= 0])
                 avg_εₖ_A_Z_TKE = DataFrame(
-                    A = Raw_output_datafile.A[Raw_output_datafile.No_Sequence .== k],
-                    Z = Raw_output_datafile.Z[Raw_output_datafile.No_Sequence .== k],
-                    TKE = Raw_output_datafile.TKE[Raw_output_datafile.No_Sequence .== k],
-                    Value = Raw_output_datafile.Avg_εₖ[Raw_output_datafile.No_Sequence .== k]
+                    A = Raw_output_datafile.A[(Raw_output_datafile.No_Sequence .== k) .& (Raw_output_datafile.Tₖ .>= 0)],
+                    Z = Raw_output_datafile.Z[(Raw_output_datafile.No_Sequence .== k) .& (Raw_output_datafile.Tₖ .>= 0)],
+                    TKE = Raw_output_datafile.TKE[(Raw_output_datafile.No_Sequence .== k) .& (Raw_output_datafile.Tₖ .>= 0)],
+                    Value = Raw_output_datafile.Avg_εₖ[(Raw_output_datafile.No_Sequence .== k) .& (Raw_output_datafile.Tₖ .>= 0)]
                 )
                 avg_εₖ_L = Average_value(avg_εₖ_A_Z_TKE, y_A_Z_TKE, A_L_range)
                 avg_εₖ_H = Average_value(avg_εₖ_A_Z_TKE, y_A_Z_TKE, A_H_range)
                 avg_εₖ = Average_value(avg_εₖ_A_Z_TKE, y_A_Z_TKE, A_range)
-                if !isnan(avg_εₖ)
-                    write(file, "avg_<ε_$(k)>_L = $avg_εₖ_L\navg_<ε_$(k)>_H = $avg_εₖ_H\navg_<ε_$(k)> = $avg_εₖ\n\n")
-                end
+                write(file, "avg_<ε_$(k)>_L = $avg_εₖ_L\navg_<ε_$(k)>_H = $avg_εₖ_H\navg_<ε_$(k)> = $avg_εₖ\n\n")
             end
         end
         if secondary_output_Eᵣ == "YES"
-            for k in 1:maximum(ν_A_Z_TKE_rounded.Value)
-                Tₖ = Raw_output_datafile.Tₖ[Raw_output_datafile.No_Sequence .== k]
-                aₖ = Raw_output_datafile.aₖ[Raw_output_datafile.No_Sequence .== k]
+            for k in 1:maximum(Raw_output_datafile.No_Sequence[Raw_output_datafile.Tₖ .>= 0])
+                Tₖ = Raw_output_datafile.Tₖ[(Raw_output_datafile.No_Sequence .== k) .& (Raw_output_datafile.Tₖ .>= 0)]
+                aₖ = Raw_output_datafile.aₖ[(Raw_output_datafile.No_Sequence .== k) .& (Raw_output_datafile.Tₖ .>= 0)]
                 Eᵣ_A_Z_TKE = DataFrame(
-                    A = Raw_output_datafile.A[Raw_output_datafile.No_Sequence .== k],
-                    Z = Raw_output_datafile.Z[Raw_output_datafile.No_Sequence .== k],
-                    TKE = Raw_output_datafile.TKE[Raw_output_datafile.No_Sequence .== k],
+                    A = Raw_output_datafile.A[(Raw_output_datafile.No_Sequence .== k) .& (Raw_output_datafile.Tₖ .>= 0)],
+                    Z = Raw_output_datafile.Z[(Raw_output_datafile.No_Sequence .== k) .& (Raw_output_datafile.Tₖ .>= 0)],
+                    TKE = Raw_output_datafile.TKE[(Raw_output_datafile.No_Sequence .== k) .& (Raw_output_datafile.Tₖ .>= 0)],
                     Value = Energy_FermiGas.(aₖ, Tₖ)
                 )
                 avg_Eᵣ_L = Average_value(Eᵣ_A_Z_TKE, y_A_Z_TKE, A_L_range)

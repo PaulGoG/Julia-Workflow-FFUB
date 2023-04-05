@@ -99,7 +99,7 @@ write_primary_output = "YES"
 #Yield-averaged outputs YES or NO selector
 secondary_outputs = "YES"
 
-secondary_output_Yield = "NO"
+secondary_output_Yield = "YES"
 secondary_output_TXE_Q = "NO"
 secondary_output_E_excitation = "YES"
 secondary_output_ν = "YES"

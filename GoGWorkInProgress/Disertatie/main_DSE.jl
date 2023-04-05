@@ -27,6 +27,4 @@ end
 println("*end program execution at $(Dates.format(now(), "HH:MM:SS"))")
 println("*program execution succesful!")
 
-#ν_A_Z_TKE_rounded !!! check in sec_plots
-#plots.jl check all funct
-#neutron_spectrum check func
+#neutron_spectrum check func for modified nu(a,Z,TKE)
