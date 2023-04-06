@@ -14,19 +14,11 @@ function Process_yield_data(A_0, Z_0, fragmdomain::Distribution, dY::DataFrame)
                 for TKE in sort(unique(dY.TKE[dY.A .== A]))
                     val = P_A_Z * dY.Value[(dY.A .== A) .& (dY.TKE .== TKE)][1]
                     σ = P_A_Z * dY.σ[(dY.A .== A) .& (dY.TKE .== TKE)][1]
-                    if A != A_0/2 || Z != Z_0/2
-                        push!(y_A_Z_TKE.A, A_0 - A)
-                        push!(y_A_Z_TKE.Z, Z)
-                        push!(y_A_Z_TKE.TKE, TKE)
-                        push!(y_A_Z_TKE.Value, val)
-                        push!(y_A_Z_TKE.σ, σ)
-                    else
-                        push!(y_A_Z_TKE.A, A)
-                        push!(y_A_Z_TKE.Z, Z)
-                        push!(y_A_Z_TKE.TKE, TKE)
-                        push!(y_A_Z_TKE.Value, 2*val)
-                        push!(y_A_Z_TKE.σ, σ*sqrt(2))
-                    end
+                    push!(y_A_Z_TKE.A, A_0 - A)
+                    push!(y_A_Z_TKE.Z, Z)
+                    push!(y_A_Z_TKE.TKE, TKE)
+                    push!(y_A_Z_TKE.Value, val)
+                    push!(y_A_Z_TKE.σ, σ)
                 end
             end
         end
@@ -35,30 +27,14 @@ function Process_yield_data(A_0, Z_0, fragmdomain::Distribution, dY::DataFrame)
         for Z in fragmdomain.Z[fragmdomain.A .== A]
             P_A_Z = fragmdomain.Value[(fragmdomain.A .== A) .& (fragmdomain.Z .== Z)][1]
             for TKE in sort(unique(dY.TKE[dY.A .== A]))
-                val = P_A_Z * dY.Value[(dY.A .== A) .& (dY.TKE .== TKE)][1]
-                σ = P_A_Z * dY.σ[(dY.A .== A) .& (dY.TKE .== TKE)][1]
-                if A != A_0/2
+                if !isassigned(y_A_Z_TKE.Value[(y_A_Z_TKE.A .== A) .& (y_A_Z_TKE.Z .== Z) .& (y_A_Z_TKE.TKE .== TKE)], 1)
+                    val = P_A_Z * dY.Value[(dY.A .== A) .& (dY.TKE .== TKE)][1]
+                    σ = P_A_Z * dY.σ[(dY.A .== A) .& (dY.TKE .== TKE)][1]
                     push!(y_A_Z_TKE.A, A)
                     push!(y_A_Z_TKE.Z, Z)
                     push!(y_A_Z_TKE.TKE, TKE)
                     push!(y_A_Z_TKE.Value, val)
                     push!(y_A_Z_TKE.σ, σ)
-                else 
-                    if !isassigned(y_A_Z_TKE.Value[(y_A_Z_TKE.A .== A) .& (y_A_Z_TKE.Z .== Z) .& (y_A_Z_TKE.TKE .== TKE)], 1)
-                        if Z != Z_0/2
-                            push!(y_A_Z_TKE.A, A)
-                            push!(y_A_Z_TKE.Z, Z)
-                            push!(y_A_Z_TKE.TKE, TKE)
-                            push!(y_A_Z_TKE.Value, val)
-                            push!(y_A_Z_TKE.σ, σ)
-                        else
-                            push!(y_A_Z_TKE.A, A)
-                            push!(y_A_Z_TKE.Z, Z)
-                            push!(y_A_Z_TKE.TKE, TKE)
-                            push!(y_A_Z_TKE.Value, 2*val)
-                            push!(y_A_Z_TKE.σ, σ*sqrt(2))
-                        end
-                    end
                 end
             end
         end
