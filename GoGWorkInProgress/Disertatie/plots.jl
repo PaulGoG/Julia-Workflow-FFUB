@@ -570,7 +570,7 @@ if secondary_output_ν == "YES"
         Modify_plot(
             plot_P_Tₖ, "T [MeV]", "Probability %", 
             (0.0, maximum_Tₖ), :identity, 
-            (minimum_P_Tₖ*0.9, maximum_P_Tₖ*1.1), :log10, latexstring("Probability of occurrence \$\\mathrm{P(T_k)}\$ for all fragments")
+            (minimum_P_Tₖ*0.9, maximum_P_Tₖ*1.1), :identity, latexstring("Probability of occurrence \$\\mathrm{P(T_k)}\$ for all fragments")
         )
         Plot_P_q_xticks(plot_P_Tₖ, maximum_Tₖ)
         Plot_log10_yticks(plot_P_Tₖ)
@@ -580,7 +580,7 @@ if secondary_output_ν == "YES"
         Modify_plot(
             plot_P_Tₖ_L, "T [MeV]", "Probability %", 
             (0.0, maximum_Tₖ_L), :identity, 
-            (minimum_P_Tₖ_L*0.9, maximum_P_Tₖ_L*1.1), :log10, latexstring("Probability of occurrence \$\\mathrm{P(T_k)_L}\$ for light fragments")
+            (minimum_P_Tₖ_L*0.9, maximum_P_Tₖ_L*1.1), :identity, latexstring("Probability of occurrence \$\\mathrm{P(T_k)_L}\$ for light fragments")
         )
         Plot_P_q_xticks(plot_P_Tₖ_L, maximum_Tₖ_L)
         Plot_log10_yticks(plot_P_Tₖ_L)
@@ -590,7 +590,7 @@ if secondary_output_ν == "YES"
         Modify_plot(
             plot_P_Tₖ_H, "T [MeV]", "Probability %", 
             (0.0, maximum_Tₖ_H), :identity, 
-            (minimum_P_Tₖ_H*0.9, maximum_P_Tₖ_H*1.1), :log10, latexstring("Probability of occurrence \$\\mathrm{P(T_k)_H}\$ for heavy fragments")
+            (minimum_P_Tₖ_H*0.9, maximum_P_Tₖ_H*1.1), :identity, latexstring("Probability of occurrence \$\\mathrm{P(T_k)_H}\$ for heavy fragments")
         )
         Plot_P_q_xticks(plot_P_Tₖ_H, maximum_Tₖ_H)
         Plot_log10_yticks(plot_P_Tₖ_H)
@@ -723,7 +723,7 @@ if secondary_output_ν == "YES"
         Modify_plot(
             plot_P_avg_εₖ, L"<\varepsilon>\: [MeV]", "Probability %", 
             (0.0, maximum_avg_εₖ), :identity, 
-            (minimum_P_avg_εₖ*0.9, maximum_P_avg_εₖ*1.1), :log10, latexstring("Probability of occurrence \$\\mathrm{P(<\\varepsilon_k>)}\$ for all fragments")
+            (minimum_P_avg_εₖ*0.9, maximum_P_avg_εₖ*1.1), :identity, latexstring("Probability of occurrence \$\\mathrm{P(<\\varepsilon_k>)}\$ for all fragments")
         )
         Plot_P_q_xticks(plot_P_avg_εₖ, maximum_avg_εₖ)
         Plot_log10_yticks(plot_P_avg_εₖ)
@@ -733,7 +733,7 @@ if secondary_output_ν == "YES"
         Modify_plot(
             plot_P_avg_εₖ_L, L"<\varepsilon>\: [MeV]", "Probability %", 
             (0.0, maximum_avg_εₖ_L), :identity, 
-            (minimum_P_avg_εₖ_L*0.9, maximum_P_avg_εₖ_L*1.1), :log10, latexstring("Probability of occurrence \$\\mathrm{P(<\\varepsilon_k>)_L}\$ for light fragments")
+            (minimum_P_avg_εₖ_L*0.9, maximum_P_avg_εₖ_L*1.1), :identity, latexstring("Probability of occurrence \$\\mathrm{P(<\\varepsilon_k>)_L}\$ for light fragments")
         )
         Plot_P_q_xticks(plot_P_avg_εₖ_L, maximum_avg_εₖ_L)
         Plot_log10_yticks(plot_P_avg_εₖ_L)
@@ -743,7 +743,7 @@ if secondary_output_ν == "YES"
         Modify_plot(
             plot_P_avg_εₖ_H, L"<\varepsilon>\: [MeV]", "Probability %", 
             (0.0, maximum_avg_εₖ_H), :identity, 
-            (minimum_P_avg_εₖ_H*0.9, maximum_P_avg_εₖ_H*1.1), :log10, latexstring("Probability of occurrence \$\\mathrm{P(<\\varepsilon_k>)_H}\$ for heavy fragments")
+            (minimum_P_avg_εₖ_H*0.9, maximum_P_avg_εₖ_H*1.1), :identity, latexstring("Probability of occurrence \$\\mathrm{P(<\\varepsilon_k>)_H}\$ for heavy fragments")
         )
         Plot_P_q_xticks(plot_P_avg_εₖ_H, maximum_avg_εₖ_H)
         Plot_log10_yticks(plot_P_avg_εₖ_H)
@@ -882,7 +882,7 @@ if secondary_output_ν == "YES"
         Modify_plot(
             plot_P_Eᵣ, L"\mathrm{E^r\: [MeV]}", "Probability %", 
             (0.0, maximum_Eᵣ), :identity, 
-            (minimum_P_Eᵣ*0.9, maximum_P_Eᵣ*1.1), :log10, latexstring("Probability of occurrence \$\\mathrm{P(E^r_k)}\$ for all fragments")
+            (minimum_P_Eᵣ*0.9, maximum_P_Eᵣ*1.1), :identity, latexstring("Probability of occurrence \$\\mathrm{P(E^r_k)}\$ for all fragments")
         )
         xticks!(plot_P_Eᵣ, 0:5:maximum_Eᵣ)
         Plot_log10_yticks(plot_P_Eᵣ)
@@ -892,7 +892,7 @@ if secondary_output_ν == "YES"
         Modify_plot(
             plot_P_Eᵣ_L, L"\mathrm{E^r\: [MeV]}", "Probability %", 
             (0.0, maximum_Eᵣ_L), :identity, 
-            (minimum_P_Eᵣ_L*0.9, maximum_P_Eᵣ_L*1.1), :log10, latexstring("Probability of occurrence \$\\mathrm{P(E^r_k)_L}\$ for light fragments")
+            (minimum_P_Eᵣ_L*0.9, maximum_P_Eᵣ_L*1.1), :identity, latexstring("Probability of occurrence \$\\mathrm{P(E^r_k)_L}\$ for light fragments")
         )
         xticks!(plot_P_Eᵣ_L, 0:5:maximum_Eᵣ_L)
         Plot_log10_yticks(plot_P_Eᵣ_L)
@@ -902,7 +902,7 @@ if secondary_output_ν == "YES"
         Modify_plot(
             plot_P_Eᵣ_H, L"\mathrm{E^r\: [MeV]}", "Probability %", 
             (0.0, maximum_Eᵣ_H), :identity, 
-            (minimum_P_Eᵣ_H*0.9, maximum_P_Eᵣ_H*1.1), :log10, latexstring("Probability of occurrence \$\\mathrm{P(E^r_k)_H}\$ for heavy fragments")
+            (minimum_P_Eᵣ_H*0.9, maximum_P_Eᵣ_H*1.1), :identity, latexstring("Probability of occurrence \$\\mathrm{P(E^r_k)_H}\$ for heavy fragments")
         )
         xticks!(plot_P_Eᵣ_H, 0:5:maximum_Eᵣ_H)
         Plot_log10_yticks(plot_P_Eᵣ_H)

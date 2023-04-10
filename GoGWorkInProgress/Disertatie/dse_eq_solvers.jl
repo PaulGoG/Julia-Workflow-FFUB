@@ -136,21 +136,20 @@ function DSE_equation_solver_VARIABLE_cs(E_excitation::Distribution, density_par
                     while Eᵣ_k_last >= Sₙ_k_last
                         T_k, α_k = Solve_transcendental_eq(Eᵣ_k_last, Sₙ_k_last, a_k, A, k)
 
-                        #####
                         if !isnan(T_k)
-                        push!(Tₖ.A, A)
-                        push!(Tₖ.Z, Z)
-                        push!(Tₖ.TKE, TKE)
-                        push!(Tₖ.Value, T_k)
-                        push!(aₖ, a_k)
-                        push!(αₖ, α_k)
-                        push!(Tₖ.No_Sequence, k)
+                            push!(Tₖ.A, A)
+                            push!(Tₖ.Z, Z)
+                            push!(Tₖ.TKE, TKE)
+                            push!(Tₖ.Value, T_k)
+                            push!(aₖ, a_k)
+                            push!(αₖ, α_k)
+                            push!(Tₖ.No_Sequence, k)
 
-                        Sum_avg_ε += Average_neutron_energy(α_k, T_k)
-                        Eᵣ_k_last = Energy_FermiGas(a_k, T_k)
-                        Sₙ_k_last = Separation_energy(1, 0, A - k, Z, dm)[1]
-                        k += 1
-                        a_k = density_parameter(density_parameter_type, A - k, Z, density_parameter_data)
+                            Sum_avg_ε += Average_neutron_energy(α_k, T_k)
+                            Eᵣ_k_last = Energy_FermiGas(a_k, T_k)
+                            Sₙ_k_last = Separation_energy(1, 0, A - k, Z, dm)[1]
+                            k += 1
+                            a_k = density_parameter(density_parameter_type, A - k, Z, density_parameter_data)
                         else
                             break
                         end
