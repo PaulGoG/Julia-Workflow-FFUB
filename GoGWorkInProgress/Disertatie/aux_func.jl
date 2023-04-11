@@ -1,4 +1,3 @@
-#Function bodies and parameter initialisations used in the main part of the DSE code
 #####
 #Load Julia packages for data manipulation
 using DataFrames, CSV
@@ -27,7 +26,7 @@ if fission_type == "SF"
     #Null neutron incident energy in spontaneous fission
     E_incident = 0.0
 elseif fission_type == "(n,f)"
-    #Taking into account compound nucleus formation
+    #Take into account compound nucleus formation
     A₀ += 1
 end
 
@@ -35,6 +34,8 @@ end
 A_H_range = A_H_min:A_H_max
 A_L_range = (A₀ - A_H_max):(A₀ - A_H_min)
 A_range = (A₀ - A_H_max):A_H_max
+
+#Read data and initialise constants
 
 if evaporation_cs_type == "VARIABLE"
     using Roots
@@ -47,7 +48,7 @@ end
 
 if neutron_spectrum == "YES"
     using QuadGK, Trapz
-    struct Neutron_spectrum_object{T <: Vector{Float64}} <: AbstractDistribution
+    struct Neutron_spectrum{T <: Vector{Float64}} <: AbstractDistribution
         E::T
         Value::T
     end
@@ -107,7 +108,9 @@ if generate_plots == "YES"
         mkdir("plots/")
     end
 end
-#Function definitions
+
+#Define main functions
+
 #Isobaric charge distribution p(Z,A)
 function p_A_Z(Z, Z_p, rms_A)
     return exp(-(Z - Z_p)^2 /(2 *rms_A^2)) /(sqrt(2*π) *rms_A)

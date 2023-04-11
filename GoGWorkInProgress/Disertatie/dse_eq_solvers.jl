@@ -3,7 +3,6 @@ Function bodies for solving the DSE energy conservation equations coresponding t
 constant and variable neutron evaporation cross section types.
 =#
 #####
-#CONSTANT σₙ function
 function DSE_equation_solver_CONSTANT_cs(E_excitation::Distribution, density_parameter_type, density_parameter_data, dm::DataFrame)
     Tₖ = Distribution(Int[], Int[], Float64[], Int[], Float64[], Float64[])
     aₖ = Float64[]
@@ -66,8 +65,8 @@ function DSE_equation_solver_CONSTANT_cs(E_excitation::Distribution, density_par
     end
     return Tₖ, aₖ
 end
-#VARIABLE σₙ functions
-#Parametrization for the force function S₀ of the s-wave neutron
+#VARIABLE σₙ
+#Parametrization for the force function S₀ of the s-wave neutron based on RIPL-3 data
 function Neutron_strength_function(A)
     if A <= 23
         return 2.5e-5
@@ -111,6 +110,7 @@ function Solve_transcendental_eq(Eᵣ_k_last, Sₙ_k_last, a_k, A, k)
     T_k = find_zero(trans_eq, (0.0, Inf))
     
     #Intentional cutoff values to match old Fortran code
+    #Should NOT exist in final version!!!
     if T_k > 2 || T_k < 1e-2
         T_k = NaN
     end
@@ -187,7 +187,6 @@ function DSE_equation_solver_VARIABLE_cs(E_excitation::Distribution, density_par
     end
     return Tₖ, aₖ, αₖ
 end
-#Function selector
 function DSE_equation_solver(evaporation_cs_type, E_excitation, density_parameter_type, density_parameter_data, dm)
     println("*solving DSE energy conservation equations")
     if evaporation_cs_type == "CONSTANT"

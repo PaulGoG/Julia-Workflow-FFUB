@@ -30,9 +30,9 @@ function TXE_partitioning(A_0, Z_0, A_H_range, fission_type, E_incident, fragmdo
                             r = a_L/a_H
                             for TKE in tkerange
                                 TXE = Total_excitation_energy(Q[1], Q[2], TKE, 0.0, E_CN[1], E_CN[2])[1]
-                                if TXE > 0
+                                if TXE >= 0
                                     E_scission = TXE - (ΔE_def_L + ΔE_def_H)
-                                    if E_scission > 0
+                                    if E_scission >= 0
                                         E_excit_L = r *E_scission/(1 + r) + ΔE_def_L
                                         E_excit_H = E_scission/(1 + r) + ΔE_def_H
                                         if A_L != A_H
@@ -90,7 +90,7 @@ function TXE_partitioning(A_0, Z_0, A_H_range, fission_type, E_incident, fragmdo
                     if !isnan(Q[1])
                         for TKE in tkerange
                             TXE = Total_excitation_energy(Q[1], Q[2], TKE, 0.0, E_CN[1], E_CN[2])[1]
-                            if TXE > 0 
+                            if TXE >= 0 
                                 E_excit_H = TXE *Ratio
                                 E_excit_L = TXE - E_excit_H
                                 if A_L != A_H
@@ -150,7 +150,7 @@ function TXE_partitioning(A_0, Z_0, A_H_range, fission_type, E_incident, fragmdo
                         Ratio = 1/(1 + r *R_T^2)
                         for TKE in tkerange
                             TXE = Total_excitation_energy(Q[1], Q[2], TKE, 0.0, E_CN[1], E_CN[2])[1]
-                            if TXE > 0 
+                            if TXE >= 0 
                                 E_excit_H = TXE *Ratio
                                 E_excit_L = TXE - E_excit_H
                                 if A_L != A_H

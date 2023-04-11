@@ -55,7 +55,7 @@ density_parameter_firstdataline = 2
 #=
 Neutron evaporation cross section type:
 *CONSTANT for constant cross section
-*VARIABLE for energy-dependent cross section modelled with s-wave neutron force function
+*VARIABLE for energy-dependent cross section modelled with s-wave neutron strength function
 =#
 evaporation_cs_type = "VARIABLE"
 
@@ -93,10 +93,10 @@ txe_partitioning_firstdataline = 2
 
 txe_partitioning_segmentpoints = [(126, 0.5), (130, 0.14), (150, 0.607), (174, 0.865)]
 
-#Writing out main DSE output file containing detailed sequence data YES or NO selector
+#Write out main DSE output file containing detailed sequence data YES or NO selector
 write_primary_output = "YES"
 
-#Yield-averaged outputs YES or NO selector
+#Yield-averaged outputs YES or NO selector for data and plots
 secondary_outputs = "YES"
 
 secondary_output_Yield = "YES"
@@ -121,10 +121,10 @@ neutron_spectrum = "NO"
 E_min = 1e-6
 E_max = 20.0
 E_step = 5e-2
-Yield_cutoff_value = 5e-5
+Yield_cutoff_value = 5e-4
 
 #Plots YES or NO selector
-generate_plots = "YES"
+generate_plots = "NO"
 multidim_plots = "NO"
 
 resolution_scale = 250
