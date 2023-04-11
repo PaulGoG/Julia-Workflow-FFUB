@@ -257,44 +257,44 @@ function Process_main_output(DSE_eq_output, evaporation_cs_type)
     end
     return Data
 end
-#Writing primary output to file
+#Write primary output to file
 function Write_seq_output(A_0, Z_0, A_H_min, A_H_max, No_ZperA, E_incident, tkerange, fragmdomain, E_excitation, Processed_raw_output, density_parameter_type, density_parameter_data, fissionant_nucleus_identifier, mass_excess_filename, txe_partitioning_type, txe_partitioning_data, evaporation_cs_type, dm)
     println("*writing primary DSE output data to file")
     horizontal_delimiter = lpad('-', 159, '-')
     E_CN = Compound_nucleus_energy(fission_type, A_0, Z_0, E_incident, dm)
-    open("output_data/$(fissionant_nucleus_identifier)_main_DSE_.OUT", "w") do file
-        write(file, "DSE main output file generated at $(Dates.format(now(), "HH:MM:SS")) corresponding to input data:\n")
-        write(file, "$(fissionant_nucleus_identifier) (A₀ = $A_0, Z₀ = $Z_0), fission type: $fission_type, $No_ZperA Z per A, mass excess file - $mass_excess_filename\n")
-        write(file, "Heavy Fragment mass number ranges from $A_H_min to $A_H_max\n")
-        write(file, "TKE ∈ $tkerange\n")
-        write(file, "TXE partitioning method - $txe_partitioning_type\n")
+
+    open("output_data/$(fissionant_nucleus_identifier)_readme.OUT", "w") do file
+        write(file, "DSE main output file generated at $(Dates.format(now(), "HH:MM:SS")) corresponding to input data:\r\n")
+        write(file, "$(fissionant_nucleus_identifier) (A₀ = $A_0, Z₀ = $Z_0), fission type: $fission_type, $No_ZperA Z per A, mass excess file - $mass_excess_filename\r\n")
+        write(file, "Heavy Fragment mass number ranges from $A_H_min to $A_H_max\r\n")
+        write(file, "TKE ∈ $tkerange\r\n")
+        write(file, "TXE partitioning method - $txe_partitioning_type\r\n")
         if txe_partitioning_type == "MSCZ"
-            write(file, "TXE partitioning data used: Extra deformation energies from $txe_partitioning_filename\n")
+            write(file, "TXE partitioning data used: Extra deformation energies from $txe_partitioning_filename\r\n")
         elseif txe_partitioning_type == "RT"
-            write(file, "TXE partitioning data used: RT(A_H) denoted by segments $txe_partitioning_data\n")
+            write(file, "TXE partitioning data used: RT(A_H) denoted by segments $txe_partitioning_data\r\n")
         elseif txe_partitioning_type == "PARAM"
-            write(file, "TXE partitioning data used: Ratio(A_H) = E*_H/TXE denoted by segments $txe_partitioning_data\n")
+            write(file, "TXE partitioning data used: Ratio(A_H) = E*_H/TXE denoted by segments $txe_partitioning_data\r\n")
         end
         if evaporation_cs_type == "CONSTANT"
-            write(file, "Neutron evaporation cross section is considered CONSTANT\n")
+            write(file, "Neutron evaporation cross section is considered CONSTANT\r\n")
         elseif evaporation_cs_type == "VARIABLE"
-            write(file, "Neutron evaporation cross section is considered VARIABLE and calculated using s-wave neutron force function\n")
+            write(file, "Neutron evaporation cross section is considered VARIABLE and calculated using s-wave neutron force function\r\n")
         end
-        write(file, "\n$horizontal_delimiter\n$horizontal_delimiter\n")
+        write(file, "\r\n$horizontal_delimiter")
+    end
+
+    open("output_data/$(fissionant_nucleus_identifier)_main_DSE_.OUT", "w") do file
         for A in unique(Processed_raw_output.A)
             for Z in unique(Processed_raw_output.Z[Processed_raw_output.A .== A])
                 P_Z_A = fragmdomain.Value[(fragmdomain.A .== A) .& (fragmdomain.Z .== Z)][1]
-                Q = Q_value_released(A_0, Z_0, A, Z, dm)
                 a = density_parameter(density_parameter_type, A, Z, density_parameter_data)
-                S = Separation_energy(1, 0, A, Z, dm)[1]
-                write(file, "Fission fragment: A = $A / Z = $Z / p(Z,A) = $P_Z_A / Q = $(Q[1]) / a = $a / Sₙ = $S\n\n")
                 for TKE in unique(Processed_raw_output.TKE[(Processed_raw_output.A .== A) .& (Processed_raw_output.Z .== Z)])
-                    TXE = Total_excitation_energy(Q[1], Q[2], TKE, 0.0, E_CN[1], E_CN[2])[1]
                     E_excit = E_excitation.Value[(E_excitation.A .== A) .& (E_excitation.Z .== Z) .& (E_excitation.TKE .== TKE)][1]
-                    write(file, "TKE = $TKE / TXE = $TXE / E* = $E_excit\n")
+                    write(file, "$A $Z $TKE $P_Z_A $E_excit $a\r\n")
                     for k in unique(Processed_raw_output.No_Sequence[(Processed_raw_output.A .== A) .& (Processed_raw_output.Z .== Z) .& (Processed_raw_output.TKE .== TKE)])
                         if k > 0
-                            write(file, "   *Emission sequence $k:\n   ")
+                            write(file, "   *Emission sequence $k:\r\n   ")
                             T_k = Processed_raw_output.Tₖ[(Processed_raw_output.A .== A) .& (Processed_raw_output.Z .== Z) .& (Processed_raw_output.TKE .== TKE) .& (Processed_raw_output.No_Sequence .== k)][1]
                             write(file, "T = $T_k ")
                             a_k = Processed_raw_output.aₖ[(Processed_raw_output.A .== A) .& (Processed_raw_output.Z .== Z) .& (Processed_raw_output.TKE .== TKE) .& (Processed_raw_output.No_Sequence .== k)][1]
@@ -304,14 +304,14 @@ function Write_seq_output(A_0, Z_0, A_H_min, A_H_max, No_ZperA, E_incident, tker
                             S_k = Separation_energy(1, 0, A-k, Z, dm)[1]
                             write(file, "/ Sₙ = $S_k ")
                             avgε_k = Processed_raw_output.Avg_εₖ[(Processed_raw_output.A .== A) .& (Processed_raw_output.Z .== Z) .& (Processed_raw_output.TKE .== TKE) .& (Processed_raw_output.No_Sequence .== k)][1]
-                            write(file, "/ <ε> = $avgε_k\n")
+                            write(file, "/ <ε> = $avgε_k\r\n")
                         else
-                            write(file, "   *Fragment does not emit neutrons at TKE = $(TKE)!\n")
+                            write(file, "   *Fragment does not emit neutrons at TKE = $(TKE)!\r\n")
                         end
                     end
-                    write(file, '\n')
+                    write(file, "\r\n")
                 end
-                write(file, "$horizontal_delimiter\n")
+                write(file, "$horizontal_delimiter\r\n")
             end
         end
         write(file, horizontal_delimiter)
