@@ -28,4 +28,3 @@ println("*end program execution at $(Dates.format(now(), "HH:MM:SS"))")
 println("*program execution succesful!")
 
 #neutron_spectrum check func for modified nu(a,Z,TKE) & Yield/2 and add SCM spectra
-#rewrite primary output
