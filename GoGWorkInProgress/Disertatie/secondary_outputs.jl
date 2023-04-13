@@ -97,7 +97,7 @@ end
 #Average q(A,Z,TKE) over Y(A,Z,TKE) so it becomes q(TKE)
 function Average_over_A_Z(q_A_Z_TKE, y_A_Z_TKE::Distribution)
     q_TKE = Distribution_unidym(Float64[], Float64[], Float64[])
-    for TKE in unique(q_A_Z_TKE.TKE)
+    for TKE in sort(unique(q_A_Z_TKE.TKE))
         Denominator = 0.0
         Numerator = 0.0
         for A in unique(q_A_Z_TKE.A[(q_A_Z_TKE.TKE .== TKE)])
@@ -512,6 +512,7 @@ if secondary_output_ν == "YES"
         DataFrame(ν = probability_ν.Argument, P = probability_ν.Value), 
         writeheader=true, newline="\r\n", delim=' '
     )
+    #=
     probability_ν_L = Probability_of_occurrence(
         DataFrame(
             A = ν_A_Z_TKE.A[ν_A_Z_TKE.A .<= A_H_min], 
@@ -538,6 +539,7 @@ if secondary_output_ν == "YES"
         DataFrame(ν = probability_ν_H.Argument, P = probability_ν_H.Value), 
         writeheader=true, newline="\r\n", delim=' '
     )
+    =#
     if secondary_output_Ap == "YES"
         y_Ap_Z_TKE, y_Ap_Z = Yield_post_neutron(y_A_Z_TKE, max_seq_A_Z_TKE)
         Ap_H_min = A_H_min - ceil(ν_A.Value[ν_A.Argument .== A_H_min][1])
@@ -607,7 +609,7 @@ if secondary_output_ν == "YES"
                 DataFrame(A = ke_Ap.Argument, KE = ke_Ap.Value), 
                 writeheader=true, newline="\r\n", delim=' '
             )
-            for Z in unique(y_Ap_Z.Z)
+            for Z in sort(unique(y_Ap_Z.Z))
                 CSV.write(
                     "output_data/Yield_Ap/Yield_Ap_Z/$(fissionant_nucleus_identifier)_Y_Ap_$(Z).OUT", 
                     DataFrame(Aₚ = y_Ap_Z.A[y_Ap_Z.Z .== Z], Y = y_Ap_Z.Value[y_Ap_Z.Z .== Z]), 
@@ -947,9 +949,7 @@ open("output_data/$(fissionant_nucleus_identifier)_Average_quantities.OUT", "w")
                 avg_Eᵣ_L = Average_value(Eᵣ_A_Z_TKE, y_A_Z_TKE, A_L_range)
                 avg_Eᵣ_H = Average_value(Eᵣ_A_Z_TKE, y_A_Z_TKE, A_H_range)
                 avg_Eᵣ = Average_value(Eᵣ_A_Z_TKE, y_A_Z_TKE, A_range)
-                if !isnan(avg_Eᵣ)
-                    write(file, "<Eᵣ_$(k)>_L = $avg_Eᵣ_L\n<Eᵣ_$(k)>_H = $avg_Eᵣ_H\n<Eᵣ_$(k)> = $avg_Eᵣ\n\n")
-                end
+                write(file, "<Eᵣ_$(k)>_L = $avg_Eᵣ_L\n<Eᵣ_$(k)>_H = $avg_Eᵣ_H\n<Eᵣ_$(k)> = $avg_Eᵣ\n\n")
             end
         end
     end

@@ -158,19 +158,6 @@ end
 function Plot_legend_attributes(plt::Plots.Plot, lposition)
     plot!(plt, legend_position = lposition)
 end
-function Plot_log10_yticks(plt::Plots.Plot)
-    ticks = [10.0^i for i in -20:20]
-    yticks!(
-        plt,
-        ticks
-    )
-end
-function Plot_P_q_xticks(plt::Plots.Plot, maxval)
-    xticks!(
-        plt,
-        0.0:0.5:maxval
-    )
-end
 function Process_plot(plt::Plots.Plot, filename::String, fissionant_nucleus_identifier::String)
     savefig(plt, "plots/$(fissionant_nucleus_identifier)_$(filename).png")
     println("*plotting $filename done!")
@@ -190,7 +177,6 @@ if secondary_output_Yield == "YES"
         (minimum(y_A.Value), maximum(y_A.Value)*2.5), :log10, "Y(A) of fission fragments in log10 scale"
     )
     xticks!(plot_y_A_log, 10 *div(minimum(y_A.Argument), 10):5:maximum(y_A.Argument))
-    Plot_log10_yticks(plot_y_A_log)
     Process_plot(plot_y_A_log, "y_A_log", fissionant_nucleus_identifier)
 
     plot_y_A_lin = Scatter_data(y_A.Argument, y_A.Value, "", :red, 5, :circle)
@@ -386,7 +372,6 @@ if secondary_output_ν == "YES"
             (minimum(y_Ap.Value), maximum(y_Ap.Value)*2), :log10, latexstring("\$\\mathrm{Y_p(A)}\$ of post-neutron fragments in log10 scale")
         )
         xticks!(plot_y_Ap_log, 10 *div(minimum(y_Ap.Argument), 10):5:maximum(y_Ap.Argument))
-        Plot_log10_yticks(plot_y_Ap_log)
         Process_plot(plot_y_Ap_log, "y_Ap_log", fissionant_nucleus_identifier)
 
         plot_y_Ap_comp_log = Scatter_data(y_Ap.Argument, y_Ap.Value, L"\mathrm{Y_p(A)}", :red, 4, :circle)
@@ -400,7 +385,6 @@ if secondary_output_ν == "YES"
             (minimum(y_Ap.Value), maximum(y_Ap.Value)*2), :log10, latexstring("\$\\mathrm{Y(A)\\: and\\: Y(A_p)}\$ in log10 scale")
         )
         xticks!(plot_y_Ap_comp_log, 10 *div(minimum(y_Ap.Argument), 10):5:maximum(y_Ap.Argument))
-        Plot_log10_yticks(plot_y_Ap_comp_log)
         Plot_legend_attributes(plot_y_Ap_comp_log, :bottomright)
         Process_plot(plot_y_Ap_comp_log, "y_Ap_comparisson_log", fissionant_nucleus_identifier)
 
@@ -572,8 +556,6 @@ if secondary_output_ν == "YES"
             (0.0, maximum_Tₖ), :identity, 
             (minimum_P_Tₖ*0.9, maximum_P_Tₖ*1.1), :identity, latexstring("Probability of occurrence \$\\mathrm{P(T_k)}\$ for all fragments")
         )
-        Plot_P_q_xticks(plot_P_Tₖ, maximum_Tₖ)
-        Plot_log10_yticks(plot_P_Tₖ)
         Process_plot(plot_P_Tₖ, "P_T_k", fissionant_nucleus_identifier)
 
         Modify_plot(plot_P_Tₖ_L)
@@ -582,8 +564,6 @@ if secondary_output_ν == "YES"
             (0.0, maximum_Tₖ_L), :identity, 
             (minimum_P_Tₖ_L*0.9, maximum_P_Tₖ_L*1.1), :identity, latexstring("Probability of occurrence \$\\mathrm{P(T_k)_L}\$ for light fragments")
         )
-        Plot_P_q_xticks(plot_P_Tₖ_L, maximum_Tₖ_L)
-        Plot_log10_yticks(plot_P_Tₖ_L)
         Process_plot(plot_P_Tₖ_L, "P_T_k_LF", fissionant_nucleus_identifier)
 
         Modify_plot(plot_P_Tₖ_H)
@@ -592,8 +572,6 @@ if secondary_output_ν == "YES"
             (0.0, maximum_Tₖ_H), :identity, 
             (minimum_P_Tₖ_H*0.9, maximum_P_Tₖ_H*1.1), :identity, latexstring("Probability of occurrence \$\\mathrm{P(T_k)_H}\$ for heavy fragments")
         )
-        Plot_P_q_xticks(plot_P_Tₖ_H, maximum_Tₖ_H)
-        Plot_log10_yticks(plot_P_Tₖ_H)
         Process_plot(plot_P_Tₖ_H, "P_T_k_HF", fissionant_nucleus_identifier)
     end
     if secondary_output_avg_εₖ == "YES"
@@ -725,8 +703,6 @@ if secondary_output_ν == "YES"
             (0.0, maximum_avg_εₖ), :identity, 
             (minimum_P_avg_εₖ*0.9, maximum_P_avg_εₖ*1.1), :identity, latexstring("Probability of occurrence \$\\mathrm{P(<\\varepsilon_k>)}\$ for all fragments")
         )
-        Plot_P_q_xticks(plot_P_avg_εₖ, maximum_avg_εₖ)
-        Plot_log10_yticks(plot_P_avg_εₖ)
         Process_plot(plot_P_avg_εₖ, "P_avgE_SCM_k", fissionant_nucleus_identifier)
 
         Modify_plot(plot_P_avg_εₖ_L)
@@ -735,8 +711,6 @@ if secondary_output_ν == "YES"
             (0.0, maximum_avg_εₖ_L), :identity, 
             (minimum_P_avg_εₖ_L*0.9, maximum_P_avg_εₖ_L*1.1), :identity, latexstring("Probability of occurrence \$\\mathrm{P(<\\varepsilon_k>)_L}\$ for light fragments")
         )
-        Plot_P_q_xticks(plot_P_avg_εₖ_L, maximum_avg_εₖ_L)
-        Plot_log10_yticks(plot_P_avg_εₖ_L)
         Process_plot(plot_P_avg_εₖ_L, "P_avgE_SCM_k_LF", fissionant_nucleus_identifier)
 
         Modify_plot(plot_P_avg_εₖ_H)
@@ -745,8 +719,6 @@ if secondary_output_ν == "YES"
             (0.0, maximum_avg_εₖ_H), :identity, 
             (minimum_P_avg_εₖ_H*0.9, maximum_P_avg_εₖ_H*1.1), :identity, latexstring("Probability of occurrence \$\\mathrm{P(<\\varepsilon_k>)_H}\$ for heavy fragments")
         )
-        Plot_P_q_xticks(plot_P_avg_εₖ_H, maximum_avg_εₖ_H)
-        Plot_log10_yticks(plot_P_avg_εₖ_H)
         Process_plot(plot_P_avg_εₖ_H, "P_avgE_SCM_k_HF", fissionant_nucleus_identifier)
     end
     if secondary_output_Eᵣ == "YES"
@@ -885,7 +857,6 @@ if secondary_output_ν == "YES"
             (minimum_P_Eᵣ*0.9, maximum_P_Eᵣ*1.1), :identity, latexstring("Probability of occurrence \$\\mathrm{P(E^r_k)}\$ for all fragments")
         )
         xticks!(plot_P_Eᵣ, 0:5:maximum_Eᵣ)
-        Plot_log10_yticks(plot_P_Eᵣ)
         Process_plot(plot_P_Eᵣ, "P_Er", fissionant_nucleus_identifier)
 
         Modify_plot(plot_P_Eᵣ_L)
@@ -895,7 +866,6 @@ if secondary_output_ν == "YES"
             (minimum_P_Eᵣ_L*0.9, maximum_P_Eᵣ_L*1.1), :identity, latexstring("Probability of occurrence \$\\mathrm{P(E^r_k)_L}\$ for light fragments")
         )
         xticks!(plot_P_Eᵣ_L, 0:5:maximum_Eᵣ_L)
-        Plot_log10_yticks(plot_P_Eᵣ_L)
         Process_plot(plot_P_Eᵣ_L, "P_Er_LF", fissionant_nucleus_identifier)
 
         Modify_plot(plot_P_Eᵣ_H)
@@ -905,7 +875,6 @@ if secondary_output_ν == "YES"
             (minimum_P_Eᵣ_H*0.9, maximum_P_Eᵣ_H*1.1), :identity, latexstring("Probability of occurrence \$\\mathrm{P(E^r_k)_H}\$ for heavy fragments")
         )
         xticks!(plot_P_Eᵣ_H, 0:5:maximum_Eᵣ_H)
-        Plot_log10_yticks(plot_P_Eᵣ_H)
         Process_plot(plot_P_Eᵣ_H, "P_Er_HF", fissionant_nucleus_identifier)
     end
 end
@@ -920,7 +889,6 @@ if secondary_output_T == "YES"
         (0.0, maximum(probability_T.Argument)), :identity, 
         (0.0, maximum(probability_T.Value)*1.1), :identity, latexstring("Probability of occurrence \$\\mathrm{P(T)}\$ for all fragments")
     )
-    Plot_P_q_xticks(plot_P_T, maximum(probability_T.Argument))
     Process_plot(plot_P_T, "P_T", fissionant_nucleus_identifier)
 
     avg_T_L = Average_value(T_A_Z_TKE, y_A_Z_TKE, A_L_range)
@@ -931,7 +899,6 @@ if secondary_output_T == "YES"
         (0.0, maximum(probability_T_L.Argument)), :identity, 
         (0.0, maximum(probability_T_L.Value)*1.1), :identity, latexstring("Probability of occurrence \$\\mathrm{P(T_L)}\$ for light fragments")
     )
-    Plot_P_q_xticks(plot_P_T_L, maximum(probability_T_L.Argument))
     Process_plot(plot_P_T_L, "P_T_LF", fissionant_nucleus_identifier)
 
     avg_T_H = Average_value(T_A_Z_TKE, y_A_Z_TKE, A_H_range)
@@ -942,7 +909,6 @@ if secondary_output_T == "YES"
         (0.0, maximum(probability_T_H.Argument)), :identity, 
         (0.0, maximum(probability_T_H.Value)*1.1), :identity, latexstring("Probability of occurrence \$\\mathrm{P(T_H)}\$ for heavy fragments")
     )
-    Plot_P_q_xticks(plot_P_T_H, maximum(probability_T_H.Argument))
     Process_plot(plot_P_T_H, "P_T_HF", fissionant_nucleus_identifier)
 end
 if secondary_output_avg_ε == "YES"
@@ -956,7 +922,6 @@ if secondary_output_avg_ε == "YES"
         (0.0, maximum(probability_avg_ε.Argument)), :identity, 
         (0.0, maximum(probability_avg_ε.Value)*1.1), :identity, latexstring("Probability of occurrence \$\\mathrm{P(<\\varepsilon>)}\$ for all fragments")
     )
-    Plot_P_q_xticks(plot_avgE_SCM, maximum(probability_avg_ε.Argument))
     Process_plot(plot_avgE_SCM, "P_avgE_SCM", fissionant_nucleus_identifier)
 
     avg_ε_L = Average_value(avg_ε_A_Z_TKE, y_A_Z_TKE, A_L_range)
@@ -967,7 +932,6 @@ if secondary_output_avg_ε == "YES"
         (0.0, maximum(probability_avg_ε_L.Argument)), :identity, 
         (0.0, maximum(probability_avg_ε_L.Value)*1.1), :identity, latexstring("Probability of occurrence \$\\mathrm{P(<\\varepsilon>_L)}\$ for light fragments")
     )
-    Plot_P_q_xticks(plot_avgE_L_SCM, maximum(probability_avg_ε_L.Argument))
     Process_plot(plot_avgE_L_SCM, "P_avgE_LF_SCM", fissionant_nucleus_identifier)
 
     avg_ε_H = Average_value(avg_ε_A_Z_TKE, y_A_Z_TKE, A_H_range)
@@ -978,7 +942,6 @@ if secondary_output_avg_ε == "YES"
         (0.0, maximum(probability_avg_ε_H.Argument)), :identity, 
         (0.0, maximum(probability_avg_ε_H.Value)*1.1), :identity, latexstring("Probability of occurrence \$\\mathrm{P(<\\varepsilon>_H)}\$ for heavy fragments")
     )
-    Plot_P_q_xticks(plot_avgE_H_SCM, maximum(probability_avg_ε_H.Argument))
     Process_plot(plot_avgE_H_SCM, "P_avgE_HF_SCM", fissionant_nucleus_identifier)
 end
 if secondary_output_TXE_Q == "YES"
@@ -1035,7 +998,6 @@ if neutron_spectrum == "YES"
         plot_nSpectrum, "E [MeV]", "Neutron spectrum 1/MeV", (0.0, last(n_E.E)),
         :identity, (minimum(n_E.Value) *5e-1, maximum(n_E.Value) *10), :log10, "SL Neutron spectrum in log10 scale"
     )
-    Plot_log10_yticks(plot_nSpectrum)
     Process_plot(plot_nSpectrum, "nSpectrum_logscale", fissionant_nucleus_identifier)
 
     plot_nSpectrum_ratio_Maxwellian = Plot_data(n_E.E, Ratio_to_Maxwellian, "", :red)

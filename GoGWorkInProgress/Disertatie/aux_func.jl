@@ -281,10 +281,8 @@ function Write_seq_output(A_0, Z_0, A_H_min, A_H_max, No_ZperA, E_incident, tker
         elseif evaporation_cs_type == "VARIABLE"
             write(file, "Neutron evaporation cross section is considered VARIABLE and calculated using s-wave neutron force function\r\n")
         end
-        write(file, "\r\n$horizontal_delimiter")
+        write(file, "$horizontal_delimiter")
     end
-
-    #Sn a T Er eps
 
     open("output_data/$(fissionant_nucleus_identifier)_main_DSE_.OUT", "w") do file
         for A in unique(Processed_raw_output.A)
@@ -295,41 +293,54 @@ function Write_seq_output(A_0, Z_0, A_H_min, A_H_max, No_ZperA, E_incident, tker
                     E_excit = E_excitation.Value[(E_excitation.A .== A) .& (E_excitation.Z .== Z) .& (E_excitation.TKE .== TKE)][1]
                     write(file, "$A $Z $TKE $P_Z_A $E_excit $a\r\n")
                     n_range = unique(Processed_raw_output.No_Sequence[(Processed_raw_output.A .== A) .& (Processed_raw_output.Z .== Z) .& (Processed_raw_output.TKE .== TKE)])
-                    write(file, "$(last(n_range))\r\n")
-                    for k in n_range
-                        S_k = Separation_energy(1, 0, A - k, Z, dm)[1]
-                        write(file, "$S_k ")
-                    end
-                    write(file, "\r\n")
-                    for k in n_range
-                        a_k = Processed_raw_output.aₖ[(Processed_raw_output.A .== A) .& (Processed_raw_output.Z .== Z) .& (Processed_raw_output.TKE .== TKE) .& (Processed_raw_output.No_Sequence .== k)][1]
-                        write(file, "$a_k ")
-                    end
-                    write(file, "\r\n")
-                    for k in n_range
-                        T_k = Processed_raw_output.Tₖ[(Processed_raw_output.A .== A) .& (Processed_raw_output.Z .== Z) .& (Processed_raw_output.TKE .== TKE) .& (Processed_raw_output.No_Sequence .== k)][1]
-                        if T_k > 0 
-                            write(file, "$T_k ")
-                        else
-                            write(file, "0.0 ")
+                    if last(n_range) != 0
+                        write(file, "$(last(n_range))\r\n")
+                        for k in n_range
+                            S_k = Separation_energy(1, 0, A - k + 1, Z, dm)[1]
+                            write(file, "$S_k ")
                         end
+                        write(file, "\r\n")
+                        for k in n_range
+                            a_k = Processed_raw_output.aₖ[(Processed_raw_output.A .== A) .& (Processed_raw_output.Z .== Z) .& (Processed_raw_output.TKE .== TKE) .& (Processed_raw_output.No_Sequence .== k)][1]
+                            write(file, "$a_k ")
+                        end
+                        write(file, "\r\n")
+                        for k in n_range
+                            T_k = Processed_raw_output.Tₖ[(Processed_raw_output.A .== A) .& (Processed_raw_output.Z .== Z) .& (Processed_raw_output.TKE .== TKE) .& (Processed_raw_output.No_Sequence .== k)][1]
+                            if T_k > 0 
+                                write(file, "$T_k ")
+                            else
+                                write(file, "0.0 ")
+                            end
+                        end
+                        write(file, "\r\n")
+                        for k in n_range
+                            T_k = Processed_raw_output.Tₖ[(Processed_raw_output.A .== A) .& (Processed_raw_output.Z .== Z) .& (Processed_raw_output.TKE .== TKE) .& (Processed_raw_output.No_Sequence .== k)][1]
+                            if T_k > 0 
+                                a_k = Processed_raw_output.aₖ[(Processed_raw_output.A .== A) .& (Processed_raw_output.Z .== Z) .& (Processed_raw_output.TKE .== TKE) .& (Processed_raw_output.No_Sequence .== k)][1]
+                                Eᵣ_k = Energy_FermiGas(a_k, T_k)
+                                write(file, "$Eᵣ_k ")
+                            else
+                                write(file, "0.0 ")
+                            end
+                        end
+                        write(file, "\r\n")
+                        for k in n_range
+                            avgε_k = Processed_raw_output.Avg_εₖ[(Processed_raw_output.A .== A) .& (Processed_raw_output.Z .== Z) .& (Processed_raw_output.TKE .== TKE) .& (Processed_raw_output.No_Sequence .== k)][1]
+                            if avgε_k > 0 
+                                write(file, "$avgε_k ")
+                            else
+                                write(file, "0.0 ")
+                            end
+                        end
+                        write(file, "\r\n")
+                        write(file, "\r\n")
+                    else
+                        write(file, "0\r\n0.0\r\n0.0\r\n0.0\r\n0.0\r\n0.0\r\n\r\n")
                     end
-                    write(file, "\r\n")
-
-                        a_k = Processed_raw_output.aₖ[(Processed_raw_output.A .== A) .& (Processed_raw_output.Z .== Z) .& (Processed_raw_output.TKE .== TKE) .& (Processed_raw_output.No_Sequence .== k)][1]
-                        write(file, "/ a = $a_k ")
-                        Eᵣ_k = Energy_FermiGas(a_k, T_k)
-                        write(file, "/ Eʳ = $Eᵣ_k ")
-
-                        avgε_k = Processed_raw_output.Avg_εₖ[(Processed_raw_output.A .== A) .& (Processed_raw_output.Z .== Z) .& (Processed_raw_output.TKE .== TKE) .& (Processed_raw_output.No_Sequence .== k)][1]
-                        write(file, "/ <ε> = $avgε_k\r\n")
-
-                    write(file, "\r\n")
                 end
-                write(file, "$horizontal_delimiter\r\n")
             end
         end
-        write(file, horizontal_delimiter)
     end
 end
 #Neutron multiplicity from raw output data

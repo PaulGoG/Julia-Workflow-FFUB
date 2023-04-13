@@ -124,7 +124,7 @@ E_step = 5e-2
 Yield_cutoff_value = 5e-4
 
 #Plots YES or NO selector
-generate_plots = "NO"
+generate_plots = "YES"
 multidim_plots = "NO"
 
 resolution_scale = 250
