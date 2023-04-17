@@ -986,26 +986,26 @@ if secondary_output_E_excitation == "YES"
     Process_plot(plot_P_E, "P_E_exi", fissionant_nucleus_identifier)
 end
 if neutron_spectrum == "YES"
-    plot_nSpectrum = Plot_data(n_E.E, n_E.Value, "", :red)
+    plot_nSpectrum = Plot_data(n_E_SL.E, n_E_SL.Value, "", :red)
     Modify_plot(
-        plot_nSpectrum, "E [MeV]", "Neutron spectrum 1/MeV", (0.0, last(n_E.E)),
-        :identity, (0.0, maximum(n_E.Value)*1.1), :identity, "SL Neutron spectrum in linear scale"
+        plot_nSpectrum, "E [MeV]", "Neutron spectrum 1/MeV", (0.0, last(n_E_SL.E)),
+        :identity, (0.0, maximum(n_E_SL.Value)*1.1), :identity, "SL Neutron spectrum in linear scale"
     )
     Modify_plot(plot_nSpectrum)
-    xticks!(plot_nSpectrum, 0.0:2.5:last(n_E.E))
+    xticks!(plot_nSpectrum, 0.0:2.5:last(n_E_SL.E))
     Process_plot(plot_nSpectrum, "nSpectrum_linscale", fissionant_nucleus_identifier)
     Modify_plot(
-        plot_nSpectrum, "E [MeV]", "Neutron spectrum 1/MeV", (0.0, last(n_E.E)),
-        :identity, (minimum(n_E.Value) *5e-1, maximum(n_E.Value) *10), :log10, "SL Neutron spectrum in log10 scale"
+        plot_nSpectrum, "E [MeV]", "Neutron spectrum 1/MeV", (0.0, last(n_E_SL.E)),
+        :identity, (minimum(n_E_SL.Value) *5e-1, maximum(n_E_SL.Value) *10), :log10, "SL Neutron spectrum in log10 scale"
     )
     Process_plot(plot_nSpectrum, "nSpectrum_logscale", fissionant_nucleus_identifier)
 
-    plot_nSpectrum_ratio_Maxwellian = Plot_data(n_E.E, Ratio_to_Maxwellian, "", :red)
+    plot_nSpectrum_ratio_Maxwellian = Plot_data(n_E_SL.E, Ratio_to_Maxwellian_SL, "", :red)
     Modify_plot(
-        plot_nSpectrum_ratio_Maxwellian, "E [MeV]", "Ratio to Maxwellian spectrum", (first(n_E.E), 10.0),
+        plot_nSpectrum_ratio_Maxwellian, "E [MeV]", "Ratio to Maxwellian spectrum", (first(n_E_SL.E), 10.0),
         :log10, (0.5, 1.5), :identity, "SL Neutron spectrum as ratio to Maxwellian"
     )
-    hline!(plot_nSpectrum_ratio_Maxwellian, [1.0], linestyle = :dashdot, color = :black, label = latexstring("\$\\mathrm{T_M}\$ = $(round(T_M_eq, digits = 2)) MeV"))
+    hline!(plot_nSpectrum_ratio_Maxwellian, [1.0], linestyle = :dashdot, color = :black, label = latexstring("\$\\mathrm{T_M}\$ = $(round(T_M_eq_SL, digits = 2)) MeV"))
     Modify_plot(plot_nSpectrum_ratio_Maxwellian)
     xticks!(plot_nSpectrum_ratio_Maxwellian, [10.0^i for i in -10:10])
     Process_plot(plot_nSpectrum_ratio_Maxwellian, "nSpectrum_ratio_Maxwellian", fissionant_nucleus_identifier)

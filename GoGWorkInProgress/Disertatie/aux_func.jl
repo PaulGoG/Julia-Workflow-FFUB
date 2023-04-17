@@ -284,7 +284,7 @@ function Write_seq_output(A_0, Z_0, A_H_min, A_H_max, No_ZperA, E_incident, tker
         write(file, "$horizontal_delimiter")
     end
 
-    open("output_data/$(fissionant_nucleus_identifier)_main_DSE_.OUT", "w") do file
+    open("output_data/$(fissionant_nucleus_identifier)_main_DSE.OUT", "w") do file
         for A in unique(Processed_raw_output.A)
             for Z in unique(Processed_raw_output.Z[Processed_raw_output.A .== A])
                 P_Z_A = fragmdomain.Value[(fragmdomain.A .== A) .& (fragmdomain.Z .== Z)][1]
@@ -292,7 +292,7 @@ function Write_seq_output(A_0, Z_0, A_H_min, A_H_max, No_ZperA, E_incident, tker
                 for TKE in unique(Processed_raw_output.TKE[(Processed_raw_output.A .== A) .& (Processed_raw_output.Z .== Z)])
                     E_excit = E_excitation.Value[(E_excitation.A .== A) .& (E_excitation.Z .== Z) .& (E_excitation.TKE .== TKE)][1]
                     write(file, "$A $Z $TKE $P_Z_A $E_excit $a\r\n")
-                    n_range = unique(Processed_raw_output.No_Sequence[(Processed_raw_output.A .== A) .& (Processed_raw_output.Z .== Z) .& (Processed_raw_output.TKE .== TKE)])
+                    n_range = Processed_raw_output.No_Sequence[(Processed_raw_output.A .== A) .& (Processed_raw_output.Z .== Z) .& (Processed_raw_output.TKE .== TKE)]
                     if last(n_range) != 0
                         write(file, "$(last(n_range))\r\n")
                         for k in n_range

@@ -399,6 +399,11 @@ if secondary_output_Yield == "YES"
     end
     if isassigned(filter(!isnan, y_A_Z_TKE.σ), 1)
         CSV.write(
+            "output_data/Yield/$(fissionant_nucleus_identifier)_Y_A_Z_TKE.OUT", 
+            DataFrame(A = y_A_Z_TKE.A, Z = y_A_Z_TKE.Z, TKE = y_A_Z_TKE.TKE, Y = y_A_Z_TKE.Value, σ = y_A_Z_TKE.σ), 
+            writeheader=true, newline="\r\n", delim=' '
+        )
+        CSV.write(
             "output_data/Yield/$(fissionant_nucleus_identifier)_Y_A.OUT", 
             DataFrame(A = y_A.Argument, Y = y_A.Value, σ = y_A.σ), 
             writeheader=true, newline="\r\n", delim=' '
@@ -429,6 +434,11 @@ if secondary_output_Yield == "YES"
             writeheader=true, newline="\r\n", delim=' '
         )
     else
+        CSV.write(
+            "output_data/Yield/$(fissionant_nucleus_identifier)_Y_A_Z_TKE.OUT", 
+            DataFrame(A = y_A_Z_TKE.A, Z = y_A_Z_TKE.Z, TKE = y_A_Z_TKE.TKE, Y = y_A_Z_TKE.Value), 
+            writeheader=true, newline="\r\n", delim=' '
+        )
         CSV.write(
             "output_data/Yield/$(fissionant_nucleus_identifier)_Y_A.OUT", 
             DataFrame(A = y_A.Argument, Y = y_A.Value), 
