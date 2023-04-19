@@ -512,8 +512,8 @@ if secondary_output_ν == "YES"
     )
     ν_TKE = Average_over_A_Z(ν_A_Z_TKE, y_A_Z_TKE)
     CSV.write(
-        "output_data/nu/$(fissionant_nucleus_identifier)_nu_TKE.OUT", 
-        DataFrame(TKE = ν_TKE.Argument, ν = ν_TKE.Value), 
+        "output_data/nu/$(fissionant_nucleus_identifier)_nu_Pair_TKE.OUT", 
+        DataFrame(TKE = ν_TKE.Argument, ν = ν_TKE.Value .* 2), 
         writeheader=true, newline="\r\n", delim=' '
     )
     probability_ν = Probability_of_occurrence(ν_A_Z_TKE, y_A_Z_TKE, 1)

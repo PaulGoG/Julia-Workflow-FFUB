@@ -97,7 +97,7 @@ txe_partitioning_segmentpoints = [(126, 0.5), (130, 0.14), (150, 0.607), (174, 0
 write_primary_output = "YES"
 
 #Yield-averaged outputs YES or NO selector for data and plots
-secondary_outputs = "YES"
+secondary_outputs = "NO"
 
 secondary_output_Yield = "YES"
 secondary_output_TXE_Q = "NO"
@@ -117,14 +117,14 @@ yield_distribution_delimiter = ' '
 yield_distribution_firstdataline = 2
 
 #Neutron spectrum calculation YES or NO selector   
-neutron_spectrum = "YES"
+neutron_spectrum = "NO"
 E_min = 1e-6
 E_max = 20.0
 E_step = 5e-2
 Yield_cutoff_value = 5e-4
 
 #Plots YES or NO selector
-generate_plots = "YES"
+generate_plots = "NO"
 multidim_plots = "NO"
 
 resolution_scale = 250
