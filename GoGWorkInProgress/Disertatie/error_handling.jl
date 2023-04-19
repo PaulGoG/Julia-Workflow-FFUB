@@ -2,12 +2,12 @@
 Flow control and error handling for input parameters and filenames of the main program
 =#
 #####
-if A_H_min < A₀/2
-    error("$A_H_min invalid Heavy Fragment region lower bound!")
+if A_H_min < A₀/2 || !isinteger(A_H_min)
+    error("A_H_min must be an Integer greater than $(Int(round(A₀/2)))!")
 end
 
-if A_H_max >= A₀
-    error("$A_H_max invalid Heavy Fragment region upper bound!")
+if A_H_max >= A₀ || !isinteger(A_H_max)
+    error("A_H_max must be an Integer lesser than $(A₀)!")
 end
 
 if A_H_min >= A_H_max
@@ -37,11 +37,10 @@ if density_parameter_type != "GC" && density_parameter_type != "BSFG"
     error("$density_parameter_type is not a valid input for density_parameter_type!")
 end
 
-if !isfile(density_parameter_filename)
-    error("$density_parameter_filename does not exist at input_data/  PATH!")
-end
-
 if density_parameter_type == "GC"
+    if !isfile(density_parameter_filename)
+        error("$density_parameter_filename does not exist at input_data/  PATH!")
+    end
     if isassigned(filter(x -> !in(x, ("n", "S_Z", "S_N")), density_parameter_header), 1)
         error(
         "density_parameter_header contains invalid fields: $(filter(x -> !in(x, ("n", "S_Z", "S_N")), density_parameter_header));
@@ -106,12 +105,11 @@ if neutron_spectrum != "YES" && neutron_spectrum != "NO"
     error("$neutron_spectrum is not a valid input for neutron_spectrum")
 end
 
-
 if secondary_outputs == "NO"
     if generate_plots == "YES"
         error("plots cannot be generated without yield-averaged quantities!")
     elseif neutron_spectrum == "YES"
-        error("prompt neutron spectrum cannot be calculated without yield-averaged quantities!")
+        error("prompt neutron spectrum cannot be calculated without valid yield distribution!")
     end
 end
 
@@ -124,5 +122,8 @@ if secondary_outputs == "YES"
         "yield_distribution_header contains invalid fields: $(filter(x -> !in(x, ("A", "TKE", "Value", "σ")), yield_distribution_header));
         allowed header names list: A, TKE, Value, σ"
         )
+    end
+    if neutron_spectrum == "YES" && E_min >= E_max
+        error("invalid neutron spectrum Energy range!")
     end
 end

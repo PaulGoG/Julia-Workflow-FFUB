@@ -2,7 +2,7 @@
 Different methods for computing energy-independent density level parameters 
 as defined in the Fermi-Gas model:
 1. Gilbert-Cameron
-2. Egidy-Bucurescu
+2. von Egidy & Bucurescu 2009
 =#
 #####
 function density_parameter_Gilbert_Cameron(A, Z, dGC)
@@ -20,17 +20,17 @@ function density_parameter_Gilbert_Cameron(A, Z, dGC)
 end
 function density_parameter_Egidy_Bucurescu(A, Z, dm)
     if isassigned(dm.D[(dm.A .== A) .& (dm.Z .== Z)], 1) && isassigned(dm.D[(dm.A .== A+2) .& (dm.Z .== Z+1)], 1) && isassigned(dm.D[(dm.A .== A-2) .& (dm.Z .== Z-1)], 1)
-        D = dm.D[(dm.A .== A) .& (dm.Z .== Z)][1]*1e-3
-        W_exp = Z*Dᵖ + (A-Z)*Dⁿ - D
-        a_sim = A*(a_sim_1 - a_sim_2 *A^(-1/3))
-        η = (A - 2*Z)/A
-        W_LDM = a_v*A - a_s*A^(2/3) - a_c*Z^2 *A^(-1/3) - a_sim*η^2
+        D = dm.D[(dm.A .== A) .& (dm.Z .== Z)][1] *1e-3
+        W_exp = Z *Dᵖ + (A-Z) *Dⁿ - D
+        a_sim = A *(a_sim_1 - a_sim_2 *A^(-1/3))
+        η = (A - 2 *Z)/A
+        W_LDM = a_v *A - a_s *A^(2/3) - a_c *Z^2 *A^(-1/3) - a_sim *η^2
         δW₀ = W_LDM - W_exp
-        D_plus = dm.D[(dm.A .== A+2) .& (dm.Z .== Z+1)][1]*1e-3
-        D_minus = dm.D[(dm.A .== A-2) .& (dm.Z .== Z-1)][1]*1e-3
-        P_d = (D_plus - 2*D + D_minus)/2
-        δW = δW₀ + P_d/2
-        a = (p_eb_1 + p_eb_2*δW) *A^p_eb_3
+        D_plus = dm.D[(dm.A .== A+2) .& (dm.Z .== Z+1)][1] *1e-3
+        D_minus = dm.D[(dm.A .== A-2) .& (dm.Z .== Z-1)][1] *1e-3
+        P_d = (D_plus - 2 *D + D_minus) /4
+        δW = δW₀ + P_d
+        a = (p_eb_1 + p_eb_2 *δW) *A^p_eb_3
         if a > 0
             return a
         else 
@@ -40,10 +40,10 @@ function density_parameter_Egidy_Bucurescu(A, Z, dm)
         return NaN
     end
 end
-function density_parameter(density_parameter_type, A, Z, density_parameter_datafile)
+function density_parameter(density_parameter_type, A, Z, density_parameter_data)
     if density_parameter_type == "GC"
-        return density_parameter_Gilbert_Cameron(A, Z, density_parameter_datafile)
+        return density_parameter_Gilbert_Cameron(A, Z, density_parameter_data)
     elseif density_parameter_type == "BSFG"
-        return density_parameter_Egidy_Bucurescu(A, Z, density_parameter_datafile)
+        return density_parameter_Egidy_Bucurescu(A, Z, density_parameter_data)
     end
 end

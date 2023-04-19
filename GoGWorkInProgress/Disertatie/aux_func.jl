@@ -1,9 +1,8 @@
-#Function bodies and definitions used in the main part of the DSE
 #####
-#Load Julia packages
+#Load Julia packages for data manipulation
 using DataFrames, CSV
 
-#Main struct objects definitions
+#Define main struct objects
 abstract type AbstractDistribution end
 struct Distribution{T1 <: Vector{Int}, T2 <: Vector{Float64}} <: AbstractDistribution
     A::T1
@@ -25,41 +24,45 @@ tkerange = TKE_min:TKE_step:TKE_max
 #Input variables corrections according to fission type
 if fission_type == "SF"
     #Null neutron incident energy in spontaneous fission
-    Eₙ = 0.0
+    E_incident = 0.0
 elseif fission_type == "(n,f)"
-    #Taking into account compound nucleus formation
+    #Take into account compound nucleus formation
     A₀ += 1
 end
 
-#Necessary inputs for VARIABLE neutron cs
+#Define value ranges for fragmentation regions
+A_H_range = A_H_min:A_H_max
+A_L_range = (A₀ - A_H_max):(A₀ - A_H_min)
+A_range = (A₀ - A_H_max):A_H_max
+
+#Read data and initialise constants
+
 if evaporation_cs_type == "VARIABLE"
     using Roots
     ħc = 197.3268601
     amu = 931.50176
     aₘ = 1.008665
-    const r₀ = 1.2e-1
+    const r₀ = 1.2
     const C_α = (π*ħc)^2 /(aₘ*amu)
 end
 
 if neutron_spectrum == "YES"
-    using QuadGK
-    struct Neutron_spectrum_obj{T <: Vector{Float64}} <: AbstractDistribution
+    using QuadGK, Trapz
+    struct Neutron_spectrum{T <: Vector{Float64}} <: AbstractDistribution
         E::T
         Value::T
     end
     energyrange = E_min:E_step:E_max
 end
 
-println("*reading input data files")
-
 dmass_excess = CSV.read(mass_excess_filename, DataFrame; delim = mass_excess_delimiter, ignorerepeated = true, header = mass_excess_header, skipto = mass_excess_firstdataline)
-println("reading $mass_excess_filename done!")
+println("*reading $mass_excess_filename done!")
 
 if density_parameter_type == "GC"
-    density_parameter_datafile = CSV.read(density_parameter_filename, DataFrame; delim = density_parameter_delimiter, ignorerepeated = true, header = density_parameter_header, skipto = density_parameter_firstdataline)
-    println("reading $density_parameter_filename done!")
+    density_parameter_data = CSV.read(density_parameter_filename, DataFrame; delim = density_parameter_delimiter, ignorerepeated = true, header = density_parameter_header, skipto = density_parameter_firstdataline)
+    println("*reading $density_parameter_filename done!")
 elseif density_parameter_type == "BSFG"
-    density_parameter_datafile = dmass_excess
+    density_parameter_data = dmass_excess
     const Dᵖ = dmass_excess.D[(dmass_excess.A .== 1) .& (dmass_excess.Z .== 1)][1]*1e-3
     const Dⁿ = dmass_excess.D[(dmass_excess.A .== 1) .& (dmass_excess.Z .== 0)][1]*1e-3
     const a_v = 15.65
@@ -73,22 +76,22 @@ elseif density_parameter_type == "BSFG"
 end
 
 if isobaric_distribution_type == "MEAN_VALUES"
-    isobaric_distribution_datafile = DataFrame(A = NaN)
+    isobaric_distribution_data = DataFrame(A = NaN)
 elseif isobaric_distribution_type == "DATA"
-    isobaric_distribution_datafile = CSV.read(isobaric_distribution_filename, DataFrame; delim = isobaric_distribution_delimiter, ignorerepeated = true, header = isobaric_distribution_header, skipto = isobaric_distribution_firstdataline)
-    println("reading $isobaric_distribution_filename done!")
+    isobaric_distribution_data = CSV.read(isobaric_distribution_filename, DataFrame; delim = isobaric_distribution_delimiter, ignorerepeated = true, header = isobaric_distribution_header, skipto = isobaric_distribution_firstdataline)
+    println("*reading $isobaric_distribution_filename done!")
 end
 
 if txe_partitioning_type == "MSCZ"
-    txe_partitioning_datafile = CSV.read(txe_partitioning_filename, DataFrame; delim = txe_partitioning_delimiter, ignorerepeated = true, header = txe_partitioning_header, skipto = txe_partitioning_firstdataline)
-    println("reading $txe_partitioning_filename done!")
+    txe_partitioning_data = CSV.read(txe_partitioning_filename, DataFrame; delim = txe_partitioning_delimiter, ignorerepeated = true, header = txe_partitioning_header, skipto = txe_partitioning_firstdataline)
+    println("*reading $txe_partitioning_filename done!")
 else
-    txe_partitioning_datafile = txe_partitioning_segmentpoints
+    txe_partitioning_data = txe_partitioning_segmentpoints
 end
 
 if secondary_outputs == "YES"
-    dY = CSV.read(yield_distribution_filename, DataFrame; delim = yield_distribution_delimiter, ignorerepeated = true, header = yield_distribution_header, skipto = yield_distribution_firstdataline)
-    println("reading $yield_distribution_filename done!")
+    Yield_data = CSV.read(yield_distribution_filename, DataFrame; delim = yield_distribution_delimiter, ignorerepeated = true, header = yield_distribution_header, skipto = yield_distribution_firstdataline)
+    println("*reading $yield_distribution_filename done!")
 end
 
 #Revert relative PATH to project root folder
@@ -99,21 +102,22 @@ if !isdir("output_data/")
 end
 
 if generate_plots == "YES"
-    using Plots
+    using Plots, LaTeXStrings
     plots_resolution = aspect_ratio .* resolution_scale
     if !isdir("plots/")
         mkdir("plots/")
     end
-    plotlyjs(size = plots_resolution)
 end
-#Function bodies
+
+#Define main functions
+
 #Isobaric charge distribution p(Z,A)
 function p_A_Z(Z, Z_p, rms_A)
-    return exp(-(Z - Z_p)^2 /(2 *rms_A^2)) /(sqrt(2*π) * rms_A)
+    return exp(-(Z - Z_p)^2 /(2 *rms_A^2)) /(sqrt(2*π) *rms_A)
 end
 #Compute the most probable charge for a given heavy fragment
 function Most_probable_charge(A_0, Z_0, A_H, ΔZ)
-    return A_H*Z_0/A_0 + ΔZ
+    return ΔZ + A_H *Z_0 /A_0
 end
 #Q_value energy in MeV released at fission of (A,Z) nucleus 
 function Q_value_released(A_0, Z_0, A_H, Z_H, dm)
@@ -151,10 +155,19 @@ function Separation_energy(A_part, Z_part, A, Z, dm)
         return NaN
     end 
 end
+#Excitation energy of compound nucleus
+function Compound_nucleus_energy(fission_type, A_0, Z_0, E_incident, dm)
+    if fission_type == "SF"
+        return 0.0, 0.0
+    elseif fission_type == "(n,f)" 
+        S = Separation_energy(1, 0, A_0, Z_0, dm)
+        return S[1] + E_incident, S[2]
+    end
+end
 #Total Excitation Energy for a given set of data in MeV
-function Total_excitation_energy(Q, σ_Q, TKE, σ_TKE, Sₙ, σ_Sₙ, Eₙ)
-    TXE = Q - TKE + Sₙ + Eₙ
-    σ_TXE = sqrt(σ_Q^2 + σ_Sₙ^2 + σ_TKE^2)
+function Total_excitation_energy(Q, σ_Q, TKE, σ_TKE, ε_CN, σ_ε_CN)
+    TXE = Q - TKE + ε_CN
+    σ_TXE = sqrt(σ_Q^2 + σ_ε_CN^2 + σ_TKE^2)
     if TXE > 0
         return TXE, σ_TXE
     else 
@@ -162,13 +175,14 @@ function Total_excitation_energy(Q, σ_Q, TKE, σ_TKE, Sₙ, σ_Sₙ, Eₙ)
     end
 end
 #Construct vectorized fragmentation domain with p(A,Z) values stored in memory
-function Fragmentation_domain(A_0, Z_0, NoZperA, A_H_min, A_H_max, dpAZ)
+function Fragmentation_domain(A_0, Z_0, NoZperA, A_H_range, pAZ_data)
+    println("*building fragmentation domain")
     fragmdomain = Distribution(Int[], Int[], Float64[], Int[], Float64[], Float64[])
-    for A_H in A_H_min:A_H_max
+    for A_H in A_H_range
         A_L = A_0 - A_H
-        if isassigned(dpAZ.A[dpAZ.A .== A_H], 1)
-            RMS = dpAZ.rms_A[dpAZ.A .== A_H][1]
-            ΔZ = dpAZ.ΔZ_A[dpAZ.A .== A_H][1]
+        if isassigned(pAZ_data.A[pAZ_data.A .== A_H], 1)
+            RMS = pAZ_data.rms_A[pAZ_data.A .== A_H][1]
+            ΔZ = pAZ_data.ΔZ_A[pAZ_data.A .== A_H][1]
         else
             RMS = 0.6
             ΔZ = -0.5
@@ -212,114 +226,172 @@ function Average_neutron_energy(T::Float64)
     return 2*T
 end
 function Average_neutron_energy(α::Float64, T::Float64)
-    return T*(2*sqrt(T) + α*3*sqrt(π)/4) /(sqrt(T) + α*sqrt(π)/2)
+    return T *(2*sqrt(T) + α*3*sqrt(π)/4) /(sqrt(T) + α*sqrt(π)/2)
 end
-#Processing raw DSE eq output
+#Processing output of the main DSE equations
 function Process_main_output(DSE_eq_output, evaporation_cs_type)
+    println("*processing DSE equations primary output")
     Tₖ, aₖ = DSE_eq_output[1], DSE_eq_output[2]
-    if evaporation_cs_type .== "CONSTANT"
-        Datafile = DataFrame(
-            A = Tₖ.A, 
-            Z = Tₖ.Z, 
-            TKE = Tₖ.TKE, 
-            No_Sequence = Tₖ.No_Sequence, 
-            Tₖ = Tₖ.Value, 
-            aₖ = aₖ
-        )
-    elseif evaporation_cs_type .== "VARIABLE"
-        αₖ = DSE_eq_output[3]
-        Datafile = DataFrame(
+    if evaporation_cs_type == "CONSTANT"
+        Data = DataFrame(
             A = Tₖ.A, 
             Z = Tₖ.Z, 
             TKE = Tₖ.TKE, 
             No_Sequence = Tₖ.No_Sequence, 
             Tₖ = Tₖ.Value, 
             aₖ = aₖ,
-            αₖ = αₖ
+            Avg_εₖ = Average_neutron_energy.(Tₖ.Value)
+        )
+    elseif evaporation_cs_type == "VARIABLE"
+        αₖ = DSE_eq_output[3]
+        Data = DataFrame(
+            A = Tₖ.A, 
+            Z = Tₖ.Z, 
+            TKE = Tₖ.TKE, 
+            No_Sequence = Tₖ.No_Sequence, 
+            Tₖ = Tₖ.Value, 
+            aₖ = aₖ,
+            αₖ = αₖ,
+            Avg_εₖ = Average_neutron_energy.(αₖ, Tₖ.Value)
         )
     end
-    return Datafile
+    return Data
 end
-#Writing main output file
-function Write_seq_output(A_0, Z_0, A_H_min, A_H_max, No_ZperA, Eₙ, tkerange, fragmdomain, E_excitation, Processed_raw_output, density_parameter_type, density_parameter_datafile, evaporation_cs_type, mass_excess_filename, txe_partitioning_type, dm)
+#Write primary output to file
+function Write_seq_output(A_0, Z_0, A_H_min, A_H_max, No_ZperA, E_incident, tkerange, fragmdomain, E_excitation, Processed_raw_output, density_parameter_type, density_parameter_data, fissionant_nucleus_identifier, mass_excess_filename, txe_partitioning_type, txe_partitioning_data, evaporation_cs_type, dm)
+    println("*writing primary DSE output data to file")
     horizontal_delimiter = lpad('-', 159, '-')
-    Sₙ = Separation_energy(1, 0, A_0, Z_0, dm)
-    open("output_data/main_DSE.OUT", "w") do file
-        write(file, "DSE main output file for the following input data:\n")
-        write(file,"(A₀ = $A_0, Z₀ = $Z_0), fission type $fission_type, $No_ZperA Z per A, mass excess file - $mass_excess_filename\n")
-        write(file,"Heavy Fragment mass number ranges from $A_H_min to $A_H_max\n")
-        write(file,"TKE ∈ $tkerange\n")
-        write(file,"TXE partitioning method - $txe_partitioning_type\n")
-        write(file, "\n$horizontal_delimiter\n$horizontal_delimiter\n")
+    E_CN = Compound_nucleus_energy(fission_type, A_0, Z_0, E_incident, dm)
+
+    open("output_data/$(fissionant_nucleus_identifier)_readme.OUT", "w") do file
+        write(file, "DSE main output file generated at $(Dates.format(now(), "HH:MM:SS")) corresponding to input data:\r\n")
+        write(file, "$(fissionant_nucleus_identifier) (A₀ = $A_0, Z₀ = $Z_0), fission type: $fission_type, $No_ZperA Z per A, mass excess file - $mass_excess_filename\r\n")
+        write(file, "Heavy Fragment mass number ranges from $A_H_min to $A_H_max\r\n")
+        write(file, "TKE ∈ $tkerange\r\n")
+        write(file, "TXE partitioning method - $txe_partitioning_type\r\n")
+        if txe_partitioning_type == "MSCZ"
+            write(file, "TXE partitioning data used: Extra deformation energies from $txe_partitioning_filename\r\n")
+        elseif txe_partitioning_type == "RT"
+            write(file, "TXE partitioning data used: RT(A_H) denoted by segments $txe_partitioning_data\r\n")
+        elseif txe_partitioning_type == "PARAM"
+            write(file, "TXE partitioning data used: Ratio(A_H) = E*_H/TXE denoted by segments $txe_partitioning_data\r\n")
+        end
+        if evaporation_cs_type == "CONSTANT"
+            write(file, "Neutron evaporation cross section is considered CONSTANT\r\n")
+        elseif evaporation_cs_type == "VARIABLE"
+            write(file, "Neutron evaporation cross section is considered VARIABLE and calculated using s-wave neutron force function\r\n")
+        end
+        write(file, "$horizontal_delimiter")
+    end
+
+    open("output_data/$(fissionant_nucleus_identifier)_main_DSE.OUT", "w") do file
         for A in unique(Processed_raw_output.A)
             for Z in unique(Processed_raw_output.Z[Processed_raw_output.A .== A])
                 P_Z_A = fragmdomain.Value[(fragmdomain.A .== A) .& (fragmdomain.Z .== Z)][1]
-                Q = Q_value_released(A_0, Z_0, A, Z, dm)
-                a = density_parameter(density_parameter_type, A, Z, density_parameter_datafile)
-                S = Separation_energy(1, 0, A, Z, dm)[1]
-                write(file, "Fission fragment: A = $A / Z = $Z / p(Z,A) = $P_Z_A / Q = $(Q[1]) / a = $a / Sₙ = $S\n\n")
+                a = density_parameter(density_parameter_type, A, Z, density_parameter_data)
                 for TKE in unique(Processed_raw_output.TKE[(Processed_raw_output.A .== A) .& (Processed_raw_output.Z .== Z)])
-                    TXE = Total_excitation_energy(Q[1], Q[2], TKE, 0.0, Sₙ[1], Sₙ[2], Eₙ)[1]
                     E_excit = E_excitation.Value[(E_excitation.A .== A) .& (E_excitation.Z .== Z) .& (E_excitation.TKE .== TKE)][1]
-                    write(file, "TKE = $TKE / TXE = $TXE / E* = $E_excit\n")
-                    for k in unique(Processed_raw_output.No_Sequence[(Processed_raw_output.A .== A) .& (Processed_raw_output.Z .== Z) .& (Processed_raw_output.TKE .== TKE)])
-                        if k > 0
-                            write(file, "   *Emission sequence $k:\n   ")
-                            T_k = Processed_raw_output.Tₖ[(Processed_raw_output.A .== A) .& (Processed_raw_output.Z .== Z) .& (Processed_raw_output.TKE .== TKE) .& (Processed_raw_output.No_Sequence .== k)][1]
-                            write(file, "T = $T_k ")
-                            a_k = Processed_raw_output.aₖ[(Processed_raw_output.A .== A) .& (Processed_raw_output.Z .== Z) .& (Processed_raw_output.TKE .== TKE) .& (Processed_raw_output.No_Sequence .== k)][1]
-                            write(file, "/ a = $a_k ")
-                            Eᵣ_k = Energy_FermiGas(a_k, T_k)
-                            write(file, "/ Eʳ = $Eᵣ_k ")
-                            S_k = Separation_energy(1, 0, A-k, Z, dm)[1]
-                            write(file, "/ Sₙ = $S_k ")
-                            if evaporation_cs_type == "CONSTANT"
-                                avgε_k = Average_neutron_energy(T_k)
-                                write(file, "/ <ε> = $avgε_k\n")
-                            elseif evaporation_cs_type == "VARIABLE"
-                                α_k = Processed_raw_output.αₖ[(Processed_raw_output.A .== A) .& (Processed_raw_output.Z .== Z) .& (Processed_raw_output.TKE .== TKE) .& (Processed_raw_output.No_Sequence .== k)][1]
-                                avgε_k = Average_neutron_energy(α_k, T_k)
-                                write(file, "/ <ε> = $avgε_k\n")
-                            end
-                        else
-                            write(file, "   *Fragment does not emit neutrons at specified TKE!\n")
+                    write(file, "$A $Z $TKE $P_Z_A $E_excit $a\r\n")
+                    n_range = Processed_raw_output.No_Sequence[(Processed_raw_output.A .== A) .& (Processed_raw_output.Z .== Z) .& (Processed_raw_output.TKE .== TKE)]
+                    if last(n_range) != 0
+                        write(file, "$(last(n_range))\r\n")
+                        for k in n_range
+                            S_k = Separation_energy(1, 0, A - k + 1, Z, dm)[1]
+                            write(file, "$S_k ")
                         end
+                        write(file, "\r\n")
+                        for k in n_range
+                            a_k = Processed_raw_output.aₖ[(Processed_raw_output.A .== A) .& (Processed_raw_output.Z .== Z) .& (Processed_raw_output.TKE .== TKE) .& (Processed_raw_output.No_Sequence .== k)][1]
+                            write(file, "$a_k ")
+                        end
+                        write(file, "\r\n")
+                        for k in n_range
+                            T_k = Processed_raw_output.Tₖ[(Processed_raw_output.A .== A) .& (Processed_raw_output.Z .== Z) .& (Processed_raw_output.TKE .== TKE) .& (Processed_raw_output.No_Sequence .== k)][1]
+                            if T_k > 0 
+                                write(file, "$T_k ")
+                            else
+                                write(file, "0.0 ")
+                            end
+                        end
+                        write(file, "\r\n")
+                        for k in n_range
+                            T_k = Processed_raw_output.Tₖ[(Processed_raw_output.A .== A) .& (Processed_raw_output.Z .== Z) .& (Processed_raw_output.TKE .== TKE) .& (Processed_raw_output.No_Sequence .== k)][1]
+                            if T_k > 0 
+                                a_k = Processed_raw_output.aₖ[(Processed_raw_output.A .== A) .& (Processed_raw_output.Z .== Z) .& (Processed_raw_output.TKE .== TKE) .& (Processed_raw_output.No_Sequence .== k)][1]
+                                Eᵣ_k = Energy_FermiGas(a_k, T_k)
+                                write(file, "$Eᵣ_k ")
+                            else
+                                write(file, "0.0 ")
+                            end
+                        end
+                        write(file, "\r\n")
+                        for k in n_range
+                            avgε_k = Processed_raw_output.Avg_εₖ[(Processed_raw_output.A .== A) .& (Processed_raw_output.Z .== Z) .& (Processed_raw_output.TKE .== TKE) .& (Processed_raw_output.No_Sequence .== k)][1]
+                            if avgε_k > 0 
+                                write(file, "$avgε_k ")
+                            else
+                                write(file, "0.0 ")
+                            end
+                        end
+                        write(file, "\r\n")
+                        write(file, "\r\n")
+                    else
+                        write(file, "0\r\n0.0\r\n0.0\r\n0.0\r\n0.0\r\n0.0\r\n\r\n")
                     end
-                    write(file, '\n')
                 end
-                write(file, "$horizontal_delimiter\n")
             end
         end
-        write(file, horizontal_delimiter)
     end
 end
 #Neutron multiplicity from raw output data
 function Neutron_multiplicity_A_Z_TKE(output_df_A_Z_TKE_NoSequence::DataFrame)
-    ν = Distribution(Int[], Int[], Float64[], Int[], Int[], Float64[])
+    ν = Distribution(Int[], Int[], Float64[], Int[], Float64[], Float64[])
     for A in unique(output_df_A_Z_TKE_NoSequence.A)
         for Z in unique(output_df_A_Z_TKE_NoSequence.Z[output_df_A_Z_TKE_NoSequence.A .== A])
             for TKE in unique(output_df_A_Z_TKE_NoSequence.TKE[(output_df_A_Z_TKE_NoSequence.A .== A) .& (output_df_A_Z_TKE_NoSequence.Z .== Z)])
                 push!(ν.A, A)
                 push!(ν.Z, Z)
                 push!(ν.TKE, TKE)
-                push!(ν.Value, last(output_df_A_Z_TKE_NoSequence.No_Sequence[(output_df_A_Z_TKE_NoSequence.A .== A) .& (output_df_A_Z_TKE_NoSequence.Z .== Z) .& (output_df_A_Z_TKE_NoSequence.TKE .== TKE)]))
+                val = last(output_df_A_Z_TKE_NoSequence.No_Sequence[(output_df_A_Z_TKE_NoSequence.A .== A) .& (output_df_A_Z_TKE_NoSequence.Z .== Z) .& (output_df_A_Z_TKE_NoSequence.TKE .== TKE)])
+                if val == 0
+                    push!(ν.Value, val)
+                else
+                    push!(ν.Value, (val + 1) /2)
+                end
             end
         end
     end
     return ν
 end
-#Average raw output data over emission sequences
+#Maximum number of sequences from raw output data
+function Maximum_sequences_A_Z_TKE(output_df_A_Z_TKE_NoSequence::DataFrame)
+    sequences = Distribution(Int[], Int[], Float64[], Int[], Int[], Float64[])
+    for A in unique(output_df_A_Z_TKE_NoSequence.A)
+        for Z in unique(output_df_A_Z_TKE_NoSequence.Z[output_df_A_Z_TKE_NoSequence.A .== A])
+            for TKE in unique(output_df_A_Z_TKE_NoSequence.TKE[(output_df_A_Z_TKE_NoSequence.A .== A) .& (output_df_A_Z_TKE_NoSequence.Z .== Z)])
+                val = last(output_df_A_Z_TKE_NoSequence.No_Sequence[(output_df_A_Z_TKE_NoSequence.A .== A) .& (output_df_A_Z_TKE_NoSequence.Z .== Z) .& (output_df_A_Z_TKE_NoSequence.TKE .== TKE)])
+                push!(sequences.A, A)
+                push!(sequences.Z, Z)
+                push!(sequences.TKE, TKE)
+                push!(sequences.Value, val)
+            end
+        end
+    end
+    return sequences
+end
+#Average raw output data over valid emission sequences
 function SeqAvg_A_Z_TKE(output_df_A_Z_TKE_NoSequence_Value::DataFrame)
     avg = Distribution(Int[], Int[], Float64[], Int[], Float64[], Float64[])
     for A in unique(output_df_A_Z_TKE_NoSequence_Value.A)
         for Z in unique(output_df_A_Z_TKE_NoSequence_Value.Z[output_df_A_Z_TKE_NoSequence_Value.A .== A])
             for TKE in unique(output_df_A_Z_TKE_NoSequence_Value.TKE[(output_df_A_Z_TKE_NoSequence_Value.A .== A) .& (output_df_A_Z_TKE_NoSequence_Value.Z .== Z)])
-                n = last(output_df_A_Z_TKE_NoSequence_Value.No_Sequence[(output_df_A_Z_TKE_NoSequence_Value.A .== A) .& (output_df_A_Z_TKE_NoSequence_Value.Z .== Z) .& (output_df_A_Z_TKE_NoSequence_Value.TKE .== TKE)])
-                if n > 0
+                if isassigned(output_df_A_Z_TKE_NoSequence_Value.No_Sequence[(output_df_A_Z_TKE_NoSequence_Value.A .== A) .& (output_df_A_Z_TKE_NoSequence_Value.Z .== Z) .& (output_df_A_Z_TKE_NoSequence_Value.TKE .== TKE) .& (output_df_A_Z_TKE_NoSequence_Value.Value .>= 0)], 1)
+                    n = last(output_df_A_Z_TKE_NoSequence_Value.No_Sequence[(output_df_A_Z_TKE_NoSequence_Value.A .== A) .& (output_df_A_Z_TKE_NoSequence_Value.Z .== Z) .& (output_df_A_Z_TKE_NoSequence_Value.TKE .== TKE) .& (output_df_A_Z_TKE_NoSequence_Value.Value .>= 0)])
+                    val = sum(filter(!isnan, output_df_A_Z_TKE_NoSequence_Value.Value[(output_df_A_Z_TKE_NoSequence_Value.A .== A) .& (output_df_A_Z_TKE_NoSequence_Value.Z .== Z) .& (output_df_A_Z_TKE_NoSequence_Value.TKE .== TKE)]))
                     push!(avg.A, A)
                     push!(avg.Z, Z)
                     push!(avg.TKE, TKE)
-                    push!(avg.Value, sum(output_df_A_Z_TKE_NoSequence_Value.Value[(output_df_A_Z_TKE_NoSequence_Value.A .== A) .& (output_df_A_Z_TKE_NoSequence_Value.Z .== Z) .& (output_df_A_Z_TKE_NoSequence_Value.TKE .== TKE)]) /n)
+                    push!(avg.Value, val /n)
                 end
             end
         end
