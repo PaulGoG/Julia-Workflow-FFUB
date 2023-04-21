@@ -285,58 +285,111 @@ function Write_seq_output(A_0, Z_0, A_H_min, A_H_max, No_ZperA, E_incident, tker
     end
 
     open("output_data/$(fissionant_nucleus_identifier)_main_DSE.OUT", "w") do file
-        for A in unique(Processed_raw_output.A)
-            for Z in unique(Processed_raw_output.Z[Processed_raw_output.A .== A])
-                P_Z_A = fragmdomain.Value[(fragmdomain.A .== A) .& (fragmdomain.Z .== Z)][1]
-                a = density_parameter(density_parameter_type, A, Z, density_parameter_data)
-                for TKE in unique(Processed_raw_output.TKE[(Processed_raw_output.A .== A) .& (Processed_raw_output.Z .== Z)])
-                    E_excit = E_excitation.Value[(E_excitation.A .== A) .& (E_excitation.Z .== Z) .& (E_excitation.TKE .== TKE)][1]
-                    write(file, "$A $Z $TKE $P_Z_A $E_excit $a\r\n")
-                    n_range = Processed_raw_output.No_Sequence[(Processed_raw_output.A .== A) .& (Processed_raw_output.Z .== Z) .& (Processed_raw_output.TKE .== TKE)]
-                    if last(n_range) != 0
-                        write(file, "$(last(n_range))\r\n")
-                        for k in n_range
-                            S_k = Separation_energy(1, 0, A - k + 1, Z, dm)[1]
-                            write(file, "$S_k ")
-                        end
-                        write(file, "\r\n")
-                        for k in n_range
-                            a_k = Processed_raw_output.aₖ[(Processed_raw_output.A .== A) .& (Processed_raw_output.Z .== Z) .& (Processed_raw_output.TKE .== TKE) .& (Processed_raw_output.No_Sequence .== k)][1]
-                            write(file, "$a_k ")
-                        end
-                        write(file, "\r\n")
-                        for k in n_range
-                            T_k = Processed_raw_output.Tₖ[(Processed_raw_output.A .== A) .& (Processed_raw_output.Z .== Z) .& (Processed_raw_output.TKE .== TKE) .& (Processed_raw_output.No_Sequence .== k)][1]
-                            if T_k > 0 
-                                write(file, "$T_k ")
-                            else
-                                write(file, "0.0 ")
+        for A_H in A_H_min:A_H_max
+            A_L = A_0 - A_H
+            for Z_H in fragmdomain.Z[fragmdomain.A .== A_H]
+                Z_L = Z_0 - Z_H
+                P_Z_A = fragmdomain.Value[(fragmdomain.A .== A_H) .& (fragmdomain.Z .== Z_H)][1]
+                a_L = density_parameter(density_parameter_type, A_L, Z_L, density_parameter_data)
+                a_H = density_parameter(density_parameter_type, A_H, Z_H, density_parameter_data)
+                for TKE in unique(Processed_raw_output.TKE[(Processed_raw_output.A .== A_H) .& (Processed_raw_output.Z .== Z_H)])
+                    E_excit_H = E_excitation.Value[(E_excitation.A .== A_H) .& (E_excitation.Z .== Z_H) .& (E_excitation.TKE .== TKE)][1]
+                    if isassigned(E_excitation.Value[(E_excitation.A .== A_L) .& (E_excitation.Z .== Z_L) .& (E_excitation.TKE .== TKE)], 1)
+                        E_excit_L = E_excitation.Value[(E_excitation.A .== A_L) .& (E_excitation.Z .== Z_L) .& (E_excitation.TKE .== TKE)][1]
+                        write(file, "$A_H $Z_H $TKE $P_Z_A $E_excit_L $E_excit_H $a_L $a_H\r\n")
+                        
+                        n_range_L = Processed_raw_output.No_Sequence[(Processed_raw_output.A .== A_L) .& (Processed_raw_output.Z .== Z_L) .& (Processed_raw_output.TKE .== TKE)]
+                        if last(n_range_L) != 0
+                            write(file, "$(last(n_range_L))\r\n")
+                            for k in n_range_L
+                                S_k = Separation_energy(1, 0, A_L - k + 1, Z_L, dm)[1]
+                                write(file, "$S_k ")
                             end
-                        end
-                        write(file, "\r\n")
-                        for k in n_range
-                            T_k = Processed_raw_output.Tₖ[(Processed_raw_output.A .== A) .& (Processed_raw_output.Z .== Z) .& (Processed_raw_output.TKE .== TKE) .& (Processed_raw_output.No_Sequence .== k)][1]
-                            if T_k > 0 
-                                a_k = Processed_raw_output.aₖ[(Processed_raw_output.A .== A) .& (Processed_raw_output.Z .== Z) .& (Processed_raw_output.TKE .== TKE) .& (Processed_raw_output.No_Sequence .== k)][1]
-                                Eᵣ_k = Energy_FermiGas(a_k, T_k)
-                                write(file, "$Eᵣ_k ")
-                            else
-                                write(file, "0.0 ")
+                            write(file, "\r\n")
+                            for k in n_range_L
+                                a_k = Processed_raw_output.aₖ[(Processed_raw_output.A .== A_L) .& (Processed_raw_output.Z .== Z_L) .& (Processed_raw_output.TKE .== TKE) .& (Processed_raw_output.No_Sequence .== k)][1]
+                                write(file, "$a_k ")
                             end
-                        end
-                        write(file, "\r\n")
-                        for k in n_range
-                            avgε_k = Processed_raw_output.Avg_εₖ[(Processed_raw_output.A .== A) .& (Processed_raw_output.Z .== Z) .& (Processed_raw_output.TKE .== TKE) .& (Processed_raw_output.No_Sequence .== k)][1]
-                            if avgε_k > 0 
-                                write(file, "$avgε_k ")
-                            else
-                                write(file, "0.0 ")
+                            write(file, "\r\n")
+                            for k in n_range_L
+                                T_k = Processed_raw_output.Tₖ[(Processed_raw_output.A .== A_L) .& (Processed_raw_output.Z .== Z_L) .& (Processed_raw_output.TKE .== TKE) .& (Processed_raw_output.No_Sequence .== k)][1]
+                                if T_k > 0 
+                                    write(file, "$T_k ")
+                                else
+                                    write(file, "0.0 ")
+                                end
                             end
+                            write(file, "\r\n")
+                            for k in n_range_L
+                                T_k = Processed_raw_output.Tₖ[(Processed_raw_output.A .== A_L) .& (Processed_raw_output.Z .== Z_L) .& (Processed_raw_output.TKE .== TKE) .& (Processed_raw_output.No_Sequence .== k)][1]
+                                if T_k > 0 
+                                    a_k = Processed_raw_output.aₖ[(Processed_raw_output.A .== A_L) .& (Processed_raw_output.Z .== Z_L) .& (Processed_raw_output.TKE .== TKE) .& (Processed_raw_output.No_Sequence .== k)][1]
+                                    Eᵣ_k = Energy_FermiGas(a_k, T_k)
+                                    write(file, "$Eᵣ_k ")
+                                else
+                                    write(file, "0.0 ")
+                                end
+                            end
+                            write(file, "\r\n")
+                            for k in n_range_L
+                                avgε_k = Processed_raw_output.Avg_εₖ[(Processed_raw_output.A .== A_L) .& (Processed_raw_output.Z .== Z_L) .& (Processed_raw_output.TKE .== TKE) .& (Processed_raw_output.No_Sequence .== k)][1]
+                                if avgε_k > 0 
+                                    write(file, "$avgε_k ")
+                                else
+                                    write(file, "0.0 ")
+                                end
+                            end
+                            write(file, "\r\n")
+                        else
+                            write(file, "0\r\n0.0\r\n0.0\r\n0.0\r\n0.0\r\n0.0\r\n")
                         end
-                        write(file, "\r\n")
-                        write(file, "\r\n")
-                    else
-                        write(file, "0\r\n0.0\r\n0.0\r\n0.0\r\n0.0\r\n0.0\r\n\r\n")
+
+                        n_range_H = Processed_raw_output.No_Sequence[(Processed_raw_output.A .== A_H) .& (Processed_raw_output.Z .== Z_H) .& (Processed_raw_output.TKE .== TKE)]
+                        if last(n_range_H) != 0
+                            write(file, "$(last(n_range_H))\r\n")
+                            for k in n_range_H
+                                S_k = Separation_energy(1, 0, A_H - k + 1, Z_H, dm)[1]
+                                write(file, "$S_k ")
+                            end
+                            write(file, "\r\n")
+                            for k in n_range_H
+                                a_k = Processed_raw_output.aₖ[(Processed_raw_output.A .== A_H) .& (Processed_raw_output.Z .== Z_H) .& (Processed_raw_output.TKE .== TKE) .& (Processed_raw_output.No_Sequence .== k)][1]
+                                write(file, "$a_k ")
+                            end
+                            write(file, "\r\n")
+                            for k in n_range_H
+                                T_k = Processed_raw_output.Tₖ[(Processed_raw_output.A .== A_H) .& (Processed_raw_output.Z .== Z_H) .& (Processed_raw_output.TKE .== TKE) .& (Processed_raw_output.No_Sequence .== k)][1]
+                                if T_k > 0 
+                                    write(file, "$T_k ")
+                                else
+                                    write(file, "0.0 ")
+                                end
+                            end
+                            write(file, "\r\n")
+                            for k in n_range_H
+                                T_k = Processed_raw_output.Tₖ[(Processed_raw_output.A .== A_H) .& (Processed_raw_output.Z .== Z_H) .& (Processed_raw_output.TKE .== TKE) .& (Processed_raw_output.No_Sequence .== k)][1]
+                                if T_k > 0 
+                                    a_k = Processed_raw_output.aₖ[(Processed_raw_output.A .== A_H) .& (Processed_raw_output.Z .== Z_H) .& (Processed_raw_output.TKE .== TKE) .& (Processed_raw_output.No_Sequence .== k)][1]
+                                    Eᵣ_k = Energy_FermiGas(a_k, T_k)
+                                    write(file, "$Eᵣ_k ")
+                                else
+                                    write(file, "0.0 ")
+                                end
+                            end
+                            write(file, "\r\n")
+                            for k in n_range_H
+                                avgε_k = Processed_raw_output.Avg_εₖ[(Processed_raw_output.A .== A_H) .& (Processed_raw_output.Z .== Z_H) .& (Processed_raw_output.TKE .== TKE) .& (Processed_raw_output.No_Sequence .== k)][1]
+                                if avgε_k > 0 
+                                    write(file, "$avgε_k ")
+                                else
+                                    write(file, "0.0 ")
+                                end
+                            end
+                            write(file, "\r\n")
+                            write(file, "\r\n")
+                        else
+                            write(file, "0\r\n0.0\r\n0.0\r\n0.0\r\n0.0\r\n0.0\r\n\r\n")
+                        end
                     end
                 end
             end

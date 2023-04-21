@@ -94,10 +94,10 @@ txe_partitioning_firstdataline = 2
 txe_partitioning_segmentpoints = [(126, 0.5), (130, 0.14), (150, 0.607), (174, 0.865)]
 
 #Write out main DSE output file containing detailed sequence data YES or NO selector
-write_primary_output = "YES"
+write_primary_output = "NO"
 
 #Yield-averaged outputs YES or NO selector for data and plots
-secondary_outputs = "NO"
+secondary_outputs = "YES"
 
 secondary_output_Yield = "YES"
 secondary_output_TXE_Q = "NO"
