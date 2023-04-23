@@ -89,10 +89,6 @@ if txe_partitioning_type == "MSCZ"
     end
 end
 
-if write_primary_output != "YES" && write_primary_output != "NO"
-    error("$write_primary_outputs is not a valid input for write_primary_outputs")
-end
-
 if secondary_outputs != "YES" && secondary_outputs != "NO"
     error("$secondary_outputs is not a valid input for secondary_outputs")
 end

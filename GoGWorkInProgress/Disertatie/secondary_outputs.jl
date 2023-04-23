@@ -4,7 +4,7 @@ it can be compared with experimental data (averaging main output data over exper
 =#
 #####
 #Compute Y(A,Z,TKE) form experimental Y(A,TKE) data
-function Process_yield_data(A_0, Z_0, fragmdomain::Distribution, dY::DataFrame)
+function Process_yield_data(A_0, fragmdomain::Distribution, dY::DataFrame)
     y_A_Z_TKE = Distribution(Int[], Int[], Float64[], Int[], Float64[], Float64[])
     #Completes fragmentation domain in case data provided only for HF
     if !isassigned(dY.A[dY.A .< A_0/2], 1)
@@ -41,8 +41,8 @@ function Process_yield_data(A_0, Z_0, fragmdomain::Distribution, dY::DataFrame)
     end
     #Renormalizes data
     f = 200/sum(y_A_Z_TKE.Value)
-    y_A_Z_TKE.Value .= y_A_Z_TKE.Value .* f
-    y_A_Z_TKE.σ .= y_A_Z_TKE.σ .* f
+    y_A_Z_TKE.Value .*= f
+    y_A_Z_TKE.σ .*= f
     return y_A_Z_TKE
 end
 #Average q(A,Z,TKE) over p(Z,A) so it becomes q(A,TKE)
@@ -161,8 +161,8 @@ function Pair_value(q_A::Distribution_unidym, A_0, A_H)
 end
 #Obtain Y(Z,Aₚ,TKE), Y(Z,Aₚ) & Y(Aₚ) distributions from Y(A,Z,TKE) & n(A,Z,TKE)
 function Yield_post_neutron(y_A_Z_TKE::Distribution, n_A_Z_TKE)
-    y_Aₚ_Z_TKE = Distribution(Int[], Int[], Float64[], Int[], Float64[], Float64[])
-    y_Aₚ_Z = Distribution(Int[], Int[], Float64[], Int[], Float64[], Float64[])
+    yₚ_A_Z_TKE = Distribution(Int[], Int[], Float64[], Int[], Float64[], Float64[])
+    yₚ_A_Z = Distribution(Int[], Int[], Float64[], Int[], Float64[], Float64[])
     for A in unique(y_A_Z_TKE.A)
         for Z in unique(y_A_Z_TKE.Z[y_A_Z_TKE.A .== A])
             for TKE in y_A_Z_TKE.TKE[(y_A_Z_TKE.A .== A) .& (y_A_Z_TKE.Z .== Z)]
@@ -171,33 +171,34 @@ function Yield_post_neutron(y_A_Z_TKE::Distribution, n_A_Z_TKE)
                 if isassigned(n_A_Z_TKE.Value[(n_A_Z_TKE.A .== A) .& (n_A_Z_TKE.Z .== Z) .& (n_A_Z_TKE.TKE .== TKE)], 1)
                     n = n_A_Z_TKE.Value[(n_A_Z_TKE.A .== A) .& (n_A_Z_TKE.Z .== Z) .& (n_A_Z_TKE.TKE .== TKE)][1]
                     Aₚ = A - n
-                else 
-                    Aₚ = A 
-                end
-                if !isassigned(y_Aₚ_Z_TKE.Value[(y_Aₚ_Z_TKE.A .== Aₚ) .& (y_Aₚ_Z_TKE.Z .== Z) .& (y_Aₚ_Z_TKE.TKE .== TKE)], 1)
-                    push!(y_Aₚ_Z_TKE.A, Aₚ)
-                    push!(y_Aₚ_Z_TKE.Z, Z)
-                    push!(y_Aₚ_Z_TKE.TKE, TKE)
-                    push!(y_Aₚ_Z_TKE.Value, Y_A_Z_TKE)
-                    push!(y_Aₚ_Z_TKE.σ, σY_A_Z_TKE)
-                else
-                    y_Aₚ_Z_TKE.Value[(y_Aₚ_Z_TKE.A .== Aₚ) .& (y_Aₚ_Z_TKE.Z .== Z) .& (y_Aₚ_Z_TKE.TKE .== TKE)] .+= Y_A_Z_TKE
-                    y_Aₚ_Z_TKE.σ[(y_Aₚ_Z_TKE.A .== Aₚ) .& (y_Aₚ_Z_TKE.Z .== Z) .& (y_Aₚ_Z_TKE.TKE .== TKE)] .= sqrt(sum(y_Aₚ_Z_TKE.σ[(y_Aₚ_Z_TKE.A .== Aₚ) .& (y_Aₚ_Z_TKE.Z .== Z) .& (y_Aₚ_Z_TKE.TKE .== TKE)].^2) + σY_A_Z_TKE^2)
+                    if !isassigned(yₚ_A_Z_TKE.Value[(yₚ_A_Z_TKE.A .== Aₚ) .& (yₚ_A_Z_TKE.Z .== Z) .& (yₚ_A_Z_TKE.TKE .== TKE)], 1)
+                        push!(yₚ_A_Z_TKE.A, Aₚ)
+                        push!(yₚ_A_Z_TKE.Z, Z)
+                        push!(yₚ_A_Z_TKE.TKE, TKE)
+                        push!(yₚ_A_Z_TKE.Value, Y_A_Z_TKE)
+                        push!(yₚ_A_Z_TKE.σ, σY_A_Z_TKE)
+                    else
+                        yₚ_A_Z_TKE.Value[(yₚ_A_Z_TKE.A .== Aₚ) .& (yₚ_A_Z_TKE.Z .== Z) .& (yₚ_A_Z_TKE.TKE .== TKE)] .+= Y_A_Z_TKE
+                        yₚ_A_Z_TKE.σ[(yₚ_A_Z_TKE.A .== Aₚ) .& (yₚ_A_Z_TKE.Z .== Z) .& (yₚ_A_Z_TKE.TKE .== TKE)] .= sqrt(sum(yₚ_A_Z_TKE.σ[(yₚ_A_Z_TKE.A .== Aₚ) .& (yₚ_A_Z_TKE.Z .== Z) .& (yₚ_A_Z_TKE.TKE .== TKE)].^2) + σY_A_Z_TKE^2)
+                    end
                 end
             end
         end
     end
-    for A in sort(unique(y_Aₚ_Z_TKE.A))
-        for Z in sort(unique(y_Aₚ_Z_TKE.Z[(y_Aₚ_Z_TKE.A .== A)]))
-            Y_Aₚ_Z = sum(y_Aₚ_Z_TKE.Value[(y_Aₚ_Z_TKE.A .== A) .& (y_Aₚ_Z_TKE.Z .== Z)])
-            σY_Aₚ_Z = sqrt(sum(y_Aₚ_Z_TKE.σ[(y_Aₚ_Z_TKE.A .== A) .& (y_Aₚ_Z_TKE.Z .== Z)].^2))
-            push!(y_Aₚ_Z.A, A)
-            push!(y_Aₚ_Z.Z, Z)
-            push!(y_Aₚ_Z.Value, Y_Aₚ_Z)
-            push!(y_Aₚ_Z.σ, σY_Aₚ_Z)
+    f = 200/sum(yₚ_A_Z_TKE.Value)
+    yₚ_A_Z_TKE.Value .*= f
+    yₚ_A_Z_TKE.σ .*= f
+    for A in sort(unique(yₚ_A_Z_TKE.A))
+        for Z in sort(unique(yₚ_A_Z_TKE.Z[(yₚ_A_Z_TKE.A .== A)]))
+            Yₚ_A_Z = sum(yₚ_A_Z_TKE.Value[(yₚ_A_Z_TKE.A .== A) .& (yₚ_A_Z_TKE.Z .== Z)])
+            σYₚ_A_Z = sqrt(sum(yₚ_A_Z_TKE.σ[(yₚ_A_Z_TKE.A .== A) .& (yₚ_A_Z_TKE.Z .== Z)].^2))
+            push!(yₚ_A_Z.A, A)
+            push!(yₚ_A_Z.Z, Z)
+            push!(yₚ_A_Z.Value, Yₚ_A_Z)
+            push!(yₚ_A_Z.σ, σYₚ_A_Z)
         end
     end
-    return y_Aₚ_Z_TKE, y_Aₚ_Z
+    return yₚ_A_Z_TKE, yₚ_A_Z 
 end
 #Obtain vectorized singular distributions Y(A), Y(N), Y(Z), Y(TKE), TKE(AH) & KE(A) from Y(A,Z,TKE)
 function Singular_yield_distributions(y_A_Z_TKE::Distribution, A_0, A_H_min)
@@ -388,9 +389,10 @@ function Sort_q_Argument(q)
     end
 end
 #####
-println("*averaging data over $yield_distribution_filename experimental Yield distribution") 
+y_A_Z_TKE = Process_yield_data(A₀, fragmdomain, Yield_data)
 
-y_A_Z_TKE = Process_yield_data(A₀, Z₀, fragmdomain, Yield_data)
+Write_seq_output(A₀, Z₀, A_H_range, No_ZperA, E_incident, tkerange, y_A_Z_TKE, E_excitation, Raw_output_datafile, density_parameter_type, density_parameter_data, fissionant_nucleus_identifier, mass_excess_filename, txe_partitioning_type, txe_partitioning_data, evaporation_cs_type, dmass_excess)
+println("*averaging data over $yield_distribution_filename experimental Yield distribution") 
 
 if secondary_output_Yield == "YES"
     y_A, y_Z, y_N, y_TKE, tke_AH, ke_A = Singular_yield_distributions(y_A_Z_TKE, A₀, A_H_min)
@@ -551,16 +553,16 @@ if secondary_output_ν == "YES"
     )
     =#
     if secondary_output_Ap == "YES"
-        y_Ap_Z_TKE, y_Ap_Z = Yield_post_neutron(y_A_Z_TKE, max_seq_A_Z_TKE)
-        Ap_H_min = A_H_min - ceil(ν_A.Value[ν_A.Argument .== A_H_min][1])
-        y_Ap, y_Zp, y_Np, y_TKEp, tke_AHp, ke_Ap = Singular_yield_distributions(y_Ap_Z_TKE, A₀, Ap_H_min)
+        yp_A_Z_TKE, y_Ap_Z = Yield_post_neutron(y_A_Z_TKE, max_seq_A_Z_TKE)
+        Ap_H_min = A_H_min - (ν_A.Value[ν_A.Argument .== A_H_min][1] *2 - 1)
+        y_Ap, y_Zp, y_Np, y_TKEp, tke_AHp, ke_Ap = Singular_yield_distributions(yp_A_Z_TKE, A₀, Ap_H_min)
         if !isdir("output_data/Yield_Ap/")
             mkdir("output_data/Yield_Ap/")
         end
         if !isdir("output_data/Yield_Ap/Yield_Ap_Z/")
             mkdir("output_data/Yield_Ap/Yield_Ap_Z/")
         end
-        if isassigned(filter(!isnan, y_Ap_Z_TKE.σ), 1)
+        if isassigned(filter(!isnan, yp_A_Z_TKE.σ), 1)
             CSV.write(
                 "output_data/Yield_Ap/$(fissionant_nucleus_identifier)_Y_Ap.OUT", 
                 DataFrame(Aₚ = y_Ap.Argument, Y = y_Ap.Value, σ = y_Ap.σ), 

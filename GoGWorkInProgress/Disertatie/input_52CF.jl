@@ -84,17 +84,14 @@ Data provided in each case:
 *Extra deformation energies for MSCZ via datafile
 *Segment points in Vector of Tuples (txe_partitioning_segmentpoints) for PARAM & RT
 =#
-txe_partitioning_type = "PARAM"
+txe_partitioning_type = "RT"
 
 txe_partitioning_filename = ""
 txe_partitioning_header = ["A", "Z", "Value"]
 txe_partitioning_delimiter = ' '
 txe_partitioning_firstdataline = 2
 
-txe_partitioning_segmentpoints = [(126, 0.5), (130, 0.14), (150, 0.607), (174, 0.865)]
-
-#Write out main DSE output file containing detailed sequence data YES or NO selector
-write_primary_output = "NO"
+txe_partitioning_segmentpoints = [(126, 1.0), (130, 1.734), (134, 1.28), (138, 1.28), (150, 0.9), (167, 0.68), (174, 0.59)]
 
 #Yield-averaged outputs YES or NO selector for data and plots
 secondary_outputs = "YES"
