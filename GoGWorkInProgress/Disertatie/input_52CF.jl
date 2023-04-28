@@ -118,7 +118,6 @@ neutron_spectrum = "NO"
 E_min = 1e-6
 E_max = 20.0
 E_step = 5e-2
-#Yield_cutoff_value = 
 
 #Plots YES or NO selector
 generate_plots = "NO"

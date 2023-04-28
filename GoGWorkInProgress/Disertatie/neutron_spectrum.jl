@@ -186,10 +186,10 @@ end
 #####
 
 Adjusted_yield = DataFrame(
-    A = y_A_Z_TKE.A[(y_A_Z_TKE.Value .>= Yield_cutoff_value) .& (y_A_Z_TKE.A .>= A_H_min)], 
-    Z = y_A_Z_TKE.Z[(y_A_Z_TKE.Value .>= Yield_cutoff_value) .& (y_A_Z_TKE.A .>= A_H_min)],
-    TKE = y_A_Z_TKE.TKE[(y_A_Z_TKE.Value .>= Yield_cutoff_value) .& (y_A_Z_TKE.A .>= A_H_min)],
-    Value = y_A_Z_TKE.Value[(y_A_Z_TKE.Value .>= Yield_cutoff_value) .& (y_A_Z_TKE.A .>= A_H_min)]
+    A = y_A_Z_TKE.A[y_A_Z_TKE.A .>= A_H_min], 
+    Z = y_A_Z_TKE.Z[y_A_Z_TKE.A .>= A_H_min],
+    TKE = y_A_Z_TKE.TKE[y_A_Z_TKE.A .>= A_H_min],
+    Value = y_A_Z_TKE.Value[y_A_Z_TKE.A .>= A_H_min]
 )
 
 n_E_SL, n_E_LF_SCM, n_E_HF_SCM = Neutron_spectrum_builder(A₀, Z₀, A_H_min, A_H_max, energyrange, Raw_output_datafile, evaporation_cs_type, Adjusted_yield)
