@@ -10,6 +10,9 @@ if !isdir("input_data/")
 end
 cd("input_data/")
 
+#Identifier used in the filenames
+file_output_identifier = "ModllSciss"
+
 #Mass excess data file name, column names, delimiter symbol, number of first row of actual data in file
 mass_excess_filename = "AME2020.ANA"
 mass_excess_header = ["Z", "A", "Symbol", "D", "σ_D"]
@@ -106,7 +109,9 @@ secondary_output_Tₖ = "YES"
 secondary_output_avg_ε = "NO"
 secondary_output_avg_εₖ = "NO"
 secondary_output_Eᵣ = "NO"
-ΔT, ΔTₖ, Δavg_ε, Δavg_εₖ, ΔEᵣ = 1e-2, 1e-2, 5e-2, 5e-2, 5e-1    #Histogram steps
+
+#Histogram distributions step sizes
+ΔT, ΔTₖ, Δavg_ε, Δavg_εₖ, ΔEᵣ = 1e-2, 1e-2, 5e-2, 5e-2, 5e-1
 
 yield_distribution_filename = "$(fissionant_nucleus_identifier)YATKE.VES"
 yield_distribution_header = ["A", "TKE", "Value", "σ"]
