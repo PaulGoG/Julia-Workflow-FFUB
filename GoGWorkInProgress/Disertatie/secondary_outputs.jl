@@ -402,73 +402,73 @@ if secondary_output_Yield == "YES"
     end
     if isassigned(filter(!isnan, y_A_Z_TKE.σ), 1)
         CSV.write(
-            "output_data/Yield/$(fissionant_nucleus_identifier)_Y_A_Z_TKE.OUT", 
+            "output_data/Yield/$(fissionant_nucleus_identifier)_Y_A_Z_TKE_$(file_output_identifier).DAT", 
             DataFrame(A = y_A_Z_TKE.A, Z = y_A_Z_TKE.Z, TKE = y_A_Z_TKE.TKE, Y = y_A_Z_TKE.Value, σ = y_A_Z_TKE.σ), 
             writeheader=true, newline="\r\n", delim=' '
         )
         CSV.write(
-            "output_data/Yield/$(fissionant_nucleus_identifier)_Y_A.OUT", 
+            "output_data/Yield/$(fissionant_nucleus_identifier)_Y_A_$(file_output_identifier).DAT", 
             DataFrame(A = y_A.Argument, Y = y_A.Value, σ = y_A.σ), 
             writeheader=true, newline="\r\n", delim=' '
         )
         CSV.write(
-            "output_data/Yield/$(fissionant_nucleus_identifier)_Y_Z.OUT", 
+            "output_data/Yield/$(fissionant_nucleus_identifier)_Y_Z_$(file_output_identifier).DAT", 
             DataFrame(Z = y_Z.Argument, Y = y_Z.Value, σ = y_Z.σ), 
             writeheader=true, newline="\r\n", delim=' '
         )
         CSV.write(
-            "output_data/Yield/$(fissionant_nucleus_identifier)_Y_N.OUT", 
+            "output_data/Yield/$(fissionant_nucleus_identifier)_Y_N_$(file_output_identifier).DAT", 
             DataFrame(N = y_N.Argument, Y = y_N.Value, σ = y_N.σ), 
             writeheader=true, newline="\r\n", delim=' '
         )
         CSV.write(
-            "output_data/Yield/$(fissionant_nucleus_identifier)_Y_TKE.OUT", 
+            "output_data/Yield/$(fissionant_nucleus_identifier)_Y_TKE_$(file_output_identifier).DAT", 
             DataFrame(TKE = y_TKE.Argument, Y = y_TKE.Value, σ = y_TKE.σ), 
             writeheader=true, newline="\r\n", delim=' '
         )
         CSV.write(
-            "output_data/Yield/$(fissionant_nucleus_identifier)_TKE_AH.OUT", 
+            "output_data/Yield/$(fissionant_nucleus_identifier)_TKE_AH_$(file_output_identifier).DAT", 
             DataFrame(A_H = tke_AH.Argument, TKE = tke_AH.Value, σ = tke_AH.σ), 
             writeheader=true, newline="\r\n", delim=' '
         )
         CSV.write(
-            "output_data/Yield/$(fissionant_nucleus_identifier)_KE_A.OUT", 
+            "output_data/Yield/$(fissionant_nucleus_identifier)_KE_A_$(file_output_identifier).DAT", 
             DataFrame(A = ke_A.Argument, KE = ke_A.Value, σ = ke_A.σ), 
             writeheader=true, newline="\r\n", delim=' '
         )
     else
         CSV.write(
-            "output_data/Yield/$(fissionant_nucleus_identifier)_Y_A_Z_TKE.OUT", 
+            "output_data/Yield/$(fissionant_nucleus_identifier)_Y_A_Z_TKE_$(file_output_identifier).DAT", 
             DataFrame(A = y_A_Z_TKE.A, Z = y_A_Z_TKE.Z, TKE = y_A_Z_TKE.TKE, Y = y_A_Z_TKE.Value), 
             writeheader=true, newline="\r\n", delim=' '
         )
         CSV.write(
-            "output_data/Yield/$(fissionant_nucleus_identifier)_Y_A.OUT", 
+            "output_data/Yield/$(fissionant_nucleus_identifier)_Y_A_$(file_output_identifier).DAT", 
             DataFrame(A = y_A.Argument, Y = y_A.Value), 
             writeheader=true, newline="\r\n", delim=' '
         )
         CSV.write(
-            "output_data/Yield/$(fissionant_nucleus_identifier)_Y_Z.OUT", 
+            "output_data/Yield/$(fissionant_nucleus_identifier)_Y_Z_$(file_output_identifier).DAT", 
             DataFrame(Z = y_Z.Argument, Y = y_Z.Value), 
             writeheader=true, newline="\r\n", delim=' '
         )
         CSV.write(
-            "output_data/Yield/$(fissionant_nucleus_identifier)_Y_N.OUT", 
+            "output_data/Yield/$(fissionant_nucleus_identifier)_Y_N_$(file_output_identifier).DAT", 
             DataFrame(N = y_N.Argument, Y = y_N.Value), 
             writeheader=true, newline="\r\n", delim=' '
         )
         CSV.write(
-            "output_data/Yield/$(fissionant_nucleus_identifier)_Y_TKE.OUT", 
+            "output_data/Yield/$(fissionant_nucleus_identifier)_Y_TKE_$(file_output_identifier).DAT", 
             DataFrame(TKE = y_TKE.Argument, Y = y_TKE.Value), 
             writeheader=true, newline="\r\n", delim=' '
         )
         CSV.write(
-            "output_data/Yield/$(fissionant_nucleus_identifier)_TKE_AH.OUT", 
+            "output_data/Yield/$(fissionant_nucleus_identifier)_TKE_AH_$(file_output_identifier).DAT", 
             DataFrame(A_H = tke_AH.Argument, TKE = tke_AH.Value), 
             writeheader=true, newline="\r\n", delim=' '
         )
         CSV.write(
-            "output_data/Yield/$(fissionant_nucleus_identifier)_KE_A.OUT", 
+            "output_data/Yield/$(fissionant_nucleus_identifier)_KE_A_$(file_output_identifier).DAT", 
             DataFrame(A = ke_A.Argument, KE = ke_A.Value), 
             writeheader=true, newline="\r\n", delim=' '
         )
@@ -494,13 +494,13 @@ if secondary_output_ν == "YES"
     )
     ν_A_TKE = Average_over_Z(ν_A_Z_TKE, fragmdomain)
     CSV.write(
-        "output_data/nu/$(fissionant_nucleus_identifier)_nu_A_TKE.OUT", 
+        "output_data/nu/$(fissionant_nucleus_identifier)_nu_A_TKE_$(file_output_identifier).DAT", 
         DataFrame(A = ν_A_TKE.A, TKE = ν_A_TKE.TKE, ν = ν_A_TKE.Value), 
         writeheader=true, newline="\r\n", delim=' '
     )
     ν_A = Average_over_TKE_Z(ν_A_Z_TKE, y_A_Z_TKE)
     CSV.write(
-        "output_data/nu/$(fissionant_nucleus_identifier)_nu_A.OUT", 
+        "output_data/nu/$(fissionant_nucleus_identifier)_nu_A_$(file_output_identifier).DAT", 
         DataFrame(A = ν_A.Argument, ν = ν_A.Value), 
         writeheader=true, newline="\r\n", delim=' '
     )
@@ -509,19 +509,19 @@ if secondary_output_ν == "YES"
         Value = [Pair_value(ν_A, A₀, A_H) for A_H in ν_A.Argument[ν_A.Argument .>= A_H_min]]
     )
     CSV.write(
-        "output_data/nu/$(fissionant_nucleus_identifier)_nu_AH_Pair.OUT", 
+        "output_data/nu/$(fissionant_nucleus_identifier)_nu_AH_Pair_$(file_output_identifier).DAT", 
         DataFrame(A = ν_AH_Pair.Argument, ν_Pair = ν_AH_Pair.Value), 
         writeheader=true, newline="\r\n", delim=' '
     )
     ν_TKE = Average_over_A_Z(ν_A_Z_TKE, y_A_Z_TKE)
     CSV.write(
-        "output_data/nu/$(fissionant_nucleus_identifier)_nu_Pair_TKE.OUT", 
+        "output_data/nu/$(fissionant_nucleus_identifier)_nu_Pair_TKE_$(file_output_identifier).DAT", 
         DataFrame(TKE = ν_TKE.Argument, ν = ν_TKE.Value .* 2), 
         writeheader=true, newline="\r\n", delim=' '
     )
     probability_ν = Probability_of_occurrence(ν_A_Z_TKE, y_A_Z_TKE, 1)
     CSV.write(
-        "output_data/nu/$(fissionant_nucleus_identifier)_P_nu.OUT", 
+        "output_data/nu/$(fissionant_nucleus_identifier)_P_nu_$(file_output_identifier).DAT", 
         DataFrame(ν = probability_ν.Argument, P = probability_ν.Value), 
         writeheader=true, newline="\r\n", delim=' '
     )
@@ -535,7 +535,7 @@ if secondary_output_ν == "YES"
         ), y_A_Z_TKE, 1
     )
     CSV.write(
-        "output_data/nu/$(fissionant_nucleus_identifier)_P_nu_LF.OUT", 
+        "output_data/nu/$(fissionant_nucleus_identifier)_P_nu_LF_$(file_output_identifier).DAT", 
         DataFrame(ν = probability_ν_L.Argument, P = probability_ν_L.Value), 
         writeheader=true, newline="\r\n", delim=' '
     )
@@ -548,7 +548,7 @@ if secondary_output_ν == "YES"
         ), y_A_Z_TKE, 1
     )
     CSV.write(
-        "output_data/nu/$(fissionant_nucleus_identifier)_P_nu_HF.OUT", 
+        "output_data/nu/$(fissionant_nucleus_identifier)_P_nu_HF_$(file_output_identifier).DAT", 
         DataFrame(ν = probability_ν_H.Argument, P = probability_ν_H.Value), 
         writeheader=true, newline="\r\n", delim=' '
     )
@@ -565,66 +565,66 @@ if secondary_output_ν == "YES"
         end
         if isassigned(filter(!isnan, yp_A_Z_TKE.σ), 1)
             CSV.write(
-                "output_data/Yield_Ap/$(fissionant_nucleus_identifier)_Y_Ap.OUT", 
+                "output_data/Yield_Ap/$(fissionant_nucleus_identifier)_Y_Ap_$(file_output_identifier).DAT", 
                 DataFrame(Aₚ = y_Ap.Argument, Y = y_Ap.Value, σ = y_Ap.σ), 
                 writeheader=true, newline="\r\n", delim=' '
             )
             CSV.write(
-                "output_data/Yield_Ap/$(fissionant_nucleus_identifier)_Y_Ap_Z.OUT", 
+                "output_data/Yield_Ap/$(fissionant_nucleus_identifier)_Y_Ap_Z_$(file_output_identifier).DAT", 
                 DataFrame(Aₚ = y_Ap_Z.A, Z = y_Ap_Z.Z, Y = y_Ap_Z.Value, σ = y_Ap_Z.σ), 
                 writeheader=true, newline="\r\n", delim=' '
             )
             CSV.write(
-                "output_data/Yield_Ap/$(fissionant_nucleus_identifier)_Y_Np.OUT", 
+                "output_data/Yield_Ap/$(fissionant_nucleus_identifier)_Y_Np_$(file_output_identifier).DAT", 
                 DataFrame(N = y_Np.Argument, Y = y_Np.Value, σ = y_Np.σ), 
                 writeheader=true, newline="\r\n", delim=' '
             )
             CSV.write(
-                "output_data/Yield_Ap/$(fissionant_nucleus_identifier)_TKE_AHp.OUT", 
+                "output_data/Yield_Ap/$(fissionant_nucleus_identifier)_TKE_AHp_$(file_output_identifier).DAT", 
                 DataFrame(A_H = tke_AHp.Argument, TKE = tke_AHp.Value, σ = tke_AHp.σ), 
                 writeheader=true, newline="\r\n", delim=' '
             )
             CSV.write(
-                "output_data/Yield_Ap/$(fissionant_nucleus_identifier)_KE_Ap.OUT", 
+                "output_data/Yield_Ap/$(fissionant_nucleus_identifier)_KE_Ap_$(file_output_identifier).DAT", 
                 DataFrame(A = ke_Ap.Argument, KE = ke_Ap.Value, σ = ke_Ap.σ), 
                 writeheader=true, newline="\r\n", delim=' '
             )
             for Z in unique(y_Ap_Z.Z)
                 CSV.write(
-                    "output_data/Yield_Ap/Yield_Ap_Z/$(fissionant_nucleus_identifier)_Y_Ap_$(Z).OUT", 
+                    "output_data/Yield_Ap/Yield_Ap_Z/$(fissionant_nucleus_identifier)_Y_Ap_$(Z)_$(file_output_identifier).DAT", 
                     DataFrame(Aₚ = y_Ap_Z.A[y_Ap_Z.Z .== Z], Y = y_Ap_Z.Value[y_Ap_Z.Z .== Z], σ = y_Ap_Z.σ[y_Ap_Z.Z .== Z]), 
                     writeheader=true, newline="\r\n", delim=' '
                 )
             end
         else
             CSV.write(
-                "output_data/Yield_Ap/$(fissionant_nucleus_identifier)_Y_Ap.OUT", 
+                "output_data/Yield_Ap/$(fissionant_nucleus_identifier)_Y_Ap_$(file_output_identifier).DAT", 
                 DataFrame(Aₚ = y_Ap.Argument, Y = y_Ap.Value), 
                 writeheader=true, newline="\r\n", delim=' '
             )
             CSV.write(
-                "output_data/Yield_Ap/$(fissionant_nucleus_identifier)_Y_Ap_Z.OUT", 
+                "output_data/Yield_Ap/$(fissionant_nucleus_identifier)_Y_Ap_Z_$(file_output_identifier).DAT", 
                 DataFrame(Aₚ = y_Ap_Z.A, Z = y_Ap_Z.Z, Y = y_Ap_Z.Value), 
                 writeheader=true, newline="\r\n", delim=' '
             )
             CSV.write(
-                "output_data/Yield_Ap/$(fissionant_nucleus_identifier)_Y_Np.OUT", 
+                "output_data/Yield_Ap/$(fissionant_nucleus_identifier)_Y_Np_$(file_output_identifier).DAT", 
                 DataFrame(N = y_Np.Argument, Y = y_Np.Value), 
                 writeheader=true, newline="\r\n", delim=' '
             )
             CSV.write(
-                "output_data/Yield_Ap/$(fissionant_nucleus_identifier)_TKE_AHp.OUT", 
+                "output_data/Yield_Ap/$(fissionant_nucleus_identifier)_TKE_AHp_$(file_output_identifier).DAT", 
                 DataFrame(A_H = tke_AHp.Argument, TKE = tke_AHp.Value), 
                 writeheader=true, newline="\r\n", delim=' '
             )
             CSV.write(
-                "output_data/Yield_Ap/$(fissionant_nucleus_identifier)_KE_Ap.OUT", 
+                "output_data/Yield_Ap/$(fissionant_nucleus_identifier)_KE_Ap_$(file_output_identifier).DAT", 
                 DataFrame(A = ke_Ap.Argument, KE = ke_Ap.Value), 
                 writeheader=true, newline="\r\n", delim=' '
             )
             for Z in sort(unique(y_Ap_Z.Z))
                 CSV.write(
-                    "output_data/Yield_Ap/Yield_Ap_Z/$(fissionant_nucleus_identifier)_Y_Ap_$(Z).OUT", 
+                    "output_data/Yield_Ap/Yield_Ap_Z/$(fissionant_nucleus_identifier)_Y_Ap_$(Z)_$(file_output_identifier).DAT", 
                     DataFrame(Aₚ = y_Ap_Z.A[y_Ap_Z.Z .== Z], Y = y_Ap_Z.Value[y_Ap_Z.Z .== Z]), 
                     writeheader=true, newline="\r\n", delim=' '
                 )
@@ -652,13 +652,13 @@ if secondary_output_ν == "YES"
             )
             Tₖ_A = Average_over_TKE_Z(Tₖ_A_Z_TKE, y_A_Z_TKE)
             CSV.write(
-                "output_data/T_k_A/$(fissionant_nucleus_identifier)_T_$(k)_A.OUT", 
+                "output_data/T_k_A/$(fissionant_nucleus_identifier)_T_$(k)_A_$(file_output_identifier).DAT", 
                 DataFrame(A = Tₖ_A.Argument, T = Tₖ_A.Value), 
                 writeheader=true, newline="\r\n", delim=' '
             )
             probability_Tₖ = Probability_of_occurrence(Tₖ_A_Z_TKE, y_A_Z_TKE, ΔTₖ)
             CSV.write(
-                "output_data/P_T_k/$(fissionant_nucleus_identifier)_P_T_$(k).OUT", 
+                "output_data/P_T_k/$(fissionant_nucleus_identifier)_P_T_$(k)_$(file_output_identifier).DAT", 
                 DataFrame(Tₖ = probability_Tₖ.Argument, P = probability_Tₖ.Value), 
                 writeheader=true, newline="\r\n", delim=' '
             )
@@ -671,7 +671,7 @@ if secondary_output_ν == "YES"
                 ), y_A_Z_TKE, ΔTₖ
                 )
             CSV.write(
-                "output_data/P_T_k/$(fissionant_nucleus_identifier)_P_T_$(k)_LF.OUT", 
+                "output_data/P_T_k/$(fissionant_nucleus_identifier)_P_T_$(k)_LF_$(file_output_identifier).DAT", 
                 DataFrame(Tₖ = probability_Tₖ_L.Argument, P = probability_Tₖ_L.Value), 
                 writeheader=true, newline="\r\n", delim=' '
             )
@@ -684,7 +684,7 @@ if secondary_output_ν == "YES"
                 ), y_A_Z_TKE, ΔTₖ
                 )
             CSV.write(
-                "output_data/P_T_k/$(fissionant_nucleus_identifier)_P_T_$(k)_HF.OUT", 
+                "output_data/P_T_k/$(fissionant_nucleus_identifier)_P_T_$(k)_HF_$(file_output_identifier).DAT", 
                 DataFrame(Tₖ = probability_Tₖ_H.Argument, P = probability_Tₖ_H.Value), 
                 writeheader=true, newline="\r\n", delim=' '
             )
@@ -694,7 +694,7 @@ if secondary_output_ν == "YES"
                 Eᵣ_A_Z_TKE.Value .= Energy_FermiGas.(aₖ, Eᵣ_A_Z_TKE.Value)
                 probability_Eᵣ = Probability_of_occurrence(Eᵣ_A_Z_TKE, y_A_Z_TKE, ΔEᵣ)
                 CSV.write(
-                    "output_data/P_Er/$(fissionant_nucleus_identifier)_P_Er_$(k).OUT", 
+                    "output_data/P_Er/$(fissionant_nucleus_identifier)_P_Er_$(k)_$(file_output_identifier).DAT", 
                     DataFrame(Eᵣ = probability_Eᵣ.Argument, P = probability_Eᵣ.Value), 
                     writeheader=true, newline="\r\n", delim=' '
                 )
@@ -707,7 +707,7 @@ if secondary_output_ν == "YES"
                     ), y_A_Z_TKE, ΔEᵣ
                     )
                 CSV.write(
-                    "output_data/P_Er/$(fissionant_nucleus_identifier)_P_Er_$(k)_LF.OUT", 
+                    "output_data/P_Er/$(fissionant_nucleus_identifier)_P_Er_$(k)_LF_$(file_output_identifier).DAT", 
                     DataFrame(Eᵣ = probability_Eᵣ_L.Argument, P = probability_Eᵣ_L.Value), 
                     writeheader=true, newline="\r\n", delim=' '
                 )
@@ -720,7 +720,7 @@ if secondary_output_ν == "YES"
                     ), y_A_Z_TKE, ΔEᵣ
                     )
                 CSV.write(
-                    "output_data/P_Er/$(fissionant_nucleus_identifier)_P_Er_$(k)_HF.OUT", 
+                    "output_data/P_Er/$(fissionant_nucleus_identifier)_P_Er_$(k)_HF_$(file_output_identifier).DAT", 
                     DataFrame(Eᵣ = probability_Eᵣ_H.Argument, P = probability_Eᵣ_H.Value), 
                     writeheader=true, newline="\r\n", delim=' '
                 )
@@ -740,7 +740,7 @@ if secondary_output_ν == "YES"
             )
             probability_avg_εₖ = Probability_of_occurrence(avg_εₖ_A_Z_TKE, y_A_Z_TKE, Δavg_εₖ)
             CSV.write(
-                "output_data/P_avgE_k/$(fissionant_nucleus_identifier)_P_avgE_$(k)_SCM.OUT", 
+                "output_data/P_avgE_k/$(fissionant_nucleus_identifier)_P_avgE_$(k)_SCM_$(file_output_identifier).DAT", 
                 DataFrame(Avg_εₖ = probability_avg_εₖ.Argument, P = probability_avg_εₖ.Value), 
                 writeheader=true, newline="\r\n", delim=' '
             )
@@ -753,7 +753,7 @@ if secondary_output_ν == "YES"
                 ), y_A_Z_TKE, Δavg_εₖ
             )
             CSV.write(
-                "output_data/P_avgE_k/$(fissionant_nucleus_identifier)_P_avgE_$(k)_SCM_LF.OUT", 
+                "output_data/P_avgE_k/$(fissionant_nucleus_identifier)_P_avgE_$(k)_SCM_LF_$(file_output_identifier).DAT", 
                 DataFrame(avg_εₖ = probability_avg_εₖ_L.Argument, P = probability_avg_εₖ_L.Value), 
                 writeheader=true, newline="\r\n", delim=' '
             )
@@ -766,7 +766,7 @@ if secondary_output_ν == "YES"
                 ), y_A_Z_TKE, Δavg_εₖ
             )
             CSV.write(
-                "output_data/P_avgE_k/$(fissionant_nucleus_identifier)_P_avgE_$(k)_SCM_HF.OUT", 
+                "output_data/P_avgE_k/$(fissionant_nucleus_identifier)_P_avgE_$(k)_SCM_HF_$(file_output_identifier).DAT", 
                 DataFrame(avg_εₖ = probability_avg_εₖ_H.Argument, P = probability_avg_εₖ_H.Value), 
                 writeheader=true, newline="\r\n", delim=' '
             )
@@ -788,13 +788,13 @@ if secondary_output_T == "YES"
         Value = Raw_output_datafile.Tₖ
     )), y_A_Z_TKE)
     CSV.write(
-        "output_data/$(fissionant_nucleus_identifier)_T_A.OUT", 
+        "output_data/$(fissionant_nucleus_identifier)_T_A_$(file_output_identifier).DAT", 
         DataFrame(A = T_A.Argument, T = T_A.Value), 
         writeheader=true, newline="\r\n", delim=' '
     )
     probability_T = Probability_of_occurrence(T_A_Z_TKE, y_A_Z_TKE, ΔT)
     CSV.write(
-        "output_data/$(fissionant_nucleus_identifier)_P_T.OUT", 
+        "output_data/$(fissionant_nucleus_identifier)_P_T_$(file_output_identifier).DAT", 
         DataFrame(T = probability_T.Argument, P = probability_T.Value), 
         writeheader=true, newline="\r\n", delim=' '
     )
@@ -807,7 +807,7 @@ if secondary_output_T == "YES"
         ), y_A_Z_TKE, ΔT
         )
     CSV.write(
-        "output_data/$(fissionant_nucleus_identifier)_P_T_LF.OUT", 
+        "output_data/$(fissionant_nucleus_identifier)_P_T_LF_$(file_output_identifier).DAT", 
         DataFrame(T = probability_T_L.Argument, P = probability_T_L.Value), 
         writeheader=true, newline="\r\n", delim=' '
     )
@@ -820,7 +820,7 @@ if secondary_output_T == "YES"
         ), y_A_Z_TKE, ΔT
         )
     CSV.write(
-        "output_data/$(fissionant_nucleus_identifier)_P_T_HF.OUT", 
+        "output_data/$(fissionant_nucleus_identifier)_P_T_HF_$(file_output_identifier).DAT", 
         DataFrame(T = probability_T_H.Argument, P = probability_T_H.Value), 
         writeheader=true, newline="\r\n", delim=' '
     )
@@ -830,7 +830,7 @@ if secondary_output_T == "YES"
         Eᵣ_A_Z_TKE.Value .= Energy_FermiGas.(a, Eᵣ_A_Z_TKE.Value)
         probability_Eᵣ = Probability_of_occurrence(Eᵣ_A_Z_TKE, y_A_Z_TKE, ΔEᵣ)
         CSV.write(
-            "output_data/$(fissionant_nucleus_identifier)_P_Er.OUT", 
+            "output_data/$(fissionant_nucleus_identifier)_P_Er_$(file_output_identifier).DAT", 
             DataFrame(Eᵣ = probability_Eᵣ.Argument, P = probability_Eᵣ.Value), 
             writeheader=true, newline="\r\n", delim=' '
         )
@@ -843,7 +843,7 @@ if secondary_output_T == "YES"
             ), y_A_Z_TKE, ΔEᵣ
             )
         CSV.write(
-            "output_data/$(fissionant_nucleus_identifier)_P_Er_LF.OUT", 
+            "output_data/$(fissionant_nucleus_identifier)_P_Er_LF_$(file_output_identifier).DAT", 
             DataFrame(Eᵣ = probability_Eᵣ_L.Argument, P = probability_Eᵣ_L.Value), 
             writeheader=true, newline="\r\n", delim=' '
         )
@@ -856,7 +856,7 @@ if secondary_output_T == "YES"
             ), y_A_Z_TKE, ΔEᵣ
             )
         CSV.write(
-            "output_data/$(fissionant_nucleus_identifier)_P_Er_HF.OUT", 
+            "output_data/$(fissionant_nucleus_identifier)_P_Er_HF_$(file_output_identifier).DAT", 
             DataFrame(Eᵣ = probability_Eᵣ_H.Argument, P = probability_Eᵣ_H.Value), 
             writeheader=true, newline="\r\n", delim=' '
         )
@@ -877,13 +877,13 @@ if secondary_output_avg_ε == "YES"
         Value = Raw_output_datafile.Avg_εₖ
     )), y_A_Z_TKE)
     CSV.write(
-        "output_data/$(fissionant_nucleus_identifier)_avgE_SCM_A.OUT", 
+        "output_data/$(fissionant_nucleus_identifier)_avgE_SCM_A_$(file_output_identifier).DAT", 
         DataFrame(A = T_A.Argument, T = T_A.Value), 
         writeheader=true, newline="\r\n", delim=' '
     )
     probability_avg_ε = Probability_of_occurrence(avg_ε_A_Z_TKE, y_A_Z_TKE, Δavg_ε)
     CSV.write(
-        "output_data/$(fissionant_nucleus_identifier)_P_avgE_SCM.OUT", 
+        "output_data/$(fissionant_nucleus_identifier)_P_avgE_SCM_$(file_output_identifier).DAT", 
         DataFrame(avg_ε = probability_avg_ε.Argument, P = probability_avg_ε.Value), 
         writeheader=true, newline="\r\n", delim=' '
     )
@@ -896,7 +896,7 @@ if secondary_output_avg_ε == "YES"
         ), y_A_Z_TKE, Δavg_ε
         )
     CSV.write(
-        "output_data/$(fissionant_nucleus_identifier)_P_avgE_SCM_LF.OUT", 
+        "output_data/$(fissionant_nucleus_identifier)_P_avgE_SCM_LF_$(file_output_identifier).DAT", 
         DataFrame(avg_ε = probability_avg_ε_L.Argument, P = probability_avg_ε_L.Value), 
         writeheader=true, newline="\r\n", delim=' '
     )
@@ -909,7 +909,7 @@ if secondary_output_avg_ε == "YES"
         ), y_A_Z_TKE, Δavg_ε
         )
     CSV.write(
-        "output_data/$(fissionant_nucleus_identifier)_P_avgE_SCM_HF.OUT", 
+        "output_data/$(fissionant_nucleus_identifier)_P_avgE_SCM_HF_$(file_output_identifier).DAT", 
         DataFrame(avg_ε = probability_avg_ε_H.Argument, P = probability_avg_ε_H.Value), 
         writeheader=true, newline="\r\n", delim=' '
     )
@@ -920,19 +920,19 @@ end
 if secondary_output_E_excitation == "YES"
     E_excitation_A = Average_over_TKE_Z(E_excitation, y_A_Z_TKE)
     CSV.write(
-        "output_data/$(fissionant_nucleus_identifier)_E_excit_A.OUT", 
+        "output_data/$(fissionant_nucleus_identifier)_E_excit_A_$(file_output_identifier).DAT", 
         DataFrame(A = E_excitation_A.Argument, E = E_excitation_A.Value), 
         writeheader=true, newline="\r\n", delim=' '
     )
     probability_E_excitation = Probability_of_occurrence(E_excitation, y_A_Z_TKE, 1.0)
     CSV.write(
-        "output_data/$(fissionant_nucleus_identifier)_P_E_excit.OUT", 
+        "output_data/$(fissionant_nucleus_identifier)_P_E_excit_$(file_output_identifier).DAT", 
         DataFrame(E = probability_E_excitation.Argument, P = probability_E_excitation.Value), 
         writeheader=true, newline="\r\n", delim=' '
     )       
 end
 #Write average quantities to file
-open("output_data/$(fissionant_nucleus_identifier)_Average_quantities.OUT", "w") do file
+open("output_data/$(fissionant_nucleus_identifier)_Average_quantities_$(file_output_identifier).DAT", "w") do file
     if secondary_output_Yield == "YES"
         avg_A_L = Average_yield_argument(y_A, y_A.Argument[y_A.Argument .<= A_H_min])
         avg_A_H = Average_yield_argument(y_A, y_A.Argument[y_A.Argument .>= A_H_min])
