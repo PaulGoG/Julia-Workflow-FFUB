@@ -1,6 +1,4 @@
-#=
-Flow control and error handling for input parameters and filenames of the main program
-=#
+#Flow control and error handling for input parameters and filenames of the main program
 #####
 if A_H_min < A₀/2 || !isinteger(A_H_min)
     error("A_H_min must be an Integer greater than $(Int(round(A₀/2)))!")
@@ -89,27 +87,33 @@ if txe_partitioning_type == "MSCZ"
     end
 end
 
-if secondary_outputs != "YES" && secondary_outputs != "NO"
-    error("$secondary_outputs is not a valid input for secondary_outputs")
-end
-
-if generate_plots != "YES" && generate_plots != "NO"
-    error("$generate_plots is not a valid input for generate_plots")
-end
-
-if neutron_spectrum != "YES" && neutron_spectrum != "NO"
-    error("$neutron_spectrum is not a valid input for neutron_spectrum")
-end
-
-if secondary_outputs == "NO"
-    if generate_plots == "YES"
+if !secondary_outputs
+    if secondary_output_Yield
+        error("averaged yield distributions cannot be calculated without valid yield distribution!")
+    elseif secondary_output_TXE_Q
+        error("Q-value and TXE averaged distributions cannot be calculated without valid yield distribution!")
+    elseif secondary_output_E_excitation
+        error("E* averaged distributions cannot be calculated without valid yield distribution!")
+    elseif secondary_output_nu
+        error("averaged neutron multiplicities cannot be calculated without valid yield distribution!")
+    elseif secondary_output_Ap
+        error("post emission distributions cannot be calculated without valid yield distribution!")
+    elseif secondary_output_T
+        error("averaged residual temperatures cannot be calculated without valid yield distribution!")
+    elseif secondary_output_Tₖ
+        error("averaged residual temperatures cannot be calculated without valid yield distribution!")
+    elseif secondary_output_avg_ε
+        error("averaged center-of-mass neutron energies cannot be calculated without valid yield distribution!")
+    elseif secondary_output_avg_εₖ
+        error("averaged center-of-mass neutron energies cannot be calculated without valid yield distribution!")
+    elseif secondary_output_Eᵣ
+        error("averaged residual fragment energies cannot be calculated without valid yield distribution!")
+    elseif generate_plots
         error("plots cannot be generated without yield-averaged quantities!")
-    elseif neutron_spectrum == "YES"
+    elseif neutron_spectrum
         error("prompt neutron spectrum cannot be calculated without valid yield distribution!")
     end
-end
-
-if secondary_outputs == "YES"
+else
     if !isfile(yield_distribution_filename)
         error("$yield_distribution_filename does not exist at input_data/  PATH!")
     end
@@ -119,7 +123,7 @@ if secondary_outputs == "YES"
         allowed header names list: A, TKE, Value, σ"
         )
     end
-    if neutron_spectrum == "YES" && E_min >= E_max
+    if neutron_spectrum && E_min >= E_max
         error("invalid neutron spectrum Energy range!")
     end
 end

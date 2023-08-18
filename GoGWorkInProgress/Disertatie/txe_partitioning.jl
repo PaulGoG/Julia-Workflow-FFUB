@@ -131,7 +131,7 @@ function TXE_partitioning(A_0, Z_0, A_H_range, fission_type, E_incident, fragmdo
         error("Neutron separation energy for fissionant nucleus ($(A_0),$(Z_0)) could not be calculated!")
     end
 end
-#R_T provided by segments
+#R_T(A_H) provided by segments
 function TXE_partitioning(A_0, Z_0, A_H_range, fission_type, E_incident, fragmdomain::Distribution, Points::Vector{Tuple{Int64, Float64}}, tkerange, density_parameter_type, density_parameter_data, dm::DataFrame)
     E_excit = Distribution(Int[], Int[], Float64[], Int[], Float64[], Float64[])
     E_CN = Compound_nucleus_energy(fission_type, A_0, Z_0, E_incident, dm)

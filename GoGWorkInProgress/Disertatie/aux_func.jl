@@ -35,7 +35,7 @@ A_H_range = A_H_min:A_H_max
 A_L_range = (A₀ - A_H_max):(A₀ - A_H_min)
 A_range = (A₀ - A_H_max):A_H_max
 
-#Read data and initialise constants
+#Read data and initialise constants where needed
 
 if evaporation_cs_type == "VARIABLE"
     using Roots
@@ -46,7 +46,7 @@ if evaporation_cs_type == "VARIABLE"
     const C_α = (π*ħc)^2 /(aₘ*amu)
 end
 
-if neutron_spectrum == "YES"
+if neutron_spectrum
     using QuadGK, Trapz
     struct Neutron_spectrum{T <: Vector{Float64}} <: AbstractDistribution
         E::T
@@ -89,7 +89,7 @@ else
     txe_partitioning_data = txe_partitioning_segmentpoints
 end
 
-if secondary_outputs == "YES"
+if secondary_outputs
     Yield_data = CSV.read(yield_distribution_filename, DataFrame; delim = yield_distribution_delimiter, ignorerepeated = true, header = yield_distribution_header, skipto = yield_distribution_firstdataline)
     println("*reading $yield_distribution_filename done!")
 end
@@ -101,7 +101,7 @@ if !isdir("output_data/")
     mkdir("output_data/")
 end
 
-if generate_plots == "YES"
+if generate_plots
     using Plots, LaTeXStrings
     plots_resolution = aspect_ratio .* resolution_scale
     if !isdir("plots/")

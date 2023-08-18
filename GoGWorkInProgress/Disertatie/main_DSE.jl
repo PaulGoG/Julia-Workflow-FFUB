@@ -1,6 +1,8 @@
 #Main body of the DSE (Deterministic Sequential Emission) program
 #####
-include("input_52CF.jl")
+include("init.jl")
+include("input.jl")
+include("options.jl")
 include("error_handling.jl")
 include("aux_func.jl")
 include("density_parameters.jl")
