@@ -1,8 +1,7 @@
 #=
-Different methods for computing energy-independent density level parameters 
-as defined in the Fermi-Gas model:
-1. Gilbert-Cameron
-2. von Egidy & Bucurescu 2009
+Different methods for computing energy-independent density level parameters:
+1. Gilbert-Cameron with shell corrections
+2. Von Egidy & Bucurescu 2009
 =#
 #####
 function density_parameter_Gilbert_Cameron(A, Z, dGC)

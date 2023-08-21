@@ -55,11 +55,13 @@ if neutron_spectrum
     energyrange = E_min:E_step:E_max
 end
 
-dmass_excess = CSV.read(mass_excess_filename, DataFrame; delim = mass_excess_delimiter, ignorerepeated = true, header = mass_excess_header, skipto = mass_excess_firstdataline)
+dmass_excess = CSV.read(mass_excess_filename, DataFrame; 
+delim = mass_excess_delimiter, ignorerepeated = true, header = mass_excess_header, skipto = mass_excess_firstdataline)
 println("*reading $mass_excess_filename done!")
 
 if density_parameter_type == "GC"
-    density_parameter_data = CSV.read(density_parameter_filename, DataFrame; delim = density_parameter_delimiter, ignorerepeated = true, header = density_parameter_header, skipto = density_parameter_firstdataline)
+    density_parameter_data = CSV.read(density_parameter_filename, DataFrame; 
+    delim = density_parameter_delimiter, ignorerepeated = true, header = density_parameter_header, skipto = density_parameter_firstdataline)
     println("*reading $density_parameter_filename done!")
 elseif density_parameter_type == "BSFG"
     density_parameter_data = dmass_excess
@@ -78,34 +80,37 @@ end
 if isobaric_distribution_type == "MEAN_VALUES"
     isobaric_distribution_data = DataFrame(A = NaN)
 elseif isobaric_distribution_type == "DATA"
-    isobaric_distribution_data = CSV.read(isobaric_distribution_filename, DataFrame; delim = isobaric_distribution_delimiter, ignorerepeated = true, header = isobaric_distribution_header, skipto = isobaric_distribution_firstdataline)
+    isobaric_distribution_data = CSV.read(isobaric_distribution_filename, DataFrame; 
+    delim = isobaric_distribution_delimiter, ignorerepeated = true, header = isobaric_distribution_header, skipto = isobaric_distribution_firstdataline)
     println("*reading $isobaric_distribution_filename done!")
 end
 
 if txe_partitioning_type == "MSCZ"
-    txe_partitioning_data = CSV.read(txe_partitioning_filename, DataFrame; delim = txe_partitioning_delimiter, ignorerepeated = true, header = txe_partitioning_header, skipto = txe_partitioning_firstdataline)
+    txe_partitioning_data = CSV.read(txe_partitioning_filename, DataFrame; 
+    delim = txe_partitioning_delimiter, ignorerepeated = true, header = txe_partitioning_header, skipto = txe_partitioning_firstdataline)
     println("*reading $txe_partitioning_filename done!")
 else
     txe_partitioning_data = txe_partitioning_segmentpoints
 end
 
 if secondary_outputs
-    Yield_data = CSV.read(yield_distribution_filename, DataFrame; delim = yield_distribution_delimiter, ignorerepeated = true, header = yield_distribution_header, skipto = yield_distribution_firstdataline)
+    Yield_data = CSV.read(yield_distribution_filename, DataFrame; 
+    delim = yield_distribution_delimiter, ignorerepeated = true, header = yield_distribution_header, skipto = yield_distribution_firstdataline)
     println("*reading $yield_distribution_filename done!")
 end
 
 #Revert relative PATH to project root folder
 cd(@__DIR__)
 
-if !isdir("output_data/")
-    mkdir("output_data/")
+if !isdir("$(file_output_identifier)_output_data/")
+    mkdir("$(file_output_identifier)_output_data/")
 end
 
 if generate_plots
     using Plots, LaTeXStrings
     plots_resolution = aspect_ratio .* resolution_scale
-    if !isdir("plots/")
-        mkdir("plots/")
+    if !isdir("$(file_output_identifier)_plots/")
+        mkdir("$(file_output_identifier)_plots/")
     end
 end
 
@@ -125,7 +130,9 @@ function Q_value_released(A_0, Z_0, A_H, Z_H, dm)
     σ_D = dm.σ_D[(dm.A .== A_0) .& (dm.Z .== Z_0)][1]
     A_L = A_0 - A_H
     Z_L = Z_0 - Z_H
-    if isassigned(dm.D[(dm.A .== A_H) .& (dm.Z .== Z_H)], 1) && isassigned(dm.D[(dm.A .== A_L) .& (dm.Z .== Z_L)], 1)
+    if isassigned(dm.D[(dm.A .== A_H) .& (dm.Z .== Z_H)], 1) && 
+        isassigned(dm.D[(dm.A .== A_L) .& (dm.Z .== Z_L)], 1)
+
         D_H = dm.D[(dm.A .== A_H) .& (dm.Z .== Z_H)][1]
         σ_D_H = dm.σ_D[(dm.A .== A_H) .& (dm.Z .== Z_H)][1]
         D_L = dm.D[(dm.A .== A_L) .& (dm.Z .== Z_L)][1]
@@ -143,7 +150,10 @@ function Q_value_released(A_0, Z_0, A_H, Z_H, dm)
 end
 #Separation energy of particle (A_part,Z_part) from nucleus (A,Z) in MeV
 function Separation_energy(A_part, Z_part, A, Z, dm)
-    if isassigned(dm.D[(dm.A .== A_part) .& (dm.Z .== Z_part)], 1) && isassigned(dm.D[(dm.A .== A) .& (dm.Z .== Z)], 1) && isassigned(dm.D[(dm.A .== A - A_part) .& (dm.Z .== Z - Z_part)], 1)
+    if isassigned(dm.D[(dm.A .== A_part) .& (dm.Z .== Z_part)], 1) && 
+        isassigned(dm.D[(dm.A .== A) .& (dm.Z .== Z)], 1) && 
+        isassigned(dm.D[(dm.A .== A - A_part) .& (dm.Z .== Z - Z_part)], 1)
+
         D_part = dm.D[(dm.A .== A_part) .& (dm.Z .== Z_part)][1]
         σ_part = dm.σ_D[(dm.A .== A_part) .& (dm.Z .== Z_part)][1]
         D = dm.D[(dm.A .== A - A_part) .& (dm.Z .== Z - Z_part)][1]
@@ -257,277 +267,6 @@ function Process_main_output(DSE_eq_output, evaporation_cs_type)
     end
     return Data
 end
-#Write output to file with p(Z,A) or Y(A,Z,TKE)
-function Write_seq_output(A_0, Z_0, A_H_min, A_H_max, No_ZperA, E_incident, tkerange, fragmdomain, E_excitation, Processed_raw_output, density_parameter_type, density_parameter_data, fissionant_nucleus_identifier, mass_excess_filename, txe_partitioning_type, txe_partitioning_data, evaporation_cs_type, dm)
-    println("*writing DSE output data to file")
-    horizontal_delimiter = lpad('-', 159, '-')
-
-    open("output_data/$(fissionant_nucleus_identifier)_readme.OUT", "w") do file
-        write(file, "DSE main output file generated at $(Dates.format(now(), "HH:MM:SS")) corresponding to input data:\r\n")
-        write(file, "$(fissionant_nucleus_identifier) (A₀ = $A_0, Z₀ = $Z_0), fission type: $fission_type, $No_ZperA Z per A, mass excess file - $mass_excess_filename\r\n")
-        write(file, "Heavy Fragment mass number ranges from $A_H_min to $A_H_max\r\n")
-        write(file, "TKE ∈ $tkerange\r\n")
-        write(file, "TXE partitioning method - $txe_partitioning_type\r\n")
-        if txe_partitioning_type == "MSCZ"
-            write(file, "TXE partitioning data used: Extra deformation energies from $txe_partitioning_filename\r\n")
-        elseif txe_partitioning_type == "RT"
-            write(file, "TXE partitioning data used: RT(A_H) denoted by segments $txe_partitioning_data\r\n")
-        elseif txe_partitioning_type == "PARAM"
-            write(file, "TXE partitioning data used: Ratio(A_H) = E*_H/TXE denoted by segments $txe_partitioning_data\r\n")
-        end
-        if evaporation_cs_type == "CONSTANT"
-            write(file, "Neutron evaporation cross section is considered CONSTANT\r\n")
-        elseif evaporation_cs_type == "VARIABLE"
-            write(file, "Neutron evaporation cross section is considered VARIABLE and calculated using s-wave neutron force function\r\n")
-        end
-        write(file, "$horizontal_delimiter")
-    end
-
-    open("output_data/$(fissionant_nucleus_identifier)_main_DSE.OUT", "w") do file
-        for A_H in A_H_min:A_H_max
-            A_L = A_0 - A_H
-            for Z_H in fragmdomain.Z[fragmdomain.A .== A_H]
-                Z_L = Z_0 - Z_H
-                P_Z_A = fragmdomain.Value[(fragmdomain.A .== A_H) .& (fragmdomain.Z .== Z_H)][1]
-                a_L = density_parameter(density_parameter_type, A_L, Z_L, density_parameter_data)
-                a_H = density_parameter(density_parameter_type, A_H, Z_H, density_parameter_data)
-                for TKE in unique(Processed_raw_output.TKE[(Processed_raw_output.A .== A_H) .& (Processed_raw_output.Z .== Z_H)])
-                    E_excit_H = E_excitation.Value[(E_excitation.A .== A_H) .& (E_excitation.Z .== Z_H) .& (E_excitation.TKE .== TKE)][1]
-                    E_excit_L = E_excitation.Value[(E_excitation.A .== A_L) .& (E_excitation.Z .== Z_L) .& (E_excitation.TKE .== TKE)][1]
-                    write(file, "$A_H $Z_H $TKE $P_Z_A $E_excit_L $E_excit_H $a_L $a_H\r\n")
-                        
-                    n_range_L = Processed_raw_output.No_Sequence[(Processed_raw_output.A .== A_L) .& (Processed_raw_output.Z .== Z_L) .& (Processed_raw_output.TKE .== TKE)]
-                    if last(n_range_L) != 0
-                        write(file, "$(last(n_range_L))\r\n")
-                        for k in n_range_L
-                            S_k = Separation_energy(1, 0, A_L - k + 1, Z_L, dm)[1]
-                            write(file, "$S_k ")
-                        end
-                        write(file, "\r\n")
-                        for k in n_range_L
-                            a_k = Processed_raw_output.aₖ[(Processed_raw_output.A .== A_L) .& (Processed_raw_output.Z .== Z_L) .& (Processed_raw_output.TKE .== TKE) .& (Processed_raw_output.No_Sequence .== k)][1]
-                            write(file, "$a_k ")
-                        end
-                        write(file, "\r\n")
-                        for k in n_range_L
-                            T_k = Processed_raw_output.Tₖ[(Processed_raw_output.A .== A_L) .& (Processed_raw_output.Z .== Z_L) .& (Processed_raw_output.TKE .== TKE) .& (Processed_raw_output.No_Sequence .== k)][1]
-                            if T_k > 0 
-                                write(file, "$T_k ")
-                            else
-                                write(file, "0.0 ")
-                            end
-                        end
-                        write(file, "\r\n")
-                        for k in n_range_L
-                            T_k = Processed_raw_output.Tₖ[(Processed_raw_output.A .== A_L) .& (Processed_raw_output.Z .== Z_L) .& (Processed_raw_output.TKE .== TKE) .& (Processed_raw_output.No_Sequence .== k)][1]
-                            if T_k > 0 
-                                a_k = Processed_raw_output.aₖ[(Processed_raw_output.A .== A_L) .& (Processed_raw_output.Z .== Z_L) .& (Processed_raw_output.TKE .== TKE) .& (Processed_raw_output.No_Sequence .== k)][1]
-                                Eᵣ_k = Energy_FermiGas(a_k, T_k)
-                                write(file, "$Eᵣ_k ")
-                            else
-                                write(file, "0.0 ")
-                            end
-                        end
-                        write(file, "\r\n")
-                        for k in n_range_L
-                            avgε_k = Processed_raw_output.Avg_εₖ[(Processed_raw_output.A .== A_L) .& (Processed_raw_output.Z .== Z_L) .& (Processed_raw_output.TKE .== TKE) .& (Processed_raw_output.No_Sequence .== k)][1]
-                            if avgε_k > 0 
-                                write(file, "$avgε_k ")
-                            else
-                                write(file, "0.0 ")
-                            end
-                        end
-                        write(file, "\r\n")
-                    else
-                        write(file, "0\r\n0.0\r\n0.0\r\n0.0\r\n0.0\r\n0.0\r\n")
-                    end
-
-                    n_range_H = Processed_raw_output.No_Sequence[(Processed_raw_output.A .== A_H) .& (Processed_raw_output.Z .== Z_H) .& (Processed_raw_output.TKE .== TKE)]
-                    if last(n_range_H) != 0
-                        write(file, "$(last(n_range_H))\r\n")
-                        for k in n_range_H
-                            S_k = Separation_energy(1, 0, A_H - k + 1, Z_H, dm)[1]
-                            write(file, "$S_k ")
-                        end
-                        write(file, "\r\n")
-                        for k in n_range_H
-                            a_k = Processed_raw_output.aₖ[(Processed_raw_output.A .== A_H) .& (Processed_raw_output.Z .== Z_H) .& (Processed_raw_output.TKE .== TKE) .& (Processed_raw_output.No_Sequence .== k)][1]
-                            write(file, "$a_k ")
-                        end
-                        write(file, "\r\n")
-                        for k in n_range_H
-                            T_k = Processed_raw_output.Tₖ[(Processed_raw_output.A .== A_H) .& (Processed_raw_output.Z .== Z_H) .& (Processed_raw_output.TKE .== TKE) .& (Processed_raw_output.No_Sequence .== k)][1]
-                            if T_k > 0 
-                                write(file, "$T_k ")
-                            else
-                                write(file, "0.0 ")
-                            end
-                        end
-                        write(file, "\r\n")
-                        for k in n_range_H
-                            T_k = Processed_raw_output.Tₖ[(Processed_raw_output.A .== A_H) .& (Processed_raw_output.Z .== Z_H) .& (Processed_raw_output.TKE .== TKE) .& (Processed_raw_output.No_Sequence .== k)][1]
-                            if T_k > 0 
-                                a_k = Processed_raw_output.aₖ[(Processed_raw_output.A .== A_H) .& (Processed_raw_output.Z .== Z_H) .& (Processed_raw_output.TKE .== TKE) .& (Processed_raw_output.No_Sequence .== k)][1]
-                                Eᵣ_k = Energy_FermiGas(a_k, T_k)
-                                write(file, "$Eᵣ_k ")
-                            else
-                                write(file, "0.0 ")
-                            end
-                        end
-                        write(file, "\r\n")
-                        for k in n_range_H
-                            avgε_k = Processed_raw_output.Avg_εₖ[(Processed_raw_output.A .== A_H) .& (Processed_raw_output.Z .== Z_H) .& (Processed_raw_output.TKE .== TKE) .& (Processed_raw_output.No_Sequence .== k)][1]
-                            if avgε_k > 0 
-                                write(file, "$avgε_k ")
-                            else
-                                write(file, "0.0 ")
-                            end
-                        end
-                        write(file, "\r\n")
-                    else
-                        write(file, "0\r\n0.0\r\n0.0\r\n0.0\r\n0.0\r\n0.0\r\n")
-                    end
-                end
-            end
-        end
-    end
-end
-function Write_seq_output(A_0, Z_0, A_H_range, No_ZperA, E_incident, tkerange, y_A_Z_TKE, E_excitation, Processed_raw_output, density_parameter_type, density_parameter_data, fissionant_nucleus_identifier, mass_excess_filename, txe_partitioning_type, txe_partitioning_data, evaporation_cs_type, dm)
-    println("*writing DSE output data to file")
-    horizontal_delimiter = lpad('-', 159, '-')
-
-    open("output_data/$(fissionant_nucleus_identifier)_readme.OUT", "w") do file
-        write(file, "DSE main output file generated at $(Dates.format(now(), "HH:MM:SS")) corresponding to input data:\r\n")
-        write(file, "$(fissionant_nucleus_identifier) (A₀ = $A_0, Z₀ = $Z_0), fission type: $fission_type, $No_ZperA Z per A, mass excess file - $mass_excess_filename\r\n")
-        write(file, "Heavy Fragment mass number ranges from $A_H_min to $A_H_max\r\n")
-        write(file, "TKE ∈ $tkerange\r\n")
-        write(file, "TXE partitioning method - $txe_partitioning_type\r\n")
-        if txe_partitioning_type == "MSCZ"
-            write(file, "TXE partitioning data used: Extra deformation energies from $txe_partitioning_filename\r\n")
-        elseif txe_partitioning_type == "RT"
-            write(file, "TXE partitioning data used: RT(A_H) denoted by segments $txe_partitioning_data\r\n")
-        elseif txe_partitioning_type == "PARAM"
-            write(file, "TXE partitioning data used: Ratio(A_H) = E*_H/TXE denoted by segments $txe_partitioning_data\r\n")
-        end
-        if evaporation_cs_type == "CONSTANT"
-            write(file, "Neutron evaporation cross section is considered CONSTANT\r\n")
-        elseif evaporation_cs_type == "VARIABLE"
-            write(file, "Neutron evaporation cross section is considered VARIABLE and calculated using s-wave neutron force function\r\n")
-        end
-        write(file, "$horizontal_delimiter")
-    end
-
-    open("output_data/$(fissionant_nucleus_identifier)_main_DSE.OUT", "w") do file
-        for A_H in A_H_range
-            A_L = A_0 - A_H
-            for Z_H in sort(unique(y_A_Z_TKE.Z[y_A_Z_TKE.A .== A_H]))
-                Z_L = Z_0 - Z_H
-                a_L = density_parameter(density_parameter_type, A_L, Z_L, density_parameter_data)
-                a_H = density_parameter(density_parameter_type, A_H, Z_H, density_parameter_data)
-                for TKE in y_A_Z_TKE.TKE[(y_A_Z_TKE.A .== A_H) .& (y_A_Z_TKE.Z .== Z_H)]
-                    Y_A_Z_TKE = y_A_Z_TKE.Value[(y_A_Z_TKE.A .== A_H) .& (y_A_Z_TKE.Z .== Z_H) .& (y_A_Z_TKE.TKE .== TKE)][1]
-                    if isassigned(E_excitation.Value[(E_excitation.A .== A_H) .& (E_excitation.Z .== Z_H) .& (E_excitation.TKE .== TKE)], 1)
-                        E_excit_H = E_excitation.Value[(E_excitation.A .== A_H) .& (E_excitation.Z .== Z_H) .& (E_excitation.TKE .== TKE)][1]
-                        E_excit_L = E_excitation.Value[(E_excitation.A .== A_L) .& (E_excitation.Z .== Z_L) .& (E_excitation.TKE .== TKE)][1]
-                        write(file, "$A_H $Z_H $TKE $Y_A_Z_TKE $E_excit_L $E_excit_H $a_L $a_H\r\n")
-                        
-                        n_range_L = Processed_raw_output.No_Sequence[(Processed_raw_output.A .== A_L) .& (Processed_raw_output.Z .== Z_L) .& (Processed_raw_output.TKE .== TKE)]
-                        if last(n_range_L) != 0
-                            write(file, "$(last(n_range_L))\r\n")
-                            for k in n_range_L
-                                S_k = Separation_energy(1, 0, A_L - k + 1, Z_L, dm)[1]
-                                write(file, "$S_k ")
-                            end
-                            write(file, "\r\n")
-                            for k in n_range_L
-                                a_k = Processed_raw_output.aₖ[(Processed_raw_output.A .== A_L) .& (Processed_raw_output.Z .== Z_L) .& (Processed_raw_output.TKE .== TKE) .& (Processed_raw_output.No_Sequence .== k)][1]
-                                write(file, "$a_k ")
-                            end
-                            write(file, "\r\n")
-                            for k in n_range_L
-                                T_k = Processed_raw_output.Tₖ[(Processed_raw_output.A .== A_L) .& (Processed_raw_output.Z .== Z_L) .& (Processed_raw_output.TKE .== TKE) .& (Processed_raw_output.No_Sequence .== k)][1]
-                                if T_k > 0 
-                                    write(file, "$T_k ")
-                                else
-                                    write(file, "0.0 ")
-                                end
-                            end
-                            write(file, "\r\n")
-                            for k in n_range_L
-                                T_k = Processed_raw_output.Tₖ[(Processed_raw_output.A .== A_L) .& (Processed_raw_output.Z .== Z_L) .& (Processed_raw_output.TKE .== TKE) .& (Processed_raw_output.No_Sequence .== k)][1]
-                                if T_k > 0 
-                                    a_k = Processed_raw_output.aₖ[(Processed_raw_output.A .== A_L) .& (Processed_raw_output.Z .== Z_L) .& (Processed_raw_output.TKE .== TKE) .& (Processed_raw_output.No_Sequence .== k)][1]
-                                    Eᵣ_k = Energy_FermiGas(a_k, T_k)
-                                    write(file, "$Eᵣ_k ")
-                                else
-                                    write(file, "0.0 ")
-                                end
-                            end
-                            write(file, "\r\n")
-                            for k in n_range_L
-                                avgε_k = Processed_raw_output.Avg_εₖ[(Processed_raw_output.A .== A_L) .& (Processed_raw_output.Z .== Z_L) .& (Processed_raw_output.TKE .== TKE) .& (Processed_raw_output.No_Sequence .== k)][1]
-                                if avgε_k > 0 
-                                    write(file, "$avgε_k ")
-                                else
-                                    write(file, "0.0 ")
-                                end
-                            end
-                            write(file, "\r\n")
-                        else
-                            write(file, "0\r\n0.0\r\n0.0\r\n0.0\r\n0.0\r\n0.0\r\n")
-                        end
-
-                        n_range_H = Processed_raw_output.No_Sequence[(Processed_raw_output.A .== A_H) .& (Processed_raw_output.Z .== Z_H) .& (Processed_raw_output.TKE .== TKE)]
-                        if last(n_range_H) != 0
-                            write(file, "$(last(n_range_H))\r\n")
-                            for k in n_range_H
-                                S_k = Separation_energy(1, 0, A_H - k + 1, Z_H, dm)[1]
-                                write(file, "$S_k ")
-                            end
-                            write(file, "\r\n")
-                            for k in n_range_H
-                                a_k = Processed_raw_output.aₖ[(Processed_raw_output.A .== A_H) .& (Processed_raw_output.Z .== Z_H) .& (Processed_raw_output.TKE .== TKE) .& (Processed_raw_output.No_Sequence .== k)][1]
-                                write(file, "$a_k ")
-                            end
-                            write(file, "\r\n")
-                            for k in n_range_H
-                                T_k = Processed_raw_output.Tₖ[(Processed_raw_output.A .== A_H) .& (Processed_raw_output.Z .== Z_H) .& (Processed_raw_output.TKE .== TKE) .& (Processed_raw_output.No_Sequence .== k)][1]
-                                if T_k > 0 
-                                    write(file, "$T_k ")
-                                else
-                                    write(file, "0.0 ")
-                                end
-                            end
-                            write(file, "\r\n")
-                            for k in n_range_H
-                                T_k = Processed_raw_output.Tₖ[(Processed_raw_output.A .== A_H) .& (Processed_raw_output.Z .== Z_H) .& (Processed_raw_output.TKE .== TKE) .& (Processed_raw_output.No_Sequence .== k)][1]
-                                if T_k > 0 
-                                    a_k = Processed_raw_output.aₖ[(Processed_raw_output.A .== A_H) .& (Processed_raw_output.Z .== Z_H) .& (Processed_raw_output.TKE .== TKE) .& (Processed_raw_output.No_Sequence .== k)][1]
-                                    Eᵣ_k = Energy_FermiGas(a_k, T_k)
-                                    write(file, "$Eᵣ_k ")
-                                else
-                                    write(file, "0.0 ")
-                                end
-                            end
-                            write(file, "\r\n")
-                            for k in n_range_H
-                                avgε_k = Processed_raw_output.Avg_εₖ[(Processed_raw_output.A .== A_H) .& (Processed_raw_output.Z .== Z_H) .& (Processed_raw_output.TKE .== TKE) .& (Processed_raw_output.No_Sequence .== k)][1]
-                                if avgε_k > 0 
-                                    write(file, "$avgε_k ")
-                                else
-                                    write(file, "0.0 ")
-                                end
-                            end
-                            write(file, "\r\n")
-                        else
-                            write(file, "0\r\n0.0\r\n0.0\r\n0.0\r\n0.0\r\n0.0\r\n")
-                        end
-                    end
-                end
-            end
-        end
-    end
-end
 #Neutron multiplicity from raw output data
 function Neutron_multiplicity_A_Z_TKE(output_df_A_Z_TKE_NoSequence::DataFrame)
     ν = Distribution(Int[], Int[], Float64[], Int[], Float64[], Float64[])
@@ -547,6 +286,25 @@ function Neutron_multiplicity_A_Z_TKE(output_df_A_Z_TKE_NoSequence::DataFrame)
         end
     end
     return ν
+end
+function Neutron_multiplicity_Pair_A_Z_TKE(A_0, Z_0, A_H_range, ν_A_Z_TKE::Distribution)
+    ν_Pair = Distribution(Int[], Int[], Float64[], Int[], Float64[], Float64[])
+    for A in A_H_range
+        for Z in unique(ν_A_Z_TKE.Z[ν_A_Z_TKE.A .== A])
+            for TKE in unique(ν_A_Z_TKE.TKE[(ν_A_Z_TKE.A .== A) .& (ν_A_Z_TKE.Z .== Z)])
+                if !isassigned(ν_Pair.Value[(ν_Pair.A .== A) .& (ν_Pair.Z .== Z) .& (ν_Pair.TKE .== TKE)], 1)
+                    nu_L = ν_A_Z_TKE.Value[(ν_A_Z_TKE.A .== A_0 - A) .& (ν_A_Z_TKE.Z .== Z_0 - Z) .& (ν_A_Z_TKE.TKE .== TKE)][1]
+                    nu_H = ν_A_Z_TKE.Value[(ν_A_Z_TKE.A .== A) .& (ν_A_Z_TKE.Z .== Z) .& (ν_A_Z_TKE.TKE .== TKE)][1]
+                    nu_Pair = nu_L + nu_H
+                    push!(ν_Pair.A, A)
+                    push!(ν_Pair.Z, Z)
+                    push!(ν_Pair.TKE, TKE)
+                    push!(ν_Pair.Value, nu_Pair)
+                end
+            end
+        end
+    end
+    return ν_Pair
 end
 #Maximum number of sequences from raw output data
 function Maximum_sequences_A_Z_TKE(output_df_A_Z_TKE_NoSequence::DataFrame)

@@ -174,6 +174,7 @@ function Neutron_spectrum_builder(A_0, Z_0, A_H_min, A_H_max, energyrange, Raw_o
         return Neutron_spectrum_VARIABLE_cs(A_0, Z_0, A_H_min, A_H_max, energyrange, Raw_output_datafile, y_A_Z_TKE)
     end
 end
+#Neutron spectra normalised to optimum Maxwellian distribution
 function Normalise_spectrum_to_Maxwellian(E::Vector{Float64}, N::Vector{Float64}, T_M::Float64)
     Maxwell(ε::Float64) = (2/sqrt(π)) *T_M^(-3/2) *sqrt(ε) *exp(-ε/T_M)
     Surface_Maxwell = quadgk(Maxwell, first(E), last(E))[1]
@@ -185,20 +186,20 @@ function Normalise_spectrum_to_Maxwellian(E::Vector{Float64}, N::Vector{Float64}
 end
 #####
 
-Adjusted_yield = DataFrame(
+HF_yield = DataFrame(
     A = y_A_Z_TKE.A[y_A_Z_TKE.A .>= A_H_min], 
     Z = y_A_Z_TKE.Z[y_A_Z_TKE.A .>= A_H_min],
     TKE = y_A_Z_TKE.TKE[y_A_Z_TKE.A .>= A_H_min],
     Value = y_A_Z_TKE.Value[y_A_Z_TKE.A .>= A_H_min]
 )
 
-n_E_SL, n_E_LF_SCM, n_E_HF_SCM = Neutron_spectrum_builder(A₀, Z₀, A_H_min, A_H_max, energyrange, Raw_output_datafile, evaporation_cs_type, Adjusted_yield)
+n_E_SL, n_E_LF_SCM, n_E_HF_SCM = Neutron_spectrum_builder(A₀, Z₀, A_H_min, A_H_max, energyrange, Raw_output_datafile, evaporation_cs_type, HF_yield)
 
 T_M_eq_SL = 2/3 *trapz(n_E_SL.E, n_E_SL.Value .* n_E_SL.E)/trapz(n_E_SL.E, n_E_SL.Value)
 Ratio_to_Maxwellian_SL = copy(n_E_SL.Value)
 Normalise_spectrum_to_Maxwellian(n_E_SL.E, Ratio_to_Maxwellian_SL, T_M_eq_SL)
 CSV.write(
-    "output_data/$(fissionant_nucleus_identifier)_neutron_spectrum_SL_$(round(T_M_eq_SL, digits = 2)).OUT", 
+    "$(file_output_identifier)_output_data/$(fissionant_nucleus_identifier)_neutron_spectrum_SL_$(round(T_M_eq_SL, digits = 2)).dat", 
     DataFrame(E = n_E_SL.E, N = n_E_SL.Value, Ratio_Maxwellian = Ratio_to_Maxwellian_SL), 
     writeheader=true, newline="\r\n", delim=' '
 )
@@ -207,7 +208,7 @@ T_M_eq_LF_SCM = 2/3 *trapz(n_E_LF_SCM.E, n_E_LF_SCM.Value .* n_E_LF_SCM.E)/trapz
 Ratio_to_Maxwellian_LF_SCM = copy(n_E_LF_SCM.Value)
 Normalise_spectrum_to_Maxwellian(n_E_LF_SCM.E, Ratio_to_Maxwellian_LF_SCM, T_M_eq_LF_SCM)
 CSV.write(
-    "output_data/$(fissionant_nucleus_identifier)_neutron_spectrum_LF_SCM_$(round(T_M_eq_LF_SCM, digits = 2)).OUT", 
+    "$(file_output_identifier)_output_data/$(fissionant_nucleus_identifier)_neutron_spectrum_LF_SCM_$(round(T_M_eq_LF_SCM, digits = 2)).dat", 
     DataFrame(E = n_E_LF_SCM.E, N = n_E_LF_SCM.Value, Ratio_Maxwellian = Ratio_to_Maxwellian_LF_SCM), 
     writeheader=true, newline="\r\n", delim=' '
 )
@@ -216,7 +217,7 @@ T_M_eq_HF_SCM = 2/3 *trapz(n_E_HF_SCM.E, n_E_HF_SCM.Value .* n_E_HF_SCM.E)/trapz
 Ratio_to_Maxwellian_HF_SCM = copy(n_E_HF_SCM.Value)
 Normalise_spectrum_to_Maxwellian(n_E_HF_SCM.E, Ratio_to_Maxwellian_HF_SCM, T_M_eq_HF_SCM)
 CSV.write(
-    "output_data/$(fissionant_nucleus_identifier)_neutron_spectrum_HF_SCM_$(round(T_M_eq_HF_SCM, digits = 2)).OUT", 
+    "$(file_output_identifier)_output_data/$(fissionant_nucleus_identifier)_neutron_spectrum_HF_SCM_$(round(T_M_eq_HF_SCM, digits = 2)).dat", 
     DataFrame(E = n_E_HF_SCM.E, N = n_E_HF_SCM.Value, Ratio_Maxwellian = Ratio_to_Maxwellian_HF_SCM), 
     writeheader=true, newline="\r\n", delim=' '
 )

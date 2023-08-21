@@ -119,6 +119,31 @@ function Average_over_A_Z(q_A_Z_TKE, y_A_Z_TKE::Distribution)
     end
     return q_TKE
 end
+#Average q(A,Z,TKE) over Y(A,Z,TKE) so it becomes q(Z)
+function Average_over_A_TKE(q_A_Z_TKE, y_A_Z_TKE::Distribution)
+    q_Z = Distribution_unidym(Float64[], Float64[], Float64[])
+    for Z in sort(unique(q_A_Z_TKE.Z))
+        Denominator = 0.0
+        Numerator = 0.0
+        for A in unique(q_A_Z_TKE.A[(q_A_Z_TKE.Z .== Z)])
+            for TKE in q_A_Z_TKE.TKE[(q_A_Z_TKE.A .== A) .& (q_A_Z_TKE.Z .== Z)]
+                value = q_A_Z_TKE.Value[(q_A_Z_TKE.A .== A) .& (q_A_Z_TKE.TKE .== TKE) .& (q_A_Z_TKE.Z .== Z)][1]
+                if !isnan(value)
+                    if isassigned(y_A_Z_TKE.Value[(y_A_Z_TKE.A .== A) .& (y_A_Z_TKE.Z .== Z) .& (y_A_Z_TKE.TKE .== TKE)], 1)
+                        Y_A_Z_TKE = y_A_Z_TKE.Value[(y_A_Z_TKE.A .== A) .& (y_A_Z_TKE.Z .== Z) .& (y_A_Z_TKE.TKE .== TKE)][1]
+                        Denominator += Y_A_Z_TKE
+                        Numerator += Y_A_Z_TKE *value
+                    end
+                end
+            end
+        end
+        if Denominator > 0
+            push!(q_Z.Argument, Z)
+            push!(q_Z.Value, Numerator/Denominator)
+        end
+    end
+    return q_Z
+end
 #Average q(A,Z,TKE) over Y(A,Z,TKE) to get average value <q>
 function Average_value(q_A_Z_TKE, y_A_Z_TKE::Distribution, mass_number_range)
     Denominator = 0.0
@@ -160,7 +185,7 @@ function Pair_value(q_A::Distribution_unidym, A_0, A_H)
     val_H = q_A.Value[q_A.Argument .== A_H][1]
     return val_L + val_H
 end
-#Obtain Y(Z,Aₚ,TKE), Y(Z,Aₚ) & Y(Aₚ) distributions from Y(A,Z,TKE) & n(A,Z,TKE)
+#Obtain Y(Z,Aₚ,TKE), Y(Z,Aₚ) distributions from Y(A,Z,TKE) & n(A,Z,TKE)
 function Yield_post_neutron(y_A_Z_TKE::Distribution, n_A_Z_TKE)
     yₚ_A_Z_TKE = Distribution(Int[], Int[], Float64[], Int[], Float64[], Float64[])
     yₚ_A_Z = Distribution(Int[], Int[], Float64[], Int[], Float64[], Float64[])
@@ -200,6 +225,40 @@ function Yield_post_neutron(y_A_Z_TKE::Distribution, n_A_Z_TKE)
         end
     end
     return yₚ_A_Z_TKE, yₚ_A_Z 
+end
+#Compute KEₚ(A,Z,TKE) and TKEₚ(A,Z,TKE)
+function Kinetic_Energy_post_neutron(A_0, Z_0, A_H_range, n_A_Z_TKE)
+    keₚ_A_Z_TKE = Distribution(Int[], Int[], Float64[], Int[], Float64[], Float64[])
+    tkeₚ_AH_Z_TKE = Distribution(Int[], Int[], Float64[], Int[], Float64[], Float64[])
+    for A in unique(n_A_Z_TKE.A)
+        for TKE in unique(n_A_Z_TKE.TKE[n_A_Z_TKE.A .== A])
+            KE = TKE *(A_0 - A)/A_0
+            for Z in n_A_Z_TKE.Z[(n_A_Z_TKE.A .== A) .& (n_A_Z_TKE.TKE .== TKE)]
+                n = n_A_Z_TKE.Value[(n_A_Z_TKE.A .== A) .& (n_A_Z_TKE.Z .== Z) .& (n_A_Z_TKE.TKE .== TKE)][1]
+                KE_p = KE *(A - n)/A
+                push!(keₚ_A_Z_TKE.A, A)
+                push!(keₚ_A_Z_TKE.Z, Z)
+                push!(keₚ_A_Z_TKE.TKE, TKE)
+                push!(keₚ_A_Z_TKE.Value, KE_p)
+            end
+        end
+    end
+    for A in A_H_range
+        for Z in unique(keₚ_A_Z_TKE.Z[keₚ_A_Z_TKE.A .== A])
+            for TKE in unique(keₚ_A_Z_TKE.TKE[(keₚ_A_Z_TKE.A .== A) .& (keₚ_A_Z_TKE.Z .== Z)])
+                if !isassigned(tkeₚ_AH_Z_TKE.Value[(tkeₚ_AH_Z_TKE.A .== A) .& (tkeₚ_AH_Z_TKE.Z .== Z) .& (tkeₚ_AH_Z_TKE.TKE .== TKE)], 1)
+                    KEp_L = keₚ_A_Z_TKE.Value[(keₚ_A_Z_TKE.A .== A_0 - A) .& (keₚ_A_Z_TKE.Z .== Z_0 - Z) .& (keₚ_A_Z_TKE.TKE .== TKE)][1]
+                    KEp_H = keₚ_A_Z_TKE.Value[(keₚ_A_Z_TKE.A .== A) .& (keₚ_A_Z_TKE.Z .== Z) .& (keₚ_A_Z_TKE.TKE .== TKE)][1] 
+                    TKE_p = KEp_L + KEp_H
+                    push!(tkeₚ_AH_Z_TKE.A, A)
+                    push!(tkeₚ_AH_Z_TKE.Z, Z)
+                    push!(tkeₚ_AH_Z_TKE.TKE, TKE)
+                    push!(tkeₚ_AH_Z_TKE.Value, TKE_p)
+                end
+            end
+        end
+    end
+    return keₚ_A_Z_TKE, tkeₚ_AH_Z_TKE
 end
 #Obtain vectorized singular distributions Y(A), Y(N), Y(Z), Y(TKE), TKE(AH) & KE(A) from Y(A,Z,TKE)
 function Singular_yield_distributions(y_A_Z_TKE::Distribution, A_0, A_H_min)
@@ -291,7 +350,7 @@ function Singular_yield_distributions(y_A_Z_TKE::Distribution, A_0, A_H_min)
     Sort_q_Argument(ke_A)
     return y_A, y_Z, y_N, y_TKE, tke_AH, ke_A
 end
-#Get <Argument> from Yield(Argument) singular yield distribution
+#Get <Argument> average value from Yield(Argument) singular yield distribution
 function Average_yield_argument(yield::Distribution_unidym, argument_range)
     Numerator = 0.0
     Denominator = 0.0
@@ -308,40 +367,43 @@ function Average_yield_argument(yield::Distribution_unidym, argument_range)
     end    
     return Average_arg, sqrt(𝚺_σ²)/Denominator
 end
-#Obtain vectorized singular distributions Q(AH), TXE(AH)
-function Vectorized_TXE_Q_AH(A_0, Z_0, fission_type::String, E_incident, y_A_Z_TKE::Distribution, A_H_range, dm::DataFrame)
+#Obtain vectorized distributions Q(AH,Z), Q(AH), TXE(AH,Z,TKE)
+function Vectorized_TXE_Q(A_0, Z_0, fission_type::String, E_incident, y_A_Z_TKE::Distribution, A_H_range, dm::DataFrame)
+    Q_AH_Z =  Distribution(Int[], Int[], Float64[], Int[], Float64[], Float64[])
     Q_AH = Distribution_unidym(Int[], Float64[], Float64[])
-    txe_AH = Distribution_unidym(Int[], Float64[], Float64[])
+    txe_AH_Z_TKE =  Distribution(Int[], Int[], Float64[], Int[], Float64[], Float64[])
     E_CN = Compound_nucleus_energy(fission_type, A_0, Z_0, E_incident, dm)
     for A_H in A_H_range
-        Denominator_Q = 0.0
-        Numerator_Q = 0.0
-        Denominator_TXE = 0.0
-        Numerator_TXE = 0.0
+        Denominator_Q_AH = 0.0
+        Numerator_Q_AH = 0.0
         for Z_H in unique(y_A_Z_TKE.Z[(y_A_Z_TKE.A .== A_H)])
             Q_A_Z = Q_value_released(A_0, Z_0, A_H, Z_H, dm)
-            for TKE in y_A_Z_TKE.TKE[(y_A_Z_TKE.A .== A_H) .& (y_A_Z_TKE.Z .== Z_H)]
-                TXE_A_Z_TKE = Total_excitation_energy(Q_A_Z[1], Q_A_Z[2], TKE, 0.0, E_CN[1], E_CN[2])
-                if !isnan(TXE_A_Z_TKE[1])
-                    Y_A_Z_TKE = y_A_Z_TKE.Value[(y_A_Z_TKE.A .== A_H) .& (y_A_Z_TKE.Z .== Z_H) .& (y_A_Z_TKE.TKE .== TKE)][1]
-                    Numerator_TXE += Y_A_Z_TKE *TXE_A_Z_TKE[1]
-                    Denominator_TXE += Y_A_Z_TKE
+            if !isnan(Q_A_Z[1])
+                push!(Q_AH_Z.A, A_H)
+                push!(Q_AH_Z.Z, Z_H)
+                push!(Q_AH_Z.Value, Q_A_Z[1])
+                push!(Q_AH_Z.σ, Q_A_Z[2])
+                for TKE in y_A_Z_TKE.TKE[(y_A_Z_TKE.A .== A_H) .& (y_A_Z_TKE.Z .== Z_H)]
+                    TXE_A_Z_TKE = Total_excitation_energy(Q_A_Z[1], Q_A_Z[2], TKE, 0.0, E_CN[1], E_CN[2])
+                    if !isnan(TXE_A_Z_TKE[1])
+                        push!(txe_AH_Z_TKE.A, A_H)
+                        push!(txe_AH_Z_TKE.Z, Z_H)
+                        push!(txe_AH_Z_TKE.TKE, TKE)
+                        push!(txe_AH_Z_TKE.Value, TXE_A_Z_TKE[1])
+                        push!(txe_AH_Z_TKE.σ, TXE_A_Z_TKE[2])
+                    end
                 end
+                Y_A_Z = sum(y_A_Z_TKE.Value[(y_A_Z_TKE.A .== A_H) .& (y_A_Z_TKE.Z .== Z_H)])
+                Numerator_Q_AH += Y_A_Z *Q_A_Z[1]
+                Denominator_Q_AH += Y_A_Z
             end
-            Y_A_Z = sum(y_A_Z_TKE.Value[(y_A_Z_TKE.A .== A_H) .& (y_A_Z_TKE.Z .== Z_H)])
-            Numerator_Q += Y_A_Z *Q_A_Z[1]
-            Denominator_Q += Y_A_Z
         end
-        if Denominator_TXE > 0
-            push!(txe_AH.Argument, A_H)
-            push!(txe_AH.Value, Numerator_TXE/Denominator_TXE)
-        end
-        if Denominator_Q > 0
+        if Denominator_Q_AH > 0
             push!(Q_AH.Argument, A_H)
-            push!(Q_AH.Value, Numerator_Q/Denominator_Q)
+            push!(Q_AH.Value, Numerator_Q_AH/Denominator_Q_AH)
         end
     end
-    return Q_AH, txe_AH
+    return txe_AH_Z_TKE, Q_AH_Z, Q_AH
 end
 #Compute probabilities of occurance P(q) of any vectorized generic quantity q(A,Z,TKE) with value step of Δq
 function Probability_of_occurrence(q_A_Z_TKE, y_A_Z_TKE::Distribution, Δq::Number)
@@ -392,89 +454,95 @@ end
 #####
 y_A_Z_TKE = Process_yield_data(A₀, fragmdomain, Yield_data)
 
-Write_seq_output(A₀, Z₀, A_H_range, No_ZperA, E_incident, tkerange, y_A_Z_TKE, E_excitation, Raw_output_datafile, density_parameter_type, density_parameter_data, fissionant_nucleus_identifier, mass_excess_filename, txe_partitioning_type, txe_partitioning_data, evaporation_cs_type, dmass_excess)
+Write_seq_output_Y(A₀, Z₀, A_H_min, A_H_max, No_ZperA, tkerange, 
+y_A_Z_TKE, E_excitation, Raw_output_datafile, density_parameter_type, density_parameter_data, 
+fissionant_nucleus_identifier, file_output_identifier, mass_excess_filename, 
+txe_partitioning_type, txe_partitioning_data, evaporation_cs_type, dmass_excess)
 println("*averaging data over $yield_distribution_filename experimental Yield distribution") 
 
-if secondary_output_Yield == "YES"
+if secondary_output_Yield
     y_A, y_Z, y_N, y_TKE, tke_AH, ke_A = Singular_yield_distributions(y_A_Z_TKE, A₀, A_H_min)
-    if !isdir("output_data/Yield/")
-        mkdir("output_data/Yield/")
+    if !isdir("$(file_output_identifier)_output_data/Yield/")
+        mkdir("$(file_output_identifier)_output_data/Yield/")
     end
     if isassigned(filter(!isnan, y_A_Z_TKE.σ), 1)
         CSV.write(
-            "output_data/Yield/$(fissionant_nucleus_identifier)_Y_A_Z_TKE_$(file_output_identifier).DAT", 
+            "$(file_output_identifier)_output_data/Yield/$(fissionant_nucleus_identifier)_Y_A_Z_TKE_$(file_output_identifier).dat", 
             DataFrame(A = y_A_Z_TKE.A, Z = y_A_Z_TKE.Z, TKE = y_A_Z_TKE.TKE, Y = y_A_Z_TKE.Value, σ = y_A_Z_TKE.σ), 
             writeheader=true, newline="\r\n", delim=' '
         )
         CSV.write(
-            "output_data/Yield/$(fissionant_nucleus_identifier)_Y_A_$(file_output_identifier).DAT", 
+            "$(file_output_identifier)_output_data/Yield/$(fissionant_nucleus_identifier)_Y_A_$(file_output_identifier).dat", 
             DataFrame(A = y_A.Argument, Y = y_A.Value, σ = y_A.σ), 
             writeheader=true, newline="\r\n", delim=' '
         )
         CSV.write(
-            "output_data/Yield/$(fissionant_nucleus_identifier)_Y_Z_$(file_output_identifier).DAT", 
+            "$(file_output_identifier)_output_data/Yield/$(fissionant_nucleus_identifier)_Y_Z_$(file_output_identifier).dat", 
             DataFrame(Z = y_Z.Argument, Y = y_Z.Value, σ = y_Z.σ), 
             writeheader=true, newline="\r\n", delim=' '
         )
         CSV.write(
-            "output_data/Yield/$(fissionant_nucleus_identifier)_Y_N_$(file_output_identifier).DAT", 
+            "$(file_output_identifier)_output_data/Yield/$(fissionant_nucleus_identifier)_Y_N_$(file_output_identifier).dat", 
             DataFrame(N = y_N.Argument, Y = y_N.Value, σ = y_N.σ), 
             writeheader=true, newline="\r\n", delim=' '
         )
         CSV.write(
-            "output_data/Yield/$(fissionant_nucleus_identifier)_Y_TKE_$(file_output_identifier).DAT", 
+            "$(file_output_identifier)_output_data/Yield/$(fissionant_nucleus_identifier)_Y_TKE_$(file_output_identifier).dat", 
             DataFrame(TKE = y_TKE.Argument, Y = y_TKE.Value, σ = y_TKE.σ), 
             writeheader=true, newline="\r\n", delim=' '
         )
         CSV.write(
-            "output_data/Yield/$(fissionant_nucleus_identifier)_TKE_AH_$(file_output_identifier).DAT", 
+            "$(file_output_identifier)_output_data/Yield/$(fissionant_nucleus_identifier)_TKE_AH_$(file_output_identifier).dat", 
             DataFrame(A_H = tke_AH.Argument, TKE = tke_AH.Value, σ = tke_AH.σ), 
             writeheader=true, newline="\r\n", delim=' '
         )
         CSV.write(
-            "output_data/Yield/$(fissionant_nucleus_identifier)_KE_A_$(file_output_identifier).DAT", 
+            "$(file_output_identifier)_output_data/Yield/$(fissionant_nucleus_identifier)_KE_A_$(file_output_identifier).dat", 
             DataFrame(A = ke_A.Argument, KE = ke_A.Value, σ = ke_A.σ), 
             writeheader=true, newline="\r\n", delim=' '
         )
     else
         CSV.write(
-            "output_data/Yield/$(fissionant_nucleus_identifier)_Y_A_Z_TKE_$(file_output_identifier).DAT", 
+            "$(file_output_identifier)_output_data/Yield/$(fissionant_nucleus_identifier)_Y_A_Z_TKE_$(file_output_identifier).dat", 
             DataFrame(A = y_A_Z_TKE.A, Z = y_A_Z_TKE.Z, TKE = y_A_Z_TKE.TKE, Y = y_A_Z_TKE.Value), 
             writeheader=true, newline="\r\n", delim=' '
         )
         CSV.write(
-            "output_data/Yield/$(fissionant_nucleus_identifier)_Y_A_$(file_output_identifier).DAT", 
+            "$(file_output_identifier)_output_data/Yield/$(fissionant_nucleus_identifier)_Y_A_$(file_output_identifier).dat", 
             DataFrame(A = y_A.Argument, Y = y_A.Value), 
             writeheader=true, newline="\r\n", delim=' '
         )
         CSV.write(
-            "output_data/Yield/$(fissionant_nucleus_identifier)_Y_Z_$(file_output_identifier).DAT", 
+            "$(file_output_identifier)_output_data/Yield/$(fissionant_nucleus_identifier)_Y_Z_$(file_output_identifier).dat", 
             DataFrame(Z = y_Z.Argument, Y = y_Z.Value), 
             writeheader=true, newline="\r\n", delim=' '
         )
         CSV.write(
-            "output_data/Yield/$(fissionant_nucleus_identifier)_Y_N_$(file_output_identifier).DAT", 
+            "$(file_output_identifier)_output_data/Yield/$(fissionant_nucleus_identifier)_Y_N_$(file_output_identifier).dat", 
             DataFrame(N = y_N.Argument, Y = y_N.Value), 
             writeheader=true, newline="\r\n", delim=' '
         )
         CSV.write(
-            "output_data/Yield/$(fissionant_nucleus_identifier)_Y_TKE_$(file_output_identifier).DAT", 
+            "$(file_output_identifier)_output_data/Yield/$(fissionant_nucleus_identifier)_Y_TKE_$(file_output_identifier).dat", 
             DataFrame(TKE = y_TKE.Argument, Y = y_TKE.Value), 
             writeheader=true, newline="\r\n", delim=' '
         )
         CSV.write(
-            "output_data/Yield/$(fissionant_nucleus_identifier)_TKE_AH_$(file_output_identifier).DAT", 
+            "$(file_output_identifier)_output_data/Yield/$(fissionant_nucleus_identifier)_TKE_AH_$(file_output_identifier).dat", 
             DataFrame(A_H = tke_AH.Argument, TKE = tke_AH.Value), 
             writeheader=true, newline="\r\n", delim=' '
         )
         CSV.write(
-            "output_data/Yield/$(fissionant_nucleus_identifier)_KE_A_$(file_output_identifier).DAT", 
+            "$(file_output_identifier)_output_data/Yield/$(fissionant_nucleus_identifier)_KE_A_$(file_output_identifier).dat", 
             DataFrame(A = ke_A.Argument, KE = ke_A.Value), 
             writeheader=true, newline="\r\n", delim=' '
         )
     end
 end
-if secondary_output_ν == "YES"
+if secondary_output_nu
+    if !isdir("$(file_output_identifier)_output_data/nu/")
+        mkdir("$(file_output_identifier)_output_data/nu/")
+    end
     ν_A_Z_TKE = Neutron_multiplicity_A_Z_TKE(DataFrame(
         A = Raw_output_datafile.A,
         Z = Raw_output_datafile.Z,
@@ -482,9 +550,7 @@ if secondary_output_ν == "YES"
         No_Sequence = Raw_output_datafile.No_Sequence
         )
     )
-    if !isdir("output_data/nu/")
-        mkdir("output_data/nu/")
-    end
+    ν_Pair_A_Z_TKE = Neutron_multiplicity_Pair_A_Z_TKE(A₀, Z₀, A_H_range, ν_A_Z_TKE)
     max_seq_A_Z_TKE = Maximum_sequences_A_Z_TKE(DataFrame(
         A = Raw_output_datafile.A,
         Z = Raw_output_datafile.Z,
@@ -494,14 +560,14 @@ if secondary_output_ν == "YES"
     )
     ν_A_TKE = Average_over_Z(ν_A_Z_TKE, fragmdomain)
     CSV.write(
-        "output_data/nu/$(fissionant_nucleus_identifier)_nu_A_TKE_$(file_output_identifier).DAT", 
-        DataFrame(A = ν_A_TKE.A, TKE = ν_A_TKE.TKE, ν = ν_A_TKE.Value), 
+        "$(file_output_identifier)_output_data/nu/$(fissionant_nucleus_identifier)_nu_A_TKE_$(file_output_identifier).dat", 
+        DataFrame(A = ν_A_TKE.A, TKE = ν_A_TKE.TKE, nu = ν_A_TKE.Value), 
         writeheader=true, newline="\r\n", delim=' '
     )
     ν_A = Average_over_TKE_Z(ν_A_Z_TKE, y_A_Z_TKE)
     CSV.write(
-        "output_data/nu/$(fissionant_nucleus_identifier)_nu_A_$(file_output_identifier).DAT", 
-        DataFrame(A = ν_A.Argument, ν = ν_A.Value), 
+        "$(file_output_identifier)_output_data/nu/$(fissionant_nucleus_identifier)_nu_A_$(file_output_identifier).dat", 
+        DataFrame(A = ν_A.Argument, nu = ν_A.Value), 
         writeheader=true, newline="\r\n", delim=' '
     )
     ν_AH_Pair = DataFrame(
@@ -509,139 +575,128 @@ if secondary_output_ν == "YES"
         Value = [Pair_value(ν_A, A₀, A_H) for A_H in ν_A.Argument[ν_A.Argument .>= A_H_min]]
     )
     CSV.write(
-        "output_data/nu/$(fissionant_nucleus_identifier)_nu_AH_Pair_$(file_output_identifier).DAT", 
-        DataFrame(A = ν_AH_Pair.Argument, ν_Pair = ν_AH_Pair.Value), 
+        "$(file_output_identifier)_output_data/nu/$(fissionant_nucleus_identifier)_nu_AH_Pair_$(file_output_identifier).dat", 
+        DataFrame(A = ν_AH_Pair.Argument, nu_Pair = ν_AH_Pair.Value), 
         writeheader=true, newline="\r\n", delim=' '
     )
-    ν_TKE = Average_over_A_Z(ν_A_Z_TKE, y_A_Z_TKE)
-    CSV.write(
-        "output_data/nu/$(fissionant_nucleus_identifier)_nu_Pair_TKE_$(file_output_identifier).DAT", 
-        DataFrame(TKE = ν_TKE.Argument, ν = ν_TKE.Value .* 2), 
-        writeheader=true, newline="\r\n", delim=' '
-    )
-    probability_ν = Probability_of_occurrence(ν_A_Z_TKE, y_A_Z_TKE, 1)
-    CSV.write(
-        "output_data/nu/$(fissionant_nucleus_identifier)_P_nu_$(file_output_identifier).DAT", 
-        DataFrame(ν = probability_ν.Argument, P = probability_ν.Value), 
-        writeheader=true, newline="\r\n", delim=' '
-    )
-    #=
-    probability_ν_L = Probability_of_occurrence(
+    ν_L_TKE = Average_over_A_Z(
         DataFrame(
-            A = ν_A_Z_TKE.A[ν_A_Z_TKE.A .<= A_H_min], 
-            Z = ν_A_Z_TKE.Z[ν_A_Z_TKE.A .<= A_H_min], 
-            TKE = ν_A_Z_TKE.TKE[ν_A_Z_TKE.A .<= A_H_min],
-            Value = ν_A_Z_TKE.Value[ν_A_Z_TKE.A .<= A_H_min]
-        ), y_A_Z_TKE, 1
-    )
+        A = ν_A_Z_TKE.A[ν_A_Z_TKE.A .<= A_H_min], 
+        Z = ν_A_Z_TKE.Z[ν_A_Z_TKE.A .<= A_H_min], 
+        TKE = ν_A_Z_TKE.TKE[ν_A_Z_TKE.A .<= A_H_min],
+        Value = ν_A_Z_TKE.Value[ν_A_Z_TKE.A .<= A_H_min]
+    ), y_A_Z_TKE)
     CSV.write(
-        "output_data/nu/$(fissionant_nucleus_identifier)_P_nu_LF_$(file_output_identifier).DAT", 
-        DataFrame(ν = probability_ν_L.Argument, P = probability_ν_L.Value), 
+        "$(file_output_identifier)_output_data/nu/$(fissionant_nucleus_identifier)_nu_LF_TKE_$(file_output_identifier).dat", 
+        DataFrame(TKE = ν_L_TKE.Argument, nu = ν_L_TKE.Value), 
         writeheader=true, newline="\r\n", delim=' '
     )
-    probability_ν_H = Probability_of_occurrence(
+    ν_H_TKE = Average_over_A_Z(
         DataFrame(
-            A = ν_A_Z_TKE.A[ν_A_Z_TKE.A .>= A_H_min], 
-            Z = ν_A_Z_TKE.Z[ν_A_Z_TKE.A .>= A_H_min], 
-            TKE = ν_A_Z_TKE.TKE[ν_A_Z_TKE.A .>= A_H_min],
-            Value = ν_A_Z_TKE.Value[ν_A_Z_TKE.A .>= A_H_min]
-        ), y_A_Z_TKE, 1
-    )
+        A = ν_A_Z_TKE.A[ν_A_Z_TKE.A .>= A_H_min], 
+        Z = ν_A_Z_TKE.Z[ν_A_Z_TKE.A .>= A_H_min], 
+        TKE = ν_A_Z_TKE.TKE[ν_A_Z_TKE.A .>= A_H_min],
+        Value = ν_A_Z_TKE.Value[ν_A_Z_TKE.A .>= A_H_min]
+    ), y_A_Z_TKE)
     CSV.write(
-        "output_data/nu/$(fissionant_nucleus_identifier)_P_nu_HF_$(file_output_identifier).DAT", 
-        DataFrame(ν = probability_ν_H.Argument, P = probability_ν_H.Value), 
+        "$(file_output_identifier)_output_data/nu/$(fissionant_nucleus_identifier)_nu_HF_TKE_$(file_output_identifier).dat", 
+        DataFrame(TKE = ν_H_TKE.Argument, nu = ν_H_TKE.Value), 
         writeheader=true, newline="\r\n", delim=' '
     )
-    =#
-    if secondary_output_Ap == "YES"
-        yp_A_Z_TKE, y_Ap_Z = Yield_post_neutron(y_A_Z_TKE, max_seq_A_Z_TKE)
-        Ap_H_min = A_H_min - (ν_A.Value[ν_A.Argument .== A_H_min][1] *2 - 1)
-        y_Ap, y_Zp, y_Np, y_TKEp, tke_AHp, ke_Ap = Singular_yield_distributions(yp_A_Z_TKE, A₀, Ap_H_min)
-        if !isdir("output_data/Yield_Ap/")
-            mkdir("output_data/Yield_Ap/")
+    ν_Pair_TKE = Average_over_A_Z(ν_Pair_A_Z_TKE, y_A_Z_TKE)
+    CSV.write(
+        "$(file_output_identifier)_output_data/nu/$(fissionant_nucleus_identifier)_nu_Pair_TKE_$(file_output_identifier).dat", 
+        DataFrame(TKE = ν_Pair_TKE.Argument, nu = ν_Pair_TKE.Value), 
+        writeheader=true, newline="\r\n", delim=' '
+    )
+    probability_ν_Pair = Probability_of_occurrence(ν_Pair_A_Z_TKE, y_A_Z_TKE, 1)
+    CSV.write(
+        "$(file_output_identifier)_output_data/nu/$(fissionant_nucleus_identifier)_P_nu_Pair_$(file_output_identifier).dat", 
+        DataFrame(nu = probability_ν_Pair.Argument, P = probability_ν_Pair.Value), 
+        writeheader=true, newline="\r\n", delim=' '
+    )
+    if secondary_output_Ap
+        if !isdir("$(file_output_identifier)_output_data/Post_neutron/")
+            mkdir("$(file_output_identifier)_output_data/Post_neutron/")
         end
-        if !isdir("output_data/Yield_Ap/Yield_Ap_Z/")
-            mkdir("output_data/Yield_Ap/Yield_Ap_Z/")
+        if !isdir("$(file_output_identifier)_output_data/Post_neutron/Yield_Ap_Z/")
+            mkdir("$(file_output_identifier)_output_data/Post_neutron/Yield_Ap_Z/")
         end
-        if isassigned(filter(!isnan, yp_A_Z_TKE.σ), 1)
+        yp_Ap_Z_TKE, yp_Ap_Z = Yield_post_neutron(y_A_Z_TKE, max_seq_A_Z_TKE)
+        yp_Ap, placeholder1, yp_Np, placeholder2, placeholder3, placeholder4 = Singular_yield_distributions(yp_Ap_Z_TKE, A₀, A_H_min)
+        if isassigned(filter(!isnan, yp_Ap_Z_TKE.σ), 1)
             CSV.write(
-                "output_data/Yield_Ap/$(fissionant_nucleus_identifier)_Y_Ap_$(file_output_identifier).DAT", 
-                DataFrame(Aₚ = y_Ap.Argument, Y = y_Ap.Value, σ = y_Ap.σ), 
+                "$(file_output_identifier)_output_data/Post_neutron/$(fissionant_nucleus_identifier)_Yp_Ap_$(file_output_identifier).dat", 
+                DataFrame(Ap = yp_Ap.Argument, Yp = yp_Ap.Value, σ = yp_Ap.σ), 
                 writeheader=true, newline="\r\n", delim=' '
             )
             CSV.write(
-                "output_data/Yield_Ap/$(fissionant_nucleus_identifier)_Y_Ap_Z_$(file_output_identifier).DAT", 
-                DataFrame(Aₚ = y_Ap_Z.A, Z = y_Ap_Z.Z, Y = y_Ap_Z.Value, σ = y_Ap_Z.σ), 
+                "$(file_output_identifier)_output_data/Post_neutron/$(fissionant_nucleus_identifier)_Yp_Ap_Z_$(file_output_identifier).dat", 
+                DataFrame(Ap = yp_Ap_Z.A, Z = yp_Ap_Z.Z, Yp = yp_Ap_Z.Value, σ = yp_Ap_Z.σ), 
                 writeheader=true, newline="\r\n", delim=' '
             )
             CSV.write(
-                "output_data/Yield_Ap/$(fissionant_nucleus_identifier)_Y_Np_$(file_output_identifier).DAT", 
-                DataFrame(N = y_Np.Argument, Y = y_Np.Value, σ = y_Np.σ), 
+                "$(file_output_identifier)_output_data/Post_neutron/$(fissionant_nucleus_identifier)_Yp_Np_$(file_output_identifier).dat", 
+                DataFrame(Np = yp_Np.Argument, Yp = yp_Np.Value, σ = yp_Np.σ), 
                 writeheader=true, newline="\r\n", delim=' '
             )
-            CSV.write(
-                "output_data/Yield_Ap/$(fissionant_nucleus_identifier)_TKE_AHp_$(file_output_identifier).DAT", 
-                DataFrame(A_H = tke_AHp.Argument, TKE = tke_AHp.Value, σ = tke_AHp.σ), 
-                writeheader=true, newline="\r\n", delim=' '
-            )
-            CSV.write(
-                "output_data/Yield_Ap/$(fissionant_nucleus_identifier)_KE_Ap_$(file_output_identifier).DAT", 
-                DataFrame(A = ke_Ap.Argument, KE = ke_Ap.Value, σ = ke_Ap.σ), 
-                writeheader=true, newline="\r\n", delim=' '
-            )
-            for Z in unique(y_Ap_Z.Z)
+            for Z in unique(yp_Ap_Z.Z)
                 CSV.write(
-                    "output_data/Yield_Ap/Yield_Ap_Z/$(fissionant_nucleus_identifier)_Y_Ap_$(Z)_$(file_output_identifier).DAT", 
-                    DataFrame(Aₚ = y_Ap_Z.A[y_Ap_Z.Z .== Z], Y = y_Ap_Z.Value[y_Ap_Z.Z .== Z], σ = y_Ap_Z.σ[y_Ap_Z.Z .== Z]), 
+                    "$(file_output_identifier)_output_data/Post_neutron/Yield_Ap_Z/$(fissionant_nucleus_identifier)_Yp_Ap_$(Z)_$(file_output_identifier).dat", 
+                    DataFrame(Ap = yp_Ap_Z.A[yp_Ap_Z.Z .== Z], Yp = yp_Ap_Z.Value[yp_Ap_Z.Z .== Z], σ = yp_Ap_Z.σ[yp_Ap_Z.Z .== Z]), 
                     writeheader=true, newline="\r\n", delim=' '
                 )
             end
         else
             CSV.write(
-                "output_data/Yield_Ap/$(fissionant_nucleus_identifier)_Y_Ap_$(file_output_identifier).DAT", 
-                DataFrame(Aₚ = y_Ap.Argument, Y = y_Ap.Value), 
+                "$(file_output_identifier)_output_data/Post_neutron/$(fissionant_nucleus_identifier)_Yp_Ap_$(file_output_identifier).dat", 
+                DataFrame(Ap = yp_Ap.Argument, Yp = yp_Ap.Value), 
                 writeheader=true, newline="\r\n", delim=' '
             )
             CSV.write(
-                "output_data/Yield_Ap/$(fissionant_nucleus_identifier)_Y_Ap_Z_$(file_output_identifier).DAT", 
-                DataFrame(Aₚ = y_Ap_Z.A, Z = y_Ap_Z.Z, Y = y_Ap_Z.Value), 
+                "$(file_output_identifier)_output_data/Post_neutron/$(fissionant_nucleus_identifier)_Yp_Ap_Z_$(file_output_identifier).dat", 
+                DataFrame(Ap = yp_Ap_Z.A, Z = yp_Ap_Z.Z, Yp = yp_Ap_Z.Value), 
                 writeheader=true, newline="\r\n", delim=' '
             )
             CSV.write(
-                "output_data/Yield_Ap/$(fissionant_nucleus_identifier)_Y_Np_$(file_output_identifier).DAT", 
-                DataFrame(N = y_Np.Argument, Y = y_Np.Value), 
+                "$(file_output_identifier)_output_data/Post_neutron/$(fissionant_nucleus_identifier)_Yp_Np_$(file_output_identifier).dat", 
+                DataFrame(Np = yp_Np.Argument, Yp = yp_Np.Value), 
                 writeheader=true, newline="\r\n", delim=' '
             )
-            CSV.write(
-                "output_data/Yield_Ap/$(fissionant_nucleus_identifier)_TKE_AHp_$(file_output_identifier).DAT", 
-                DataFrame(A_H = tke_AHp.Argument, TKE = tke_AHp.Value), 
-                writeheader=true, newline="\r\n", delim=' '
-            )
-            CSV.write(
-                "output_data/Yield_Ap/$(fissionant_nucleus_identifier)_KE_Ap_$(file_output_identifier).DAT", 
-                DataFrame(A = ke_Ap.Argument, KE = ke_Ap.Value), 
-                writeheader=true, newline="\r\n", delim=' '
-            )
-            for Z in sort(unique(y_Ap_Z.Z))
+            for Z in unique(yp_Ap_Z.Z)
                 CSV.write(
-                    "output_data/Yield_Ap/Yield_Ap_Z/$(fissionant_nucleus_identifier)_Y_Ap_$(Z)_$(file_output_identifier).DAT", 
-                    DataFrame(Aₚ = y_Ap_Z.A[y_Ap_Z.Z .== Z], Y = y_Ap_Z.Value[y_Ap_Z.Z .== Z]), 
+                    "$(file_output_identifier)_output_data/Post_neutron/Yield_Ap_Z/$(fissionant_nucleus_identifier)_Yp_Ap_$(Z)_$(file_output_identifier).dat", 
+                    DataFrame(Ap = yp_Ap_Z.A[yp_Ap_Z.Z .== Z], Yp = yp_Ap_Z.Value[yp_Ap_Z.Z .== Z]), 
                     writeheader=true, newline="\r\n", delim=' '
                 )
             end
         end
+        kep_A_Z_TKE, tkep_AH_Z_TKE = Kinetic_Energy_post_neutron(A₀, Z₀, A_H_range, max_seq_A_Z_TKE)
+        tkep_AH = Average_over_TKE_Z(tkep_AH_Z_TKE, y_A_Z_TKE)
+        kep_A = Average_over_TKE_Z(kep_A_Z_TKE, y_A_Z_TKE)
+        kep_Z = Average_over_A_TKE(kep_A_Z_TKE, y_A_Z_TKE)
+        CSV.write(
+            "$(file_output_identifier)_output_data/Post_neutron/$(fissionant_nucleus_identifier)_TKEp_AH_$(file_output_identifier).dat", 
+            DataFrame(A_H = tkep_AH.Argument, TKEp = tkep_AH.Value), 
+            writeheader=true, newline="\r\n", delim=' '
+        )
+        CSV.write(
+            "$(file_output_identifier)_output_data/Post_neutron/$(fissionant_nucleus_identifier)_KEp_A_$(file_output_identifier).dat", 
+            DataFrame(A = kep_A.Argument, KEp = kep_A.Value), 
+            writeheader=true, newline="\r\n", delim=' '
+        )
+        CSV.write(
+            "$(file_output_identifier)_output_data/Post_neutron/$(fissionant_nucleus_identifier)_KEp_Z_$(file_output_identifier).dat", 
+            DataFrame(A = kep_Z.Argument, KEp = kep_Z.Value), 
+            writeheader=true, newline="\r\n", delim=' '
+        )
     end
-    if secondary_output_Tₖ == "YES"
-        if !isdir("output_data/P_T_k/")
-            mkdir("output_data/P_T_k/")
+    if secondary_output_Tₖ
+        if !isdir("$(file_output_identifier)_output_data/P_T_k/")
+            mkdir("$(file_output_identifier)_output_data/P_T_k/")
         end
-        if !isdir("output_data/T_k_A/")
-            mkdir("output_data/T_k_A/")
-        end
-        if secondary_output_Eᵣ == "YES"
-            if !isdir("output_data/P_Er/")
-                mkdir("output_data/P_Er/")
-            end
+        if !isdir("$(file_output_identifier)_output_data/T_k_A/")
+            mkdir("$(file_output_identifier)_output_data/T_k_A/")
         end
         for k in 1:maximum(Raw_output_datafile.No_Sequence[Raw_output_datafile.Tₖ .>= 0])
             Tₖ_A_Z_TKE = DataFrame(
@@ -652,14 +707,14 @@ if secondary_output_ν == "YES"
             )
             Tₖ_A = Average_over_TKE_Z(Tₖ_A_Z_TKE, y_A_Z_TKE)
             CSV.write(
-                "output_data/T_k_A/$(fissionant_nucleus_identifier)_T_$(k)_A_$(file_output_identifier).DAT", 
+                "$(file_output_identifier)_output_data/T_k_A/$(fissionant_nucleus_identifier)_T_$(k)_A_$(file_output_identifier).dat", 
                 DataFrame(A = Tₖ_A.Argument, T = Tₖ_A.Value), 
                 writeheader=true, newline="\r\n", delim=' '
             )
             probability_Tₖ = Probability_of_occurrence(Tₖ_A_Z_TKE, y_A_Z_TKE, ΔTₖ)
             CSV.write(
-                "output_data/P_T_k/$(fissionant_nucleus_identifier)_P_T_$(k)_$(file_output_identifier).DAT", 
-                DataFrame(Tₖ = probability_Tₖ.Argument, P = probability_Tₖ.Value), 
+                "$(file_output_identifier)_output_data/P_T_k/$(fissionant_nucleus_identifier)_P_T_$(k)_$(file_output_identifier).dat", 
+                DataFrame(T = probability_Tₖ.Argument, P = probability_Tₖ.Value), 
                 writeheader=true, newline="\r\n", delim=' '
             )
             probability_Tₖ_L = Probability_of_occurrence(
@@ -671,8 +726,8 @@ if secondary_output_ν == "YES"
                 ), y_A_Z_TKE, ΔTₖ
                 )
             CSV.write(
-                "output_data/P_T_k/$(fissionant_nucleus_identifier)_P_T_$(k)_LF_$(file_output_identifier).DAT", 
-                DataFrame(Tₖ = probability_Tₖ_L.Argument, P = probability_Tₖ_L.Value), 
+                "$(file_output_identifier)_output_data/P_T_k/$(fissionant_nucleus_identifier)_P_T_$(k)_LF_$(file_output_identifier).dat", 
+                DataFrame(T = probability_Tₖ_L.Argument, P = probability_Tₖ_L.Value), 
                 writeheader=true, newline="\r\n", delim=' '
             )
             probability_Tₖ_H = Probability_of_occurrence(
@@ -684,17 +739,20 @@ if secondary_output_ν == "YES"
                 ), y_A_Z_TKE, ΔTₖ
                 )
             CSV.write(
-                "output_data/P_T_k/$(fissionant_nucleus_identifier)_P_T_$(k)_HF_$(file_output_identifier).DAT", 
-                DataFrame(Tₖ = probability_Tₖ_H.Argument, P = probability_Tₖ_H.Value), 
+                "$(file_output_identifier)_output_data/P_T_k/$(fissionant_nucleus_identifier)_P_T_$(k)_HF_$(file_output_identifier).dat", 
+                DataFrame(T = probability_Tₖ_H.Argument, P = probability_Tₖ_H.Value), 
                 writeheader=true, newline="\r\n", delim=' '
             )
-            if secondary_output_Eᵣ == "YES"
+            if secondary_output_Eᵣ
+                if !isdir("$(file_output_identifier)_output_data/P_Er/")
+                    mkdir("$(file_output_identifier)_output_data/P_Er/")
+                end
                 aₖ = copy(Raw_output_datafile.aₖ[(Raw_output_datafile.No_Sequence .== k) .& (Raw_output_datafile.Tₖ .>= 0)])
                 Eᵣ_A_Z_TKE = copy(Tₖ_A_Z_TKE)
                 Eᵣ_A_Z_TKE.Value .= Energy_FermiGas.(aₖ, Eᵣ_A_Z_TKE.Value)
                 probability_Eᵣ = Probability_of_occurrence(Eᵣ_A_Z_TKE, y_A_Z_TKE, ΔEᵣ)
                 CSV.write(
-                    "output_data/P_Er/$(fissionant_nucleus_identifier)_P_Er_$(k)_$(file_output_identifier).DAT", 
+                    "$(file_output_identifier)_output_data/P_Er/$(fissionant_nucleus_identifier)_P_Er_$(k)_$(file_output_identifier).dat", 
                     DataFrame(Eᵣ = probability_Eᵣ.Argument, P = probability_Eᵣ.Value), 
                     writeheader=true, newline="\r\n", delim=' '
                 )
@@ -707,7 +765,7 @@ if secondary_output_ν == "YES"
                     ), y_A_Z_TKE, ΔEᵣ
                     )
                 CSV.write(
-                    "output_data/P_Er/$(fissionant_nucleus_identifier)_P_Er_$(k)_LF_$(file_output_identifier).DAT", 
+                    "$(file_output_identifier)_output_data/P_Er/$(fissionant_nucleus_identifier)_P_Er_$(k)_LF_$(file_output_identifier).dat", 
                     DataFrame(Eᵣ = probability_Eᵣ_L.Argument, P = probability_Eᵣ_L.Value), 
                     writeheader=true, newline="\r\n", delim=' '
                 )
@@ -720,16 +778,19 @@ if secondary_output_ν == "YES"
                     ), y_A_Z_TKE, ΔEᵣ
                     )
                 CSV.write(
-                    "output_data/P_Er/$(fissionant_nucleus_identifier)_P_Er_$(k)_HF_$(file_output_identifier).DAT", 
+                    "$(file_output_identifier)_output_data/P_Er/$(fissionant_nucleus_identifier)_P_Er_$(k)_HF_$(file_output_identifier).dat", 
                     DataFrame(Eᵣ = probability_Eᵣ_H.Argument, P = probability_Eᵣ_H.Value), 
                     writeheader=true, newline="\r\n", delim=' '
                 )
             end      
         end
     end
-    if secondary_output_avg_εₖ == "YES"
-        if !isdir("output_data/P_avgE_k/")
-            mkdir("output_data/P_avgE_k/")
+    if secondary_output_avg_εₖ
+        if !isdir("$(file_output_identifier)_output_data/P_avgE_k/")
+            mkdir("$(file_output_identifier)_output_data/P_avgE_k/")
+        end
+        if !isdir("$(file_output_identifier)_output_data/avgE_k/")
+            mkdir("$(file_output_identifier)_output_data/avgE_k/")
         end
         for k in 1:maximum(Raw_output_datafile.No_Sequence[Raw_output_datafile.Tₖ .>= 0])
             avg_εₖ_A_Z_TKE = DataFrame(
@@ -738,10 +799,22 @@ if secondary_output_ν == "YES"
                 TKE = Raw_output_datafile.TKE[(Raw_output_datafile.No_Sequence .== k) .& (Raw_output_datafile.Tₖ .>= 0)],
                 Value = Raw_output_datafile.Avg_εₖ[(Raw_output_datafile.No_Sequence .== k) .& (Raw_output_datafile.Tₖ .>= 0)]
             )
+            avg_εₖ_A = Average_over_TKE_Z(avg_εₖ_A_Z_TKE, y_A_Z_TKE)
+            CSV.write(
+                "$(file_output_identifier)_output_data/avgE_k/$(fissionant_nucleus_identifier)_avgE_$(k)_SCM_A_$(file_output_identifier).dat", 
+                DataFrame(A = avg_εₖ_A.Argument, avg_ε = avg_εₖ_A.Value), 
+                writeheader=true, newline="\r\n", delim=' '
+            )
+            avg_εₖ_TKE = Average_over_A_Z(avg_εₖ_A_Z_TKE, y_A_Z_TKE)
+            CSV.write(
+                "$(file_output_identifier)_output_data/avgE_k/$(fissionant_nucleus_identifier)_avgE_$(k)_SCM_TKE_$(file_output_identifier).dat", 
+                DataFrame(TKE = avg_εₖ_TKE.Argument, avg_ε = avg_εₖ_TKE.Value), 
+                writeheader=true, newline="\r\n", delim=' '
+            )
             probability_avg_εₖ = Probability_of_occurrence(avg_εₖ_A_Z_TKE, y_A_Z_TKE, Δavg_εₖ)
             CSV.write(
-                "output_data/P_avgE_k/$(fissionant_nucleus_identifier)_P_avgE_$(k)_SCM_$(file_output_identifier).DAT", 
-                DataFrame(Avg_εₖ = probability_avg_εₖ.Argument, P = probability_avg_εₖ.Value), 
+                "$(file_output_identifier)_output_data/P_avgE_k/$(fissionant_nucleus_identifier)_P_avgE_$(k)_SCM_$(file_output_identifier).dat", 
+                DataFrame(avg_εₖ = probability_avg_εₖ.Argument, P = probability_avg_εₖ.Value), 
                 writeheader=true, newline="\r\n", delim=' '
             )
             probability_avg_εₖ_L = Probability_of_occurrence(
@@ -753,7 +826,7 @@ if secondary_output_ν == "YES"
                 ), y_A_Z_TKE, Δavg_εₖ
             )
             CSV.write(
-                "output_data/P_avgE_k/$(fissionant_nucleus_identifier)_P_avgE_$(k)_SCM_LF_$(file_output_identifier).DAT", 
+                "$(file_output_identifier)_output_data/P_avgE_k/$(fissionant_nucleus_identifier)_P_avgE_$(k)_SCM_LF_$(file_output_identifier).dat", 
                 DataFrame(avg_εₖ = probability_avg_εₖ_L.Argument, P = probability_avg_εₖ_L.Value), 
                 writeheader=true, newline="\r\n", delim=' '
             )
@@ -766,14 +839,14 @@ if secondary_output_ν == "YES"
                 ), y_A_Z_TKE, Δavg_εₖ
             )
             CSV.write(
-                "output_data/P_avgE_k/$(fissionant_nucleus_identifier)_P_avgE_$(k)_SCM_HF_$(file_output_identifier).DAT", 
+                "$(file_output_identifier)_output_data/P_avgE_k/$(fissionant_nucleus_identifier)_P_avgE_$(k)_SCM_HF_$(file_output_identifier).dat", 
                 DataFrame(avg_εₖ = probability_avg_εₖ_H.Argument, P = probability_avg_εₖ_H.Value), 
                 writeheader=true, newline="\r\n", delim=' '
             )
         end
     end
 end
-if secondary_output_T == "YES"
+if secondary_output_T
     T_A_Z_TKE = DataFrame(
         A = Raw_output_datafile.A[Raw_output_datafile.Tₖ .>= 0],
         Z = Raw_output_datafile.Z[Raw_output_datafile.Tₖ .>= 0],
@@ -788,13 +861,13 @@ if secondary_output_T == "YES"
         Value = Raw_output_datafile.Tₖ
     )), y_A_Z_TKE)
     CSV.write(
-        "output_data/$(fissionant_nucleus_identifier)_T_A_$(file_output_identifier).DAT", 
+        "$(file_output_identifier)_output_data/$(fissionant_nucleus_identifier)_T_A_$(file_output_identifier).dat", 
         DataFrame(A = T_A.Argument, T = T_A.Value), 
         writeheader=true, newline="\r\n", delim=' '
     )
     probability_T = Probability_of_occurrence(T_A_Z_TKE, y_A_Z_TKE, ΔT)
     CSV.write(
-        "output_data/$(fissionant_nucleus_identifier)_P_T_$(file_output_identifier).DAT", 
+        "$(file_output_identifier)_output_data/$(fissionant_nucleus_identifier)_P_T_$(file_output_identifier).dat", 
         DataFrame(T = probability_T.Argument, P = probability_T.Value), 
         writeheader=true, newline="\r\n", delim=' '
     )
@@ -807,7 +880,7 @@ if secondary_output_T == "YES"
         ), y_A_Z_TKE, ΔT
         )
     CSV.write(
-        "output_data/$(fissionant_nucleus_identifier)_P_T_LF_$(file_output_identifier).DAT", 
+        "$(file_output_identifier)_output_data/$(fissionant_nucleus_identifier)_P_T_LF_$(file_output_identifier).dat", 
         DataFrame(T = probability_T_L.Argument, P = probability_T_L.Value), 
         writeheader=true, newline="\r\n", delim=' '
     )
@@ -820,17 +893,17 @@ if secondary_output_T == "YES"
         ), y_A_Z_TKE, ΔT
         )
     CSV.write(
-        "output_data/$(fissionant_nucleus_identifier)_P_T_HF_$(file_output_identifier).DAT", 
+        "$(file_output_identifier)_output_data/$(fissionant_nucleus_identifier)_P_T_HF_$(file_output_identifier).dat", 
         DataFrame(T = probability_T_H.Argument, P = probability_T_H.Value), 
         writeheader=true, newline="\r\n", delim=' '
     )
-    if secondary_output_Eᵣ == "YES"
+    if secondary_output_Eᵣ
         a = copy(Raw_output_datafile.aₖ[Raw_output_datafile.Tₖ .>= 0])
         Eᵣ_A_Z_TKE = copy(T_A_Z_TKE)
         Eᵣ_A_Z_TKE.Value .= Energy_FermiGas.(a, Eᵣ_A_Z_TKE.Value)
         probability_Eᵣ = Probability_of_occurrence(Eᵣ_A_Z_TKE, y_A_Z_TKE, ΔEᵣ)
         CSV.write(
-            "output_data/$(fissionant_nucleus_identifier)_P_Er_$(file_output_identifier).DAT", 
+            "$(file_output_identifier)_output_data/$(fissionant_nucleus_identifier)_P_Er_$(file_output_identifier).dat", 
             DataFrame(Eᵣ = probability_Eᵣ.Argument, P = probability_Eᵣ.Value), 
             writeheader=true, newline="\r\n", delim=' '
         )
@@ -843,7 +916,7 @@ if secondary_output_T == "YES"
             ), y_A_Z_TKE, ΔEᵣ
             )
         CSV.write(
-            "output_data/$(fissionant_nucleus_identifier)_P_Er_LF_$(file_output_identifier).DAT", 
+            "$(file_output_identifier)_output_data/$(fissionant_nucleus_identifier)_P_Er_LF_$(file_output_identifier).dat", 
             DataFrame(Eᵣ = probability_Eᵣ_L.Argument, P = probability_Eᵣ_L.Value), 
             writeheader=true, newline="\r\n", delim=' '
         )
@@ -856,34 +929,41 @@ if secondary_output_T == "YES"
             ), y_A_Z_TKE, ΔEᵣ
             )
         CSV.write(
-            "output_data/$(fissionant_nucleus_identifier)_P_Er_HF_$(file_output_identifier).DAT", 
+            "$(file_output_identifier)_output_data/$(fissionant_nucleus_identifier)_P_Er_HF_$(file_output_identifier).dat", 
             DataFrame(Eᵣ = probability_Eᵣ_H.Argument, P = probability_Eᵣ_H.Value), 
             writeheader=true, newline="\r\n", delim=' '
         )
     end
 end
-if secondary_output_avg_ε == "YES"
+if secondary_output_avg_ε
     avg_ε_A_Z_TKE = DataFrame(
         A = Raw_output_datafile.A[Raw_output_datafile.Tₖ .>= 0],
         Z = Raw_output_datafile.Z[Raw_output_datafile.Tₖ .>= 0],
         TKE = Raw_output_datafile.TKE[Raw_output_datafile.Tₖ .>= 0],
         Value = Raw_output_datafile.Avg_εₖ[Raw_output_datafile.Tₖ .>= 0]
     )
-    avg_ε_A = Average_over_TKE_Z(SeqAvg_A_Z_TKE(DataFrame(
+    SeqAvg_ε_A_Z_TKE = SeqAvg_A_Z_TKE(DataFrame(
         A = Raw_output_datafile.A,
         Z = Raw_output_datafile.Z,
         TKE = Raw_output_datafile.TKE,
         No_Sequence = Raw_output_datafile.No_Sequence,
         Value = Raw_output_datafile.Avg_εₖ
-    )), y_A_Z_TKE)
+    ))
+    avg_ε_A = Average_over_TKE_Z(SeqAvg_ε_A_Z_TKE, y_A_Z_TKE)
     CSV.write(
-        "output_data/$(fissionant_nucleus_identifier)_avgE_SCM_A_$(file_output_identifier).DAT", 
-        DataFrame(A = T_A.Argument, T = T_A.Value), 
+        "$(file_output_identifier)_output_data/$(fissionant_nucleus_identifier)_avgE_SCM_A_$(file_output_identifier).dat", 
+        DataFrame(A = avg_ε_A.Argument, avg_ε = avg_ε_A.Value), 
+        writeheader=true, newline="\r\n", delim=' '
+    )
+    avg_ε_TKE = Average_over_A_Z(SeqAvg_ε_A_Z_TKE, y_A_Z_TKE)
+    CSV.write(
+        "$(file_output_identifier)_output_data/$(fissionant_nucleus_identifier)_avgE_SCM_TKE_$(file_output_identifier).dat", 
+        DataFrame(TKE = avg_ε_TKE.Argument, avg_ε = avg_ε_TKE.Value), 
         writeheader=true, newline="\r\n", delim=' '
     )
     probability_avg_ε = Probability_of_occurrence(avg_ε_A_Z_TKE, y_A_Z_TKE, Δavg_ε)
     CSV.write(
-        "output_data/$(fissionant_nucleus_identifier)_P_avgE_SCM_$(file_output_identifier).DAT", 
+        "$(file_output_identifier)_output_data/$(fissionant_nucleus_identifier)_P_avgE_SCM_$(file_output_identifier).dat", 
         DataFrame(avg_ε = probability_avg_ε.Argument, P = probability_avg_ε.Value), 
         writeheader=true, newline="\r\n", delim=' '
     )
@@ -896,7 +976,7 @@ if secondary_output_avg_ε == "YES"
         ), y_A_Z_TKE, Δavg_ε
         )
     CSV.write(
-        "output_data/$(fissionant_nucleus_identifier)_P_avgE_SCM_LF_$(file_output_identifier).DAT", 
+        "$(file_output_identifier)_output_data/$(fissionant_nucleus_identifier)_P_avgE_SCM_LF_$(file_output_identifier).dat", 
         DataFrame(avg_ε = probability_avg_ε_L.Argument, P = probability_avg_ε_L.Value), 
         writeheader=true, newline="\r\n", delim=' '
     )
@@ -909,31 +989,59 @@ if secondary_output_avg_ε == "YES"
         ), y_A_Z_TKE, Δavg_ε
         )
     CSV.write(
-        "output_data/$(fissionant_nucleus_identifier)_P_avgE_SCM_HF_$(file_output_identifier).DAT", 
+        "$(file_output_identifier)_output_data/$(fissionant_nucleus_identifier)_P_avgE_SCM_HF_$(file_output_identifier).dat", 
         DataFrame(avg_ε = probability_avg_ε_H.Argument, P = probability_avg_ε_H.Value), 
         writeheader=true, newline="\r\n", delim=' '
     )
 end
-if secondary_output_TXE_Q == "YES"
-    Q_AH, txe_AH = Vectorized_TXE_Q_AH(A₀, Z₀, fission_type, E_incident, y_A_Z_TKE, A_H_range, dmass_excess)
-end
-if secondary_output_E_excitation == "YES"
-    E_excitation_A = Average_over_TKE_Z(E_excitation, y_A_Z_TKE)
+if secondary_output_TXE_Q 
+    txe_AH_Z_TKE, Q_AH_Z, Q_AH = Vectorized_TXE_Q(A₀, Z₀, fission_type, E_incident, y_A_Z_TKE, A_H_range, dmass_excess)
+    txe_AH = Average_over_TKE_Z(txe_AH_Z_TKE, y_A_Z_TKE)
+    txe_TKE = Average_over_A_Z(txe_AH_Z_TKE, y_A_Z_TKE)
     CSV.write(
-        "output_data/$(fissionant_nucleus_identifier)_E_excit_A_$(file_output_identifier).DAT", 
+        "$(file_output_identifier)_output_data/$(fissionant_nucleus_identifier)_Q_AH_Z_$(file_output_identifier).dat", 
+        DataFrame(A_H = Q_AH_Z.A, Z = Q_AH_Z.Z, Q = Q_AH_Z.Value), 
+        writeheader=true, newline="\r\n", delim=' '
+    )
+    CSV.write(
+        "$(file_output_identifier)_output_data/$(fissionant_nucleus_identifier)_Q_AH_$(file_output_identifier).dat", 
+        DataFrame(A_H = Q_AH.Argument, Q = Q_AH.Value), 
+        writeheader=true, newline="\r\n", delim=' '
+    )
+    CSV.write(
+        "$(file_output_identifier)_output_data/$(fissionant_nucleus_identifier)_TXE_AH_$(file_output_identifier).dat", 
+        DataFrame(A_H = txe_AH.Argument, TXE = txe_AH.Value), 
+        writeheader=true, newline="\r\n", delim=' '
+    )
+    CSV.write(
+        "$(file_output_identifier)_output_data/$(fissionant_nucleus_identifier)_TXE_TKE_$(file_output_identifier).dat", 
+        DataFrame(TKE = txe_TKE.Argument, TXE = txe_TKE.Value), 
+        writeheader=true, newline="\r\n", delim=' '
+    )
+end
+if secondary_output_E_excitation
+    E_excitation_A = Average_over_TKE_Z(E_excitation, y_A_Z_TKE)
+    E_excitation_TKE = Average_over_A_Z(E_excitation, y_A_Z_TKE)
+    CSV.write(
+        "$(file_output_identifier)_output_data/$(fissionant_nucleus_identifier)_E_excit_A_$(file_output_identifier).dat", 
         DataFrame(A = E_excitation_A.Argument, E = E_excitation_A.Value), 
+        writeheader=true, newline="\r\n", delim=' '
+    )
+    CSV.write(
+        "$(file_output_identifier)_output_data/$(fissionant_nucleus_identifier)_E_excit_TKE_$(file_output_identifier).dat", 
+        DataFrame(TKE = E_excitation_TKE.Argument, E = E_excitation_TKE.Value), 
         writeheader=true, newline="\r\n", delim=' '
     )
     probability_E_excitation = Probability_of_occurrence(E_excitation, y_A_Z_TKE, 1.0)
     CSV.write(
-        "output_data/$(fissionant_nucleus_identifier)_P_E_excit_$(file_output_identifier).DAT", 
+        "$(file_output_identifier)_output_data/$(fissionant_nucleus_identifier)_P_E_excit_$(file_output_identifier).dat", 
         DataFrame(E = probability_E_excitation.Argument, P = probability_E_excitation.Value), 
         writeheader=true, newline="\r\n", delim=' '
     )       
 end
 #Write average quantities to file
-open("output_data/$(fissionant_nucleus_identifier)_Average_quantities_$(file_output_identifier).DAT", "w") do file
-    if secondary_output_Yield == "YES"
+open("$(file_output_identifier)_output_data/$(fissionant_nucleus_identifier)_Average_quantities_$(file_output_identifier).dat", "w") do file
+    if secondary_output_Yield
         avg_A_L = Average_yield_argument(y_A, y_A.Argument[y_A.Argument .<= A_H_min])
         avg_A_H = Average_yield_argument(y_A, y_A.Argument[y_A.Argument .>= A_H_min])
         if !isnan(avg_A_H[2])
@@ -957,15 +1065,15 @@ open("output_data/$(fissionant_nucleus_identifier)_Average_quantities_$(file_out
             write(file, "δₑₒ = $(δₑₒ *100) %\n\n")
         end
     end
-    if secondary_output_ν == "YES"
+    if secondary_output_nu
         avg_ν_L = Average_value(ν_A_Z_TKE, y_A_Z_TKE, A_L_range)
         avg_ν_H = Average_value(ν_A_Z_TKE, y_A_Z_TKE, A_H_range)
         avg_ν = Average_value(ν_A_Z_TKE, y_A_Z_TKE, A_range)
         avg_ν_Pair = Average_value(ν_AH_Pair, y_A, A_H_range)
         write(file, "<ν>_L = $avg_ν_L\n<ν>_H = $avg_ν_H\n<ν> = $avg_ν\n<ν>_pair = $avg_ν_Pair\n\n")
-        if secondary_output_Ap == "YES"
-            avg_Ap_L = Average_yield_argument(y_Ap, y_Ap.Argument[y_Ap.Argument .<= Ap_H_min])
-            avg_Ap_H = Average_yield_argument(y_Ap, y_Ap.Argument[y_Ap.Argument .>= Ap_H_min])
+        if secondary_output_Ap
+            avg_Ap_L = Average_yield_argument(yp_Ap, yp_Ap.Argument[yp_Ap.Argument .<= A_H_min])
+            avg_Ap_H = Average_yield_argument(yp_Ap, yp_Ap.Argument[yp_Ap.Argument .>= A_H_min])
             if !isnan(avg_Ap_H[2])
                 write(file, "<Ap>_L = $(avg_Ap_L[1]) ± $(avg_Ap_L[2])\n")
                 write(file, "<Ap>_H = $(avg_Ap_H[1]) ± $(avg_Ap_H[2])\n\n")
@@ -974,7 +1082,7 @@ open("output_data/$(fissionant_nucleus_identifier)_Average_quantities_$(file_out
                 write(file, "<Ap>_H = $(avg_Ap_H[1])\n\n")
             end
         end
-        if secondary_output_Tₖ == "YES"
+        if secondary_output_Tₖ
             for k in 1:maximum(Raw_output_datafile.No_Sequence[Raw_output_datafile.Tₖ .>= 0])
                 Tₖ_A_Z_TKE = DataFrame(
                     A = Raw_output_datafile.A[(Raw_output_datafile.No_Sequence .== k) .& (Raw_output_datafile.Tₖ .>= 0)],
@@ -988,7 +1096,7 @@ open("output_data/$(fissionant_nucleus_identifier)_Average_quantities_$(file_out
                 write(file, "<T_$(k)>_L = $avg_Tₖ_L\n<T_$(k)>_H = $avg_Tₖ_H\n<T_$(k)> = $avg_Tₖ\n\n")
             end
         end    
-        if secondary_output_avg_εₖ == "YES"
+        if secondary_output_avg_εₖ
             for k in 1:maximum(Raw_output_datafile.No_Sequence[Raw_output_datafile.Tₖ .>= 0])
                 avg_εₖ_A_Z_TKE = DataFrame(
                     A = Raw_output_datafile.A[(Raw_output_datafile.No_Sequence .== k) .& (Raw_output_datafile.Tₖ .>= 0)],
@@ -1002,7 +1110,7 @@ open("output_data/$(fissionant_nucleus_identifier)_Average_quantities_$(file_out
                 write(file, "avg_<ε_$(k)>_L = $avg_εₖ_L\navg_<ε_$(k)>_H = $avg_εₖ_H\navg_<ε_$(k)> = $avg_εₖ\n\n")
             end
         end
-        if secondary_output_Eᵣ == "YES"
+        if secondary_output_Eᵣ
             for k in 1:maximum(Raw_output_datafile.No_Sequence[Raw_output_datafile.Tₖ .>= 0])
                 Tₖ = Raw_output_datafile.Tₖ[(Raw_output_datafile.No_Sequence .== k) .& (Raw_output_datafile.Tₖ .>= 0)]
                 aₖ = Raw_output_datafile.aₖ[(Raw_output_datafile.No_Sequence .== k) .& (Raw_output_datafile.Tₖ .>= 0)]
@@ -1019,33 +1127,33 @@ open("output_data/$(fissionant_nucleus_identifier)_Average_quantities_$(file_out
             end
         end
     end
-    if secondary_output_T == "YES"
+    if secondary_output_T
         avg_T_L = Average_value(T_A_Z_TKE, y_A_Z_TKE, A_L_range)
         avg_T_H = Average_value(T_A_Z_TKE, y_A_Z_TKE, A_H_range)
         avg_T = Average_value(T_A_Z_TKE, y_A_Z_TKE, A_range)
         write(file, "<T>_L = $avg_T_L\n<T>_H = $avg_T_H\n<T> = $avg_T\n\n")
     end
-    if secondary_output_Eᵣ == "YES"
+    if secondary_output_Eᵣ
         avg_Eᵣ_L = Average_value(Eᵣ_A_Z_TKE, y_A_Z_TKE, A_L_range)
         avg_Eᵣ_H = Average_value(Eᵣ_A_Z_TKE, y_A_Z_TKE, A_H_range)
         avg_Eᵣ = Average_value(Eᵣ_A_Z_TKE, y_A_Z_TKE, A_range)
         write(file, "<Eᵣ>_L = $avg_Eᵣ_L\n<Eᵣ>_H = $avg_Eᵣ_H\n<Eᵣ> = $avg_Eᵣ\n\n")
     end  
-    if secondary_output_avg_ε == "YES"
+    if secondary_output_avg_ε
         avg_ε_L = Average_value(avg_ε_A_Z_TKE, y_A_Z_TKE, A_L_range)
         avg_ε_H = Average_value(avg_ε_A_Z_TKE, y_A_Z_TKE, A_H_range)
         avg_ε = Average_value(avg_ε_A_Z_TKE, y_A_Z_TKE, A_range)
         write(file, "<ε>_L = $avg_ε_L\n<ε>_H = $avg_ε_H\n<ε> = $avg_ε\n\n")
     end  
-    if secondary_output_TXE_Q == "YES"
+    if secondary_output_TXE_Q 
         avg_Q = Average_value(Q_AH, y_A, A_H_range)
-        avg_TXE = Average_value(txe_AH, y_A, A_H_range)
+        avg_TXE = Average_value(txe_AH_Z_TKE, y_A_Z_TKE, A_H_range)
         write(file, "<Q> = $avg_Q\n<TXE>= $avg_TXE\n\n")
     end
-    if secondary_output_E_excitation == "YES"
-        avg_E_exi = Average_value(E_excitation_A, y_A, A_range)
-        avg_E_exi_L = Average_value(E_excitation_A, y_A, A_L_range)
-        avg_E_exi_H = Average_value(E_excitation_A, y_A, A_H_range)
+    if secondary_output_E_excitation
+        avg_E_exi = Average_value(E_excitation, y_A_Z_TKE, A_range)
+        avg_E_exi_L = Average_value(E_excitation, y_A_Z_TKE, A_L_range)
+        avg_E_exi_H = Average_value(E_excitation, y_A_Z_TKE, A_H_range)
         write(file, "<E*>_L = $avg_E_exi_L\n<E*>_H = $avg_E_exi_H\n<E*> = $avg_E_exi\n\n")
     end
 end

@@ -11,7 +11,9 @@ deformation energy at scission and deformation energy at total acceleration of t
 =#
 #####
 #Modelling at scission
-function TXE_partitioning(A_0, Z_0, A_H_range, fission_type, E_incident, fragmdomain::Distribution, dΔE_def::DataFrame, tkerange, density_parameter_type, density_parameter_data, dm::DataFrame)
+function TXE_partitioning(A_0, Z_0, A_H_range, fission_type, E_incident, fragmdomain::Distribution, 
+    dΔE_def::DataFrame, tkerange, density_parameter_type, density_parameter_data, dm::DataFrame)
+    
     E_excit = Distribution(Int[], Int[], Float64[], Int[], Float64[], Float64[])
     E_CN = Compound_nucleus_energy(fission_type, A_0, Z_0, E_incident, dm)
     if !isnan(E_CN[1])
@@ -19,7 +21,9 @@ function TXE_partitioning(A_0, Z_0, A_H_range, fission_type, E_incident, fragmdo
             A_L = A_0 - A_H
             for Z_H in fragmdomain.Z[fragmdomain.A .== A_H]
                 Z_L = Z_0 - Z_H
-                if isassigned(dΔE_def.Value[(dΔE_def.A .== A_H) .& (dΔE_def.Z .== Z_H)], 1) && isassigned(dΔE_def.Value[(dΔE_def.A .== A_L) .& (dΔE_def.Z .== Z_L)], 1)
+                if isassigned(dΔE_def.Value[(dΔE_def.A .== A_H) .& (dΔE_def.Z .== Z_H)], 1) && 
+                    isassigned(dΔE_def.Value[(dΔE_def.A .== A_L) .& (dΔE_def.Z .== Z_L)], 1)
+                    
                     ΔE_def_H = dΔE_def.Value[(dΔE_def.A .== A_H) .& (dΔE_def.Z .== Z_H)][1]
                     ΔE_def_L = dΔE_def.Value[(dΔE_def.A .== A_L) .& (dΔE_def.Z .== Z_L)][1]
                     Q = Q_value_released(A_0, Z_0, A_H, Z_H, dm)
@@ -44,17 +48,15 @@ function TXE_partitioning(A_0, Z_0, A_H_range, fission_type, E_incident, fragmdo
                                             push!(E_excit.Z, Z_L)
                                             push!(E_excit.TKE, TKE)
                                             push!(E_excit.Value, E_excit_L)
-                                        elseif Z_L != Z_H
-                                            if !isassigned(E_excit.Value[(E_excit.A .== A_H) .& (E_excit.Z .== Z_H) .& (E_excit.TKE .== TKE)], 1)
-                                                push!(E_excit.A, A_H)
-                                                push!(E_excit.Z, Z_H)
-                                                push!(E_excit.TKE, TKE)
-                                                push!(E_excit.Value, E_excit_H)
-                                                push!(E_excit.A, A_L)
-                                                push!(E_excit.Z, Z_L)
-                                                push!(E_excit.TKE, TKE)
-                                                push!(E_excit.Value, E_excit_L)
-                                            end
+                                        elseif Z_L != Z_H && !isassigned(E_excit.Value[(E_excit.A .== A_H) .& (E_excit.Z .== Z_H) .& (E_excit.TKE .== TKE)], 1)
+                                            push!(E_excit.A, A_H)
+                                            push!(E_excit.Z, Z_H)
+                                            push!(E_excit.TKE, TKE)
+                                            push!(E_excit.Value, E_excit_H)
+                                            push!(E_excit.A, A_L)
+                                            push!(E_excit.Z, Z_L)
+                                            push!(E_excit.TKE, TKE)
+                                            push!(E_excit.Value, E_excit_L)
                                         else
                                             push!(E_excit.A, A_H)
                                             push!(E_excit.Z, Z_H)
@@ -102,17 +104,15 @@ function TXE_partitioning(A_0, Z_0, A_H_range, fission_type, E_incident, fragmdo
                                     push!(E_excit.Z, Z_L)
                                     push!(E_excit.TKE, TKE)
                                     push!(E_excit.Value, E_excit_L)
-                                elseif Z_L != Z_H
-                                    if !isassigned(E_excit.Value[(E_excit.A .== A_H) .& (E_excit.Z .== Z_H) .& (E_excit.TKE .== TKE)], 1)
-                                        push!(E_excit.A, A_H)
-                                        push!(E_excit.Z, Z_H)
-                                        push!(E_excit.TKE, TKE)
-                                        push!(E_excit.Value, E_excit_H)
-                                        push!(E_excit.A, A_L)
-                                        push!(E_excit.Z, Z_L)
-                                        push!(E_excit.TKE, TKE)
-                                        push!(E_excit.Value, E_excit_L)
-                                    end
+                                elseif Z_L != Z_H && !isassigned(E_excit.Value[(E_excit.A .== A_H) .& (E_excit.Z .== Z_H) .& (E_excit.TKE .== TKE)], 1)
+                                    push!(E_excit.A, A_H)
+                                    push!(E_excit.Z, Z_H)
+                                    push!(E_excit.TKE, TKE)
+                                    push!(E_excit.Value, E_excit_H)
+                                    push!(E_excit.A, A_L)
+                                    push!(E_excit.Z, Z_L)
+                                    push!(E_excit.TKE, TKE)
+                                    push!(E_excit.Value, E_excit_L)
                                 else
                                     push!(E_excit.A, A_H)
                                     push!(E_excit.Z, Z_H)
@@ -162,17 +162,15 @@ function TXE_partitioning(A_0, Z_0, A_H_range, fission_type, E_incident, fragmdo
                                     push!(E_excit.Z, Z_L)
                                     push!(E_excit.TKE, TKE)
                                     push!(E_excit.Value, E_excit_L)
-                                elseif Z_L != Z_H
-                                    if !isassigned(E_excit.Value[(E_excit.A .== A_H) .& (E_excit.Z .== Z_H) .& (E_excit.TKE .== TKE)], 1)
-                                        push!(E_excit.A, A_H)
-                                        push!(E_excit.Z, Z_H)
-                                        push!(E_excit.TKE, TKE)
-                                        push!(E_excit.Value, E_excit_H)
-                                        push!(E_excit.A, A_L)
-                                        push!(E_excit.Z, Z_L)
-                                        push!(E_excit.TKE, TKE)
-                                        push!(E_excit.Value, E_excit_L)
-                                    end
+                                elseif Z_L != Z_H && !isassigned(E_excit.Value[(E_excit.A .== A_H) .& (E_excit.Z .== Z_H) .& (E_excit.TKE .== TKE)], 1)
+                                    push!(E_excit.A, A_H)
+                                    push!(E_excit.Z, Z_H)
+                                    push!(E_excit.TKE, TKE)
+                                    push!(E_excit.Value, E_excit_H)
+                                    push!(E_excit.A, A_L)
+                                    push!(E_excit.Z, Z_L)
+                                    push!(E_excit.TKE, TKE)
+                                    push!(E_excit.Value, E_excit_L)
                                 else
                                     push!(E_excit.A, A_H)
                                     push!(E_excit.Z, Z_H)

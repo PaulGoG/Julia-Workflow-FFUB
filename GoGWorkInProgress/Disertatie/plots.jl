@@ -159,13 +159,13 @@ function Plot_legend_attributes(plt::Plots.Plot, lposition)
     plot!(plt, legend_position = lposition)
 end
 function Process_plot(plt::Plots.Plot, filename::String, fissionant_nucleus_identifier::String)
-    savefig(plt, "plots/$(fissionant_nucleus_identifier)_$(filename).png")
+    savefig(plt, "$(file_output_identifier)_plots/$(fissionant_nucleus_identifier)_$(filename).png")
     println("*plotting $filename done!")
 end
 #####
 println("*executing data plots")
 
-if secondary_output_Yield == "YES"
+if secondary_output_Yield 
     gr(size = plots_resolution, dpi=300)
 
     plot_y_A_log = Scatter_data(y_A.Argument, y_A.Value, "", :red, 5, :circle)
@@ -251,8 +251,8 @@ if secondary_output_Yield == "YES"
     xticks!(plot_ke_A, 10 *div(minimum(ke_A.Argument), 10):5:maximum(ke_A.Argument))
     Process_plot(plot_ke_A, "ke_A", fissionant_nucleus_identifier)
 end
-if secondary_output_ν == "YES"
-    if multidim_plots == "YES"
+if secondary_output_nu
+    if multidim_plots 
         plotlyjs(size = (16, 9) .* 90, dpi=600)
         plot_surface_ν_A_TKE = Plot_surface(
             DataFrame(x = ν_A_TKE.A, y = ν_A_TKE.TKE, z = ν_A_TKE.Value),
@@ -308,25 +308,25 @@ if secondary_output_ν == "YES"
     xticks!(plot_Ratio_ν_AH, 10 *div(minimum(ν_AH_Pair.Argument), 10):5:maximum(ν_AH_Pair.Argument))
     Process_plot(plot_Ratio_ν_AH, "Ratio_nuH_nuPair", fissionant_nucleus_identifier)
 
-    avg_ν = Average_value(ν_A_Z_TKE, y_A_Z_TKE, A_range)
-    plot_P_ν = Scatter_data(probability_ν.Argument, probability_ν.Value, "", :red, 5, :circle)
-    Plot_data(plot_P_ν, probability_ν.Argument, probability_ν.Value, latexstring("\$<\\nu>\$ = $(round(avg_ν, digits=2))"), :red)
+    avg_ν_Pair = Average_value(ν_Pair_A_Z_TKE, y_A_Z_TKE, A_H_range)
+    plot_P_ν = Scatter_data(probability_ν_Pair.Argument, probability_ν_Pair.Value, "", :red, 5, :circle)
+    Plot_data(plot_P_ν, probability_ν_Pair.Argument, probability_ν_Pair.Value, latexstring("\$<\\nu>\$ = $(round(avg_ν_Pair, digits=2))"), :red)
     Modify_plot(plot_P_ν)
     Modify_plot(
         plot_P_ν, L"\nu", "Probability %", 
-        (minimum(probability_ν.Argument), maximum(probability_ν.Argument)), :identity, 
-        (minimum(probability_ν.Value)*0.9, maximum(probability_ν.Value)*1.1), :identity, latexstring("Probability of occurrence \$\\mathrm{P(\\nu)}\$")
+        (minimum(probability_ν_Pair.Argument), maximum(probability_ν_Pair.Argument)), :identity, 
+        (minimum(probability_ν_Pair.Value)*0.9, maximum(probability_ν_Pair.Value)*1.1), :identity, latexstring("Probability of occurrence \$\\mathrm{P(\\nu)}\$")
     )
-    xticks!(plot_P_ν, 1:maximum(probability_ν.Argument))
+    xticks!(plot_P_ν, 1:maximum(probability_ν_Pair.Argument))
     Process_plot(plot_P_ν, "P_nu", fissionant_nucleus_identifier)
 
-    if secondary_output_Ap == "YES"
-        if multidim_plots == "YES"
+    if secondary_output_Ap 
+        if multidim_plots 
             plotlyjs(size = (16, 9) .* 90, dpi=300)
             plot_heatmap_y_Ap_Z = Plot_heatmap(
-                DataFrame(x = y_Ap_Z.A, y = y_Ap_Z.Z, z = y_Ap_Z.Value),
+                DataFrame(x = yp_Ap_Z.A, y = yp_Ap_Z.Z, z = yp_Ap_Z.Value),
                 10, 10, 2, 2,
-                "Y(Aₚ,Z)", :turbo
+                "Yₚ(Aₚ,Z)", :turbo
             )
             Modify_plot(plot_heatmap_y_Ap_Z, "Aₚ", "Z", "")
             Modify_plot(plot_heatmap_y_Ap_Z)
@@ -335,99 +335,99 @@ if secondary_output_ν == "YES"
         
         gr(size = plots_resolution, dpi=300)
 
-        avg_Ap_L = Average_yield_argument(y_Ap, y_Ap.Argument[y_Ap.Argument .<= Ap_H_min])
-        avg_Ap_H = Average_yield_argument(y_Ap, y_Ap.Argument[y_Ap.Argument .>= Ap_H_min])
-        plot_y_Ap_lin = Scatter_data(y_Ap.Argument, y_Ap.Value, "", :red, 4, :circle)
-        Plot_data(plot_y_Ap_lin, y_Ap.Argument, y_Ap.Value, "", :red)
+        avg_Ap_L = Average_yield_argument(yp_Ap, yp_Ap.Argument[yp_Ap.Argument .<= A_H_min])
+        avg_Ap_H = Average_yield_argument(yp_Ap, yp_Ap.Argument[yp_Ap.Argument .>= A_H_min])
+        plot_y_Ap_lin = Scatter_data(yp_Ap.Argument, yp_Ap.Value, "", :red, 4, :circle)
+        Plot_data(plot_y_Ap_lin, yp_Ap.Argument, yp_Ap.Value, "", :red)
         Modify_plot(plot_y_Ap_lin)
         Modify_plot(
             plot_y_Ap_lin, L"\mathrm{A_p}", "Yield %", 
-            (minimum(y_Ap.Argument), maximum(y_Ap.Argument)), :identity, 
-            (0.0, maximum(y_Ap.Value)*1.1), :identity, latexstring("\$\\mathrm{Y_p(A)}\$ of post-neutron fragments in linear scale")
+            (minimum(yp_Ap.Argument), maximum(yp_Ap.Argument)), :identity, 
+            (0.0, maximum(yp_Ap.Value)*1.1), :identity, latexstring("\$\\mathrm{Y_p(A)}\$ of post-neutron fragments in linear scale")
         )
-        Plot_textbox(plot_y_Ap_lin, A_H_min, maximum(y_Ap.Value)*1.05 - 0.5, latexstring("\$\\mathrm{<A_p>_L}\$ = $(round(avg_Ap_L[1], digits = 1))"))
-        Plot_textbox(plot_y_Ap_lin, A_H_min, maximum(y_Ap.Value)*1.05, latexstring("\$\\mathrm{<A_p>_H}\$ = $(round(avg_Ap_H[1], digits = 1))"))
-        xticks!(plot_y_Ap_lin, 10 *div(minimum(y_Ap.Argument), 10):5:maximum(y_Ap.Argument))
+        Plot_textbox(plot_y_Ap_lin, A_H_min, maximum(yp_Ap.Value)*1.05 - 0.5, latexstring("\$\\mathrm{<A_p>_L}\$ = $(round(avg_Ap_L[1], digits = 1))"))
+        Plot_textbox(plot_y_Ap_lin, A_H_min, maximum(yp_Ap.Value)*1.05, latexstring("\$\\mathrm{<A_p>_H}\$ = $(round(avg_Ap_H[1], digits = 1))"))
+        xticks!(plot_y_Ap_lin, 10 *div(minimum(yp_Ap.Argument), 10):5:maximum(yp_Ap.Argument))
         Process_plot(plot_y_Ap_lin, "y_Ap_lin", fissionant_nucleus_identifier)
 
-        plot_y_Ap_comp_lin = Scatter_data(y_Ap.Argument, y_Ap.Value, L"\mathrm{Y_p(A)}", :red, 4, :circle)
-        Plot_data(plot_y_Ap_comp_lin, y_Ap.Argument, y_Ap.Value, "", :red)
+        plot_y_Ap_comp_lin = Scatter_data(yp_Ap.Argument, yp_Ap.Value, L"\mathrm{Y_p(A)}", :red, 4, :circle)
+        Plot_data(plot_y_Ap_comp_lin, yp_Ap.Argument, yp_Ap.Value, "", :red)
         Scatter_data(plot_y_Ap_comp_lin, y_A.Argument, y_A.Value, L"\mathrm{Y(A)}", :blue, 4, :xcross)
         Plot_data(plot_y_Ap_comp_lin, y_A.Argument, y_A.Value, "", :blue)
         Modify_plot(plot_y_Ap_comp_lin)
         Modify_plot(
             plot_y_Ap_comp_lin, L"\mathrm{A}", "Yield %", 
-            (minimum(y_Ap.Argument), maximum(y_Ap.Argument)), :identity, 
-            (0.0, maximum(y_Ap.Value)*1.1), :identity, latexstring("\$\\mathrm{Y(A)\\: and\\: Y_p(A)}\$ in linear scale")
+            (minimum(yp_Ap.Argument), maximum(yp_Ap.Argument)), :identity, 
+            (0.0, maximum(yp_Ap.Value)*1.1), :identity, latexstring("\$\\mathrm{Y(A)\\: and\\: Y_p(A)}\$ in linear scale")
         )
-        xticks!(plot_y_Ap_lin, 10 *div(minimum(y_Ap.Argument), 10):5:maximum(y_Ap.Argument))
+        xticks!(plot_y_Ap_lin, 10 *div(minimum(yp_Ap.Argument), 10):5:maximum(yp_Ap.Argument))
         Process_plot(plot_y_Ap_comp_lin, "y_Ap_comparisson_lin", fissionant_nucleus_identifier)
         
-        plot_y_Ap_log = Scatter_data(y_Ap.Argument, y_Ap.Value, "", :red, 4, :circle)
-        Plot_data(plot_y_Ap_log, y_Ap.Argument, y_Ap.Value, "", :red)
+        plot_y_Ap_log = Scatter_data(yp_Ap.Argument, yp_Ap.Value, "", :red, 4, :circle)
+        Plot_data(plot_y_Ap_log, yp_Ap.Argument, yp_Ap.Value, "", :red)
         Modify_plot(plot_y_Ap_log)
         Modify_plot(
             plot_y_Ap_log, L"\mathrm{A_p}", "Yield %", 
-            (minimum(y_Ap.Argument), maximum(y_Ap.Argument)), :identity, 
-            (minimum(y_Ap.Value), maximum(y_Ap.Value)*2), :log10, latexstring("\$\\mathrm{Y_p(A)}\$ of post-neutron fragments in log10 scale")
+            (minimum(yp_Ap.Argument), maximum(yp_Ap.Argument)), :identity, 
+            (minimum(yp_Ap.Value), maximum(yp_Ap.Value)*2), :log10, latexstring("\$\\mathrm{Y_p(A)}\$ of post-neutron fragments in log10 scale")
         )
-        xticks!(plot_y_Ap_log, 10 *div(minimum(y_Ap.Argument), 10):5:maximum(y_Ap.Argument))
+        xticks!(plot_y_Ap_log, 10 *div(minimum(yp_Ap.Argument), 10):5:maximum(yp_Ap.Argument))
         Process_plot(plot_y_Ap_log, "y_Ap_log", fissionant_nucleus_identifier)
 
-        plot_y_Ap_comp_log = Scatter_data(y_Ap.Argument, y_Ap.Value, L"\mathrm{Y_p(A)}", :red, 4, :circle)
-        Plot_data(plot_y_Ap_comp_log, y_Ap.Argument, y_Ap.Value, "", :red)
+        plot_y_Ap_comp_log = Scatter_data(yp_Ap.Argument, yp_Ap.Value, L"\mathrm{Y_p(A)}", :red, 4, :circle)
+        Plot_data(plot_y_Ap_comp_log, yp_Ap.Argument, yp_Ap.Value, "", :red)
         Scatter_data(plot_y_Ap_comp_log, y_A.Argument, y_A.Value, L"\mathrm{Y(A)}", :blue, 4, :xcross)
         Plot_data(plot_y_Ap_comp_log, y_A.Argument, y_A.Value, "", :blue)
         Modify_plot(plot_y_Ap_comp_log)
         Modify_plot(
             plot_y_Ap_comp_log, L"\mathrm{A}", "Yield %", 
-            (minimum(y_Ap.Argument), maximum(y_Ap.Argument)), :identity, 
-            (minimum(y_Ap.Value), maximum(y_Ap.Value)*2), :log10, latexstring("\$\\mathrm{Y(A)\\: and\\: Y(A_p)}\$ in log10 scale")
+            (minimum(yp_Ap.Argument), maximum(yp_Ap.Argument)), :identity, 
+            (minimum(yp_Ap.Value), maximum(yp_Ap.Value)*2), :log10, latexstring("\$\\mathrm{Y(A)\\: and\\: Y(A_p)}\$ in log10 scale")
         )
-        xticks!(plot_y_Ap_comp_log, 10 *div(minimum(y_Ap.Argument), 10):5:maximum(y_Ap.Argument))
+        xticks!(plot_y_Ap_comp_log, 10 *div(minimum(yp_Ap.Argument), 10):5:maximum(yp_Ap.Argument))
         Plot_legend_attributes(plot_y_Ap_comp_log, :bottomright)
         Process_plot(plot_y_Ap_comp_log, "y_Ap_comparisson_log", fissionant_nucleus_identifier)
 
         plot_y_N_comp = Scatter_data(y_N.Argument, y_N.Value, L"\mathrm{Y(N)}", :blue, 4, :xcross)
         Plot_data(plot_y_N_comp, y_N.Argument, y_N.Value, "", :blue)
-        Scatter_data(plot_y_N_comp, y_Np.Argument, y_Np.Value, L"\mathrm{Y_p(N)}", :red, 4, :circle)
-        Plot_data(plot_y_N_comp, y_Np.Argument, y_Np.Value, "", :red)
+        Scatter_data(plot_y_N_comp, yp_Np.Argument, yp_Np.Value, L"\mathrm{Y_p(N)}", :red, 4, :circle)
+        Plot_data(plot_y_N_comp, yp_Np.Argument, yp_Np.Value, "", :red)
         Modify_plot(plot_y_N_comp)
-        xticks!(plot_y_N_comp, 10 *div(minimum(y_Np.Argument), 10):2:maximum(y_Np.Argument))
+        xticks!(plot_y_N_comp, 10 *div(minimum(yp_Np.Argument), 10):2:maximum(yp_Np.Argument))
         Modify_plot(
             plot_y_N_comp, "N", "Yield %", 
-            (minimum(y_Np.Argument), maximum(y_Np.Argument)), :identity, 
-            (0.0, maximum(y_Np.Value)*1.1), :identity, "Initial fragment and post-neutron fragment Y(N) distributions"
+            (minimum(yp_Np.Argument), maximum(yp_Np.Argument)), :identity, 
+            (0.0, maximum(yp_Np.Value)*1.1), :identity, "Initial fragment and post-neutron fragment Y(N) distributions"
         )
         Process_plot(plot_y_N_comp, "y_Np_comparisson", fissionant_nucleus_identifier)
 
         plot_tke_AH_comp = Scatter_data(tke_AH.Argument, tke_AH.Value, L"\mathrm{TKE(A)}", :blue, 4, :xcross)
         Plot_data(plot_tke_AH_comp, tke_AH.Argument, tke_AH.Value, "", :blue)
-        Scatter_data(plot_tke_AH_comp, tke_AHp.Argument, tke_AHp.Value, L"\mathrm{TKE_p(A)}", :red, 4, :circle)
-        Plot_data(plot_tke_AH_comp, tke_AHp.Argument, tke_AHp.Value, "", :red)
+        Scatter_data(plot_tke_AH_comp, tkep_AH.Argument, tkep_AH.Value, L"\mathrm{TKE_p(A)}", :red, 4, :circle)
+        Plot_data(plot_tke_AH_comp, tkep_AH.Argument, tkep_AH.Value, "", :red)
         Modify_plot(plot_tke_AH_comp)
         Modify_plot(
             plot_tke_AH_comp, L"\mathrm{A_H}", "TKE [MeV]", 
-            (minimum(tke_AHp.Argument), maximum(tke_AHp.Argument)), :identity, 
-            (minimum(tke_AHp.Value)*0.8, maximum(tke_AHp.Value)*1.2), :identity, latexstring("\$\\mathrm{TKE(A)\\: and\\: TKE_p(A)}\$ comparisson")
+            (minimum(tkep_AH.Argument), maximum(tkep_AH.Argument)), :identity, 
+            (minimum(tkep_AH.Value)*0.8, maximum(tkep_AH.Value)*1.2), :identity, latexstring("\$\\mathrm{TKE(A)\\: and\\: TKE_p(A)}\$ comparisson")
         )
-        xticks!(plot_tke_AH_comp, 10 *div(minimum(tke_AHp.Argument), 10):5:maximum(tke_AHp.Argument))
+        xticks!(plot_tke_AH_comp, 10 *div(minimum(tkep_AH.Argument), 10):5:maximum(tkep_AH.Argument))
         Process_plot(plot_tke_AH_comp, "tke_AHp_comparisson", fissionant_nucleus_identifier)
     
         plot_ke_A_comp = Scatter_data(ke_A.Argument, ke_A.Value, L"\mathrm{KE(A)}", :blue, 4, :xcross)
         Plot_data(plot_ke_A_comp, ke_A.Argument, ke_A.Value, "", :blue)
-        Scatter_data(plot_ke_A_comp, ke_Ap.Argument, ke_Ap.Value, L"\mathrm{KE_p(A)}", :red, 4, :circle)
-        Plot_data(plot_ke_A_comp, ke_Ap.Argument, ke_Ap.Value, "", :red)
+        Scatter_data(plot_ke_A_comp, kep_A.Argument, kep_A.Value, L"\mathrm{KE_p(A)}", :red, 4, :circle)
+        Plot_data(plot_ke_A_comp, kep_A.Argument, kep_A.Value, "", :red)
         Modify_plot(plot_ke_A_comp)
         Modify_plot(
             plot_ke_A_comp, "A", "KE [MeV]", 
-            (minimum(ke_Ap.Argument), maximum(ke_Ap.Argument)), :identity, 
-            (minimum(ke_Ap.Value)*0.8, maximum(ke_Ap.Value)*1.2), :identity, latexstring("\$\\mathrm{KE(A)\\: and\\: KE_p(A)}\$ comparisson")
+            (minimum(kep_A.Argument), maximum(kep_A.Argument)), :identity, 
+            (minimum(kep_A.Value)*0.8, maximum(kep_A.Value)*1.2), :identity, latexstring("\$\\mathrm{KE(A)\\: and\\: KE_p(A)}\$ comparisson")
         )
-        xticks!(plot_ke_A_comp, 10 *div(minimum(ke_Ap.Argument), 10):5:maximum(ke_Ap.Argument))
+        xticks!(plot_ke_A_comp, 10 *div(minimum(kep_A.Argument), 10):5:maximum(kep_A.Argument))
         Process_plot(plot_ke_A_comp, "ke_Ap_comparisson", fissionant_nucleus_identifier)
     end
-    if secondary_output_Tₖ == "YES"
+    if secondary_output_Tₖ 
         Tₖ_A_Z_TKE = DataFrame(
             A = Raw_output_datafile.A[(Raw_output_datafile.No_Sequence .== 1) .& (Raw_output_datafile.Tₖ .>= 0)],
             Z = Raw_output_datafile.Z[(Raw_output_datafile.No_Sequence .== 1) .& (Raw_output_datafile.Tₖ .>= 0)],
@@ -482,7 +482,7 @@ if secondary_output_ν == "YES"
         maximum_P_Tₖ_H = maximum(probability_Tₖ_H.Value[probability_Tₖ_H.Value .>= 0])
         maximum_Tₖ_H = maximum(probability_Tₖ_H.Argument[probability_Tₖ_H.Value .>= 0])
 
-        for k in 2:maximum(Raw_output_datafile.No_Sequence[Raw_output_datafile.Tₖ .>= 0])
+        for k in 2:maximum(Raw_output_datafile.No_Sequence[Raw_output_datafile.Tₖ .>= 0])-2
             local Tₖ_A_Z_TKE = DataFrame(
                 A = Raw_output_datafile.A[(Raw_output_datafile.No_Sequence .== k) .& (Raw_output_datafile.Tₖ .>= 0)],
                 Z = Raw_output_datafile.Z[(Raw_output_datafile.No_Sequence .== k) .& (Raw_output_datafile.Tₖ .>= 0)],
@@ -554,7 +554,7 @@ if secondary_output_ν == "YES"
         Modify_plot(
             plot_P_Tₖ, "T [MeV]", "Probability %", 
             (0.0, maximum_Tₖ), :identity, 
-            (minimum_P_Tₖ*0.9, 15), :identity, latexstring("Probability of occurrence \$\\mathrm{P(T_k)}\$ for all fragments")
+            (minimum_P_Tₖ*0.9, maximum_P_Tₖ), :identity, latexstring("Probability of occurrence \$\\mathrm{P(T_k)}\$ for all fragments")
         )
         Process_plot(plot_P_Tₖ, "P_T_k", fissionant_nucleus_identifier)
 
@@ -562,7 +562,7 @@ if secondary_output_ν == "YES"
         Modify_plot(
             plot_P_Tₖ_L, "T [MeV]", "Probability %", 
             (0.0, maximum_Tₖ_L), :identity, 
-            (minimum_P_Tₖ_L*0.9, 15), :identity, latexstring("Probability of occurrence \$\\mathrm{P(T_k)_L}\$ for light fragments")
+            (minimum_P_Tₖ_L*0.9, maximum_P_Tₖ_L), :identity, latexstring("Probability of occurrence \$\\mathrm{P(T_k)_L}\$ for light fragments")
         )
         Process_plot(plot_P_Tₖ_L, "P_T_k_LF", fissionant_nucleus_identifier)
 
@@ -570,11 +570,11 @@ if secondary_output_ν == "YES"
         Modify_plot(
             plot_P_Tₖ_H, "T [MeV]", "Probability %", 
             (0.0, maximum_Tₖ_H), :identity, 
-            (minimum_P_Tₖ_H*0.9, 15), :identity, latexstring("Probability of occurrence \$\\mathrm{P(T_k)_H}\$ for heavy fragments")
+            (minimum_P_Tₖ_H*0.9, maximum_P_Tₖ_H), :identity, latexstring("Probability of occurrence \$\\mathrm{P(T_k)_H}\$ for heavy fragments")
         )
         Process_plot(plot_P_Tₖ_H, "P_T_k_HF", fissionant_nucleus_identifier)
     end
-    if secondary_output_avg_εₖ == "YES"
+    if secondary_output_avg_εₖ 
         avg_εₖ_A_Z_TKE = DataFrame(
             A = Raw_output_datafile.A[(Raw_output_datafile.No_Sequence .== 1) .& (Raw_output_datafile.Tₖ .>= 0)],
             Z = Raw_output_datafile.Z[(Raw_output_datafile.No_Sequence .== 1) .& (Raw_output_datafile.Tₖ .>= 0)],
@@ -629,7 +629,7 @@ if secondary_output_ν == "YES"
         maximum_P_avg_εₖ_H = maximum(probability_avg_εₖ_H.Value[probability_avg_εₖ_H.Value .>= 0])
         maximum_avg_εₖ_H = maximum(probability_avg_εₖ_H.Argument[probability_avg_εₖ_H.Value .>= 0])
 
-        for k in 2:maximum(Raw_output_datafile.No_Sequence[Raw_output_datafile.Tₖ .>= 0])
+        for k in 2:maximum(Raw_output_datafile.No_Sequence[Raw_output_datafile.Tₖ .>= 0])-2
             local avg_εₖ_A_Z_TKE = DataFrame(
                 A = Raw_output_datafile.A[(Raw_output_datafile.No_Sequence .== k) .& (Raw_output_datafile.Tₖ .>= 0)],
                 Z = Raw_output_datafile.Z[(Raw_output_datafile.No_Sequence .== k) .& (Raw_output_datafile.Tₖ .>= 0)],
@@ -701,7 +701,7 @@ if secondary_output_ν == "YES"
         Modify_plot(
             plot_P_avg_εₖ, L"<\varepsilon>\: [MeV]", "Probability %", 
             (0.0, maximum_avg_εₖ), :identity, 
-            (minimum_P_avg_εₖ*0.9, 15), :identity, latexstring("Probability of occurrence \$\\mathrm{P(<\\varepsilon_k>)}\$ for all fragments")
+            (minimum_P_avg_εₖ*0.9, maximum_P_avg_εₖ), :identity, latexstring("Probability of occurrence \$\\mathrm{P(<\\varepsilon_k>)}\$ for all fragments")
         )
         Process_plot(plot_P_avg_εₖ, "P_avgE_SCM_k", fissionant_nucleus_identifier)
 
@@ -709,7 +709,7 @@ if secondary_output_ν == "YES"
         Modify_plot(
             plot_P_avg_εₖ_L, L"<\varepsilon>\: [MeV]", "Probability %", 
             (0.0, maximum_avg_εₖ_L), :identity, 
-            (minimum_P_avg_εₖ_L*0.9, 15), :identity, latexstring("Probability of occurrence \$\\mathrm{P(<\\varepsilon_k>)_L}\$ for light fragments")
+            (minimum_P_avg_εₖ_L*0.9, maximum_P_avg_εₖ_L), :identity, latexstring("Probability of occurrence \$\\mathrm{P(<\\varepsilon_k>)_L}\$ for light fragments")
         )
         Process_plot(plot_P_avg_εₖ_L, "P_avgE_SCM_k_LF", fissionant_nucleus_identifier)
 
@@ -717,11 +717,11 @@ if secondary_output_ν == "YES"
         Modify_plot(
             plot_P_avg_εₖ_H, L"<\varepsilon>\: [MeV]", "Probability %", 
             (0.0, maximum_avg_εₖ_H), :identity, 
-            (minimum_P_avg_εₖ_H*0.9, 15), :identity, latexstring("Probability of occurrence \$\\mathrm{P(<\\varepsilon_k>)_H}\$ for heavy fragments")
+            (minimum_P_avg_εₖ_H*0.9, maximum_P_avg_εₖ_H), :identity, latexstring("Probability of occurrence \$\\mathrm{P(<\\varepsilon_k>)_H}\$ for heavy fragments")
         )
         Process_plot(plot_P_avg_εₖ_H, "P_avgE_SCM_k_HF", fissionant_nucleus_identifier)
     end
-    if secondary_output_Eᵣ == "YES"
+    if secondary_output_Eᵣ 
         Tₖ_A_Z_TKE = DataFrame(
             A = Raw_output_datafile.A[(Raw_output_datafile.No_Sequence .== 1) .& (Raw_output_datafile.Tₖ .>= 0)],
             Z = Raw_output_datafile.Z[(Raw_output_datafile.No_Sequence .== 1) .& (Raw_output_datafile.Tₖ .>= 0)],
@@ -779,7 +779,7 @@ if secondary_output_ν == "YES"
         maximum_P_Eᵣ_H = maximum(probability_Eᵣ_H.Value[probability_Eᵣ_H.Value .>= 0])
         maximum_Eᵣ_H = maximum(probability_Eᵣ_H.Argument[probability_Eᵣ_H.Value .>= 0])
 
-        for k in 2:maximum(Raw_output_datafile.No_Sequence[Raw_output_datafile.Tₖ .>= 0])
+        for k in 2:maximum(Raw_output_datafile.No_Sequence[Raw_output_datafile.Tₖ .>= 0])-2
             local Tₖ_A_Z_TKE = DataFrame(
                 A = Raw_output_datafile.A[Raw_output_datafile.No_Sequence .== k],
                 Z = Raw_output_datafile.Z[Raw_output_datafile.No_Sequence .== k],
@@ -854,7 +854,7 @@ if secondary_output_ν == "YES"
         Modify_plot(
             plot_P_Eᵣ, L"\mathrm{E^r\: [MeV]}", "Probability %", 
             (0.0, maximum_Eᵣ), :identity, 
-            (minimum_P_Eᵣ*0.9, 15), :identity, latexstring("Probability of occurrence \$\\mathrm{P(E^r_k)}\$ for all fragments")
+            (minimum_P_Eᵣ*0.9, maximum_P_Eᵣ), :identity, latexstring("Probability of occurrence \$\\mathrm{P(E^r_k)}\$ for all fragments")
         )
         xticks!(plot_P_Eᵣ, 0:5:maximum_Eᵣ)
         Process_plot(plot_P_Eᵣ, "P_Er", fissionant_nucleus_identifier)
@@ -863,7 +863,7 @@ if secondary_output_ν == "YES"
         Modify_plot(
             plot_P_Eᵣ_L, L"\mathrm{E^r\: [MeV]}", "Probability %", 
             (0.0, maximum_Eᵣ_L), :identity, 
-            (minimum_P_Eᵣ_L*0.9, 15), :identity, latexstring("Probability of occurrence \$\\mathrm{P(E^r_k)_L}\$ for light fragments")
+            (minimum_P_Eᵣ_L*0.9, maximum_P_Eᵣ_L), :identity, latexstring("Probability of occurrence \$\\mathrm{P(E^r_k)_L}\$ for light fragments")
         )
         xticks!(plot_P_Eᵣ_L, 0:5:maximum_Eᵣ_L)
         Process_plot(plot_P_Eᵣ_L, "P_Er_LF", fissionant_nucleus_identifier)
@@ -872,13 +872,13 @@ if secondary_output_ν == "YES"
         Modify_plot(
             plot_P_Eᵣ_H, L"\mathrm{E^r\: [MeV]}", "Probability %", 
             (0.0, maximum_Eᵣ_H), :identity, 
-            (minimum_P_Eᵣ_H*0.9, 15), :identity, latexstring("Probability of occurrence \$\\mathrm{P(E^r_k)_H}\$ for heavy fragments")
+            (minimum_P_Eᵣ_H*0.9, maximum_P_Eᵣ_H), :identity, latexstring("Probability of occurrence \$\\mathrm{P(E^r_k)_H}\$ for heavy fragments")
         )
         xticks!(plot_P_Eᵣ_H, 0:5:maximum_Eᵣ_H)
         Process_plot(plot_P_Eᵣ_H, "P_Er_HF", fissionant_nucleus_identifier)
     end
 end
-if secondary_output_T == "YES"
+if secondary_output_T 
     gr(size = plots_resolution, dpi=300)
 
     avg_T = Average_value(T_A_Z_TKE, y_A_Z_TKE, A_range)
@@ -911,7 +911,7 @@ if secondary_output_T == "YES"
     )
     Process_plot(plot_P_T_H, "P_T_HF", fissionant_nucleus_identifier)
 end
-if secondary_output_avg_ε == "YES"
+if secondary_output_avg_ε 
     gr(size = plots_resolution, dpi=300)
 
     avg_ε = Average_value(avg_ε_A_Z_TKE, y_A_Z_TKE, A_range)
@@ -944,12 +944,13 @@ if secondary_output_avg_ε == "YES"
     )
     Process_plot(plot_avgE_H_SCM, "P_avgE_HF_SCM", fissionant_nucleus_identifier)
 end
-if secondary_output_TXE_Q == "YES"
+if secondary_output_TXE_Q 
     gr(size = plots_resolution, dpi=300)
 
     avg_Q = Average_value(Q_AH, y_A, A_H_range)
     plot_Q_AH = Scatter_data(Q_AH.Argument, Q_AH.Value, "", :red, 5, :circle)
     Plot_data(plot_Q_AH, Q_AH.Argument, Q_AH.Value, "<Q> = $(round(avg_Q, digits = 2)) MeV", :red)
+    Scatter_data(plot_Q_AH, Q_AH_Z.A, Q_AH_Z.Value, "", :blue, 4, :circle)
     Modify_plot(plot_Q_AH)
     Modify_plot(
         plot_Q_AH, L"\mathrm{A_H}", "Q [MeV]", 
@@ -959,9 +960,9 @@ if secondary_output_TXE_Q == "YES"
     xticks!(plot_Q_AH, 10 *div(minimum(Q_AH.Argument), 10):5:maximum(Q_AH.Argument))
     Process_plot(plot_Q_AH, "Q_AH", fissionant_nucleus_identifier)
 
-    avg_TXE = Average_value(txe_AH, y_A, A_H_range)
+    avg_TXE_A = Average_value(txe_AH, y_A, A_H_range)
     plot_TXE_AH = Scatter_data(txe_AH.Argument, txe_AH.Value, "", :red, 5, :circle)
-    Plot_data(plot_TXE_AH, txe_AH.Argument, txe_AH.Value, "<TXE> = $(round(avg_TXE, digits = 2)) MeV", :red)
+    Plot_data(plot_TXE_AH, txe_AH.Argument, txe_AH.Value, "<TXE> = $(round(avg_TXE_A, digits = 2)) MeV", :red)
     Modify_plot(plot_TXE_AH)
     Modify_plot(
         plot_TXE_AH, L"\mathrm{A_H}", "TXE [MeV]", 
@@ -970,8 +971,20 @@ if secondary_output_TXE_Q == "YES"
     )
     xticks!(plot_TXE_AH, 10 *div(minimum(txe_AH.Argument), 10):5:maximum(txe_AH.Argument))
     Process_plot(plot_TXE_AH, "TXE_AH", fissionant_nucleus_identifier)
+
+    avg_TXE_TKE = Average_value(txe_AH_Z_TKE, y_A_Z_TKE, A_H_range) 
+    plot_TXE_TKE = Scatter_data(txe_TKE.Argument, txe_TKE.Value, "", :red, 5, :circle)
+    Plot_data(plot_TXE_TKE, txe_TKE.Argument, txe_TKE.Value, "<TXE> = $(round(avg_TXE_TKE, digits = 2)) MeV", :red)
+    Modify_plot(plot_TXE_TKE)
+    Modify_plot(
+        plot_TXE_TKE, "TKE [MeV]", "TXE [MeV]", 
+        (minimum(txe_TKE.Argument), maximum(txe_TKE.Argument)), :identity, 
+        (minimum(txe_TKE.Value)*0.9, maximum(txe_TKE.Value)*1.1), :identity, "Total Excitation Energy of all fission fragments"
+    )
+    xticks!(plot_TXE_TKE, 10 *div(minimum(txe_TKE.Argument), 10):5:maximum(txe_TKE.Argument))
+    Process_plot(plot_TXE_TKE, "TXE_TKE", fissionant_nucleus_identifier)
 end
-if secondary_output_E_excitation == "YES"
+if secondary_output_E_excitation 
     gr(size = plots_resolution, dpi=300)
 
     avg_E_exi = Average_value(E_excitation_A, y_A, A_range)
@@ -985,7 +998,7 @@ if secondary_output_E_excitation == "YES"
     xticks!(plot_P_E, 0.0:2.5:maximum(probability_E_excitation.Argument))
     Process_plot(plot_P_E, "P_E_exi", fissionant_nucleus_identifier)
 end
-if neutron_spectrum == "YES"
+if neutron_spectrum 
     plot_nSpectrum = Plot_data(n_E_SL.E, n_E_SL.Value, "", :red)
     Modify_plot(
         plot_nSpectrum, "E [MeV]", "Neutron spectrum 1/MeV", (0.0, last(n_E_SL.E)),

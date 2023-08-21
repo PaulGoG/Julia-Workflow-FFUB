@@ -65,7 +65,7 @@ function DSE_equation_solver_CONSTANT_cs(E_excitation::Distribution, density_par
     end
     return Tₖ, aₖ
 end
-#VARIABLE σₙ
+#VARIABLE evaporation cross section
 #Parametrization for the force function S₀ of the s-wave neutron based on RIPL-3 data
 function Neutron_strength_function(A)
     if A <= 23

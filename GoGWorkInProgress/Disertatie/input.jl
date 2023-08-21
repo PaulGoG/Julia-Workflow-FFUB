@@ -1,4 +1,4 @@
-file_output_identifier = "ID_TEST"                      #Identifier used in the filenames   
+file_output_identifier = "TESTING"                      #Identifier used in the filenames   
 fissionant_nucleus_identifier = "CF52"                  #Symbol identifier of the fissionant nucleus
 A₀, Z₀ = 252, 98                                        #(A,Z) of the fissionant nucleus
 A_H_min, A_H_max = 126, 174                             #Heavy fission fragment range 
