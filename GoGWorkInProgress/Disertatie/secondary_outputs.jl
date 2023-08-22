@@ -226,7 +226,7 @@ function Yield_post_neutron(y_A_Z_TKE::Distribution, n_A_Z_TKE)
     end
     return yₚ_A_Z_TKE, yₚ_A_Z 
 end
-#Compute KEₚ(A,Z,TKE) and TKEₚ(A,Z,TKE)
+#Compute KEₚ(A,Z,TKE) and TKEₚ(AH,Z,TKE)
 function Kinetic_Energy_post_neutron(A_0, Z_0, A_H_range, n_A_Z_TKE)
     keₚ_A_Z_TKE = Distribution(Int[], Int[], Float64[], Int[], Float64[], Float64[])
     tkeₚ_AH_Z_TKE = Distribution(Int[], Int[], Float64[], Int[], Float64[], Float64[])
@@ -235,11 +235,11 @@ function Kinetic_Energy_post_neutron(A_0, Z_0, A_H_range, n_A_Z_TKE)
             KE = TKE *(A_0 - A)/A_0
             for Z in n_A_Z_TKE.Z[(n_A_Z_TKE.A .== A) .& (n_A_Z_TKE.TKE .== TKE)]
                 n = n_A_Z_TKE.Value[(n_A_Z_TKE.A .== A) .& (n_A_Z_TKE.Z .== Z) .& (n_A_Z_TKE.TKE .== TKE)][1]
-                KE_p = KE *(A - n)/A
+                KEp = KE *(A - n)/A
                 push!(keₚ_A_Z_TKE.A, A)
                 push!(keₚ_A_Z_TKE.Z, Z)
                 push!(keₚ_A_Z_TKE.TKE, TKE)
-                push!(keₚ_A_Z_TKE.Value, KE_p)
+                push!(keₚ_A_Z_TKE.Value, KEp)
             end
         end
     end
@@ -249,16 +249,94 @@ function Kinetic_Energy_post_neutron(A_0, Z_0, A_H_range, n_A_Z_TKE)
                 if !isassigned(tkeₚ_AH_Z_TKE.Value[(tkeₚ_AH_Z_TKE.A .== A) .& (tkeₚ_AH_Z_TKE.Z .== Z) .& (tkeₚ_AH_Z_TKE.TKE .== TKE)], 1)
                     KEp_L = keₚ_A_Z_TKE.Value[(keₚ_A_Z_TKE.A .== A_0 - A) .& (keₚ_A_Z_TKE.Z .== Z_0 - Z) .& (keₚ_A_Z_TKE.TKE .== TKE)][1]
                     KEp_H = keₚ_A_Z_TKE.Value[(keₚ_A_Z_TKE.A .== A) .& (keₚ_A_Z_TKE.Z .== Z) .& (keₚ_A_Z_TKE.TKE .== TKE)][1] 
-                    TKE_p = KEp_L + KEp_H
+                    TKEp = KEp_L + KEp_H
                     push!(tkeₚ_AH_Z_TKE.A, A)
                     push!(tkeₚ_AH_Z_TKE.Z, Z)
                     push!(tkeₚ_AH_Z_TKE.TKE, TKE)
-                    push!(tkeₚ_AH_Z_TKE.Value, TKE_p)
+                    push!(tkeₚ_AH_Z_TKE.Value, TKEp)
                 end
             end
         end
     end
     return keₚ_A_Z_TKE, tkeₚ_AH_Z_TKE
+end
+function Average_Kinetic_Energy_post_neutron(A_H_min, keₚ_A_Z_TKE, tkeₚ_AH_Z_TKE, y_A_Z_TKE, n_A_Z_TKE)
+    keₚ_Ap = Distribution_unidym(Int[], Float64[], Float64[])
+    tkeₚ_AHp = Distribution_unidym(Int[], Float64[], Float64[])
+    for A in unique(y_A_Z_TKE.A)
+        for Z in unique(y_A_Z_TKE.Z[y_A_Z_TKE.A .== A])
+            for TKE in y_A_Z_TKE.TKE[(y_A_Z_TKE.A .== A) .& (y_A_Z_TKE.Z .== Z)]
+                if isassigned(keₚ_A_Z_TKE.Value[(keₚ_A_Z_TKE.A .== A) .& (keₚ_A_Z_TKE.Z .== Z) .& (keₚ_A_Z_TKE.TKE .== TKE)], 1)
+                    KEp = keₚ_A_Z_TKE.Value[(keₚ_A_Z_TKE.A .== A) .& (keₚ_A_Z_TKE.Z .== Z) .& (keₚ_A_Z_TKE.TKE .== TKE)][1]
+                    Y_A_Z_TKE = y_A_Z_TKE.Value[(y_A_Z_TKE.A .== A) .& (y_A_Z_TKE.Z .== Z) .& (y_A_Z_TKE.TKE .== TKE)][1]
+                    n = n_A_Z_TKE.Value[(n_A_Z_TKE.A .== A) .& (n_A_Z_TKE.Z .== Z) .& (n_A_Z_TKE.TKE .== TKE)][1]
+                    Aₚ = A - n
+                    if !isassigned(keₚ_Ap.Value[keₚ_Ap.Argument .== Aₚ], 1)
+                        push!(keₚ_Ap.Argument, Aₚ)
+                        push!(keₚ_Ap.Value, KEp *Y_A_Z_TKE)
+                        push!(keₚ_Ap.σ, Y_A_Z_TKE)
+                    else
+                        keₚ_Ap.Value[keₚ_Ap.Argument .== Aₚ] .+= KEp *Y_A_Z_TKE
+                        keₚ_Ap.σ[keₚ_Ap.Argument .== Aₚ] .+= Y_A_Z_TKE
+                    end
+                    if A >= A_H_min
+                        TKEp = tkeₚ_AH_Z_TKE.Value[(tkeₚ_AH_Z_TKE.A .== A) .& (tkeₚ_AH_Z_TKE.Z .== Z) .& (tkeₚ_AH_Z_TKE.TKE .== TKE)][1]
+                        if !isassigned(tkeₚ_AHp.Value[tkeₚ_AHp.Argument .== Aₚ], 1)
+                            push!(tkeₚ_AHp.Argument, Aₚ)
+                            push!(tkeₚ_AHp.Value, TKEp *Y_A_Z_TKE)
+                            push!(tkeₚ_AHp.σ, Y_A_Z_TKE)
+                        else
+                            tkeₚ_AHp.Value[tkeₚ_AHp.Argument .== Aₚ] .+= TKEp *Y_A_Z_TKE
+                            tkeₚ_AHp.σ[tkeₚ_AHp.Argument .== Aₚ] .+= Y_A_Z_TKE
+                        end
+                    end
+                end
+            end
+        end
+    end
+    keₚ_Ap.Value ./= keₚ_Ap.σ
+    tkeₚ_AHp.Value ./= tkeₚ_AHp.σ
+    empty!(keₚ_Ap.σ)
+    empty!(tkeₚ_AHp.σ)
+    Sort_q_Argument(keₚ_Ap)
+    Sort_q_Argument(tkeₚ_AHp)
+    return keₚ_Ap, tkeₚ_AHp
+end
+#Compute RT(A_H,Z,TKE)
+function Ratio_of_Temperatures(A_0, Z_0, A_H_range, fragmdomain, E_exi_A_Z_TKE::Distribution, density_parameter_type, density_parameter_data)
+    T0_A_Z_TKE = Distribution(Int[], Int[], Float64[], Int[], Float64[], Float64[])
+    RT_A_Z_TKE = Distribution(Int[], Int[], Float64[], Int[], Float64[], Float64[])
+    for A in A_H_range
+        for Z in unique(E_exi_A_Z_TKE.Z[E_exi_A_Z_TKE.A .== A])
+            a_L = density_parameter(density_parameter_type, A_0 - A, Z_0 - Z, density_parameter_data)
+            a_H = density_parameter(density_parameter_type, A, Z, density_parameter_data) 
+            for TKE in E_exi_A_Z_TKE.TKE[(E_exi_A_Z_TKE.A .== A) .& (E_exi_A_Z_TKE.Z .== Z)]
+                if !isassigned(RT_A_Z_TKE.Value[(RT_A_Z_TKE.A .== A) .& (RT_A_Z_TKE.Z .== Z) .& (RT_A_Z_TKE.TKE .== TKE)], 1)
+                    E_exi_L = E_exi_A_Z_TKE.Value[(E_exi_A_Z_TKE.A .== A_0 - A) .& (E_exi_A_Z_TKE.Z .== Z_0 - Z) .& (E_exi_A_Z_TKE.TKE .== TKE)][1]
+                    E_exi_H = E_exi_A_Z_TKE.Value[(E_exi_A_Z_TKE.A .== A) .& (E_exi_A_Z_TKE.Z .== Z) .& (E_exi_A_Z_TKE.TKE .== TKE)][1] 
+                    T_L = sqrt(E_exi_L/a_L)
+                    T_H = sqrt(E_exi_H/a_H)
+                    RT = T_L/T_H
+
+                    push!(RT_A_Z_TKE.A, A)
+                    push!(RT_A_Z_TKE.Z, Z)
+                    push!(RT_A_Z_TKE.TKE, TKE)
+                    push!(RT_A_Z_TKE.Value, RT)
+
+                    push!(T0_A_Z_TKE.A, A)
+                    push!(T0_A_Z_TKE.Z, Z)
+                    push!(T0_A_Z_TKE.TKE, TKE)
+                    push!(T0_A_Z_TKE.Value, T_H)
+                    push!(T0_A_Z_TKE.A, A_0 - A)
+                    push!(T0_A_Z_TKE.Z, Z_0 - Z)
+                    push!(T0_A_Z_TKE.TKE, TKE)
+                    push!(T0_A_Z_TKE.Value, T_L)
+                end
+            end
+        end
+    end
+    Sort_q_A_Z_TKE(T0_A_Z_TKE, fragmdomain)
+    return RT_A_Z_TKE, T0_A_Z_TKE
 end
 #Obtain vectorized singular distributions Y(A), Y(N), Y(Z), Y(TKE), TKE(AH) & KE(A) from Y(A,Z,TKE)
 function Singular_yield_distributions(y_A_Z_TKE::Distribution, A_0, A_H_min)
@@ -428,8 +506,8 @@ function Probability_of_occurrence(q_A_Z_TKE, y_A_Z_TKE::Distribution, Δq::Numb
             lower_q = upper_q
             upper_q += Δq
         end
-        f = 100/sum(P.Value)
-        P.Value .*= f
+        #f = 100/sum(P.Value)
+        #P.Value .*= f
     else
         push!(P.Argument, NaN)
         push!(P.Value, NaN)
@@ -672,22 +750,21 @@ if secondary_output_nu
             end
         end
         kep_A_Z_TKE, tkep_AH_Z_TKE = Kinetic_Energy_post_neutron(A₀, Z₀, A_H_range, max_seq_A_Z_TKE)
-        tkep_AH = Average_over_TKE_Z(tkep_AH_Z_TKE, y_A_Z_TKE)
-        kep_A = Average_over_TKE_Z(kep_A_Z_TKE, y_A_Z_TKE)
         kep_Z = Average_over_A_TKE(kep_A_Z_TKE, y_A_Z_TKE)
+        kep_Ap, tkep_AHp = Average_Kinetic_Energy_post_neutron(A_H_min, kep_A_Z_TKE, tkep_AH_Z_TKE, y_A_Z_TKE, max_seq_A_Z_TKE)
         CSV.write(
             "$(file_output_identifier)_output_data/Post_neutron/$(fissionant_nucleus_identifier)_TKEp_AH_$(file_output_identifier).dat", 
-            DataFrame(A_H = tkep_AH.Argument, TKEp = tkep_AH.Value), 
+            DataFrame(A_H = tkep_AHp.Argument, TKEp = tkep_AHp.Value), 
             writeheader=true, newline="\r\n", delim=' '
         )
         CSV.write(
             "$(file_output_identifier)_output_data/Post_neutron/$(fissionant_nucleus_identifier)_KEp_A_$(file_output_identifier).dat", 
-            DataFrame(A = kep_A.Argument, KEp = kep_A.Value), 
+            DataFrame(A = kep_Ap.Argument, KEp = kep_Ap.Value), 
             writeheader=true, newline="\r\n", delim=' '
         )
         CSV.write(
             "$(file_output_identifier)_output_data/Post_neutron/$(fissionant_nucleus_identifier)_KEp_Z_$(file_output_identifier).dat", 
-            DataFrame(A = kep_Z.Argument, KEp = kep_Z.Value), 
+            DataFrame(Z = kep_Z.Argument, KEp = kep_Z.Value), 
             writeheader=true, newline="\r\n", delim=' '
         )
     end
@@ -1000,7 +1077,7 @@ if secondary_output_TXE_Q
     txe_TKE = Average_over_A_Z(txe_AH_Z_TKE, y_A_Z_TKE)
     CSV.write(
         "$(file_output_identifier)_output_data/$(fissionant_nucleus_identifier)_Q_AH_Z_$(file_output_identifier).dat", 
-        DataFrame(A_H = Q_AH_Z.A, Z = Q_AH_Z.Z, Q = Q_AH_Z.Value), 
+        DataFrame(A_H = Q_AH_Z.A, Z = Q_AH_Z.Z, Q = Q_AH_Z.Value, σQ = Q_AH_Z.σ), 
         writeheader=true, newline="\r\n", delim=' '
     )
     CSV.write(
@@ -1037,7 +1114,14 @@ if secondary_output_E_excitation
         "$(file_output_identifier)_output_data/$(fissionant_nucleus_identifier)_P_E_excit_$(file_output_identifier).dat", 
         DataFrame(E = probability_E_excitation.Argument, P = probability_E_excitation.Value), 
         writeheader=true, newline="\r\n", delim=' '
-    )       
+    )
+    RT_AH_Z_TKE, T_init_A_Z_TKE = Ratio_of_Temperatures(A₀, Z₀, A_H_range, fragmdomain, E_excitation, density_parameter_type, density_parameter_data)   
+    RT_AH = Average_over_TKE_Z(RT_AH_Z_TKE, y_A_Z_TKE)
+    CSV.write(
+        "$(file_output_identifier)_output_data/$(fissionant_nucleus_identifier)_RT_AH_$(file_output_identifier).dat", 
+        DataFrame(A = RT_AH.Argument, RT = RT_AH.Value), 
+        writeheader=true, newline="\r\n", delim=' '
+    )
 end
 #Write average quantities to file
 open("$(file_output_identifier)_output_data/$(fissionant_nucleus_identifier)_Average_quantities_$(file_output_identifier).dat", "w") do file
@@ -1081,6 +1165,10 @@ open("$(file_output_identifier)_output_data/$(fissionant_nucleus_identifier)_Ave
                 write(file, "<Ap>_L = $(avg_Ap_L[1])\n")
                 write(file, "<Ap>_H = $(avg_Ap_H[1])\n\n")
             end
+            avg_KEp_L = Average_value(kep_A_Z_TKE, y_A_Z_TKE, A_L_range)
+            avg_KEp_H = Average_value(kep_A_Z_TKE, y_A_Z_TKE, A_H_range)
+            write(file, "<KEp>_L = $avg_KEp_L\n")
+            write(file, "<KEp>_H = $avg_KEp_H\n\n")
         end
         if secondary_output_Tₖ
             for k in 1:maximum(Raw_output_datafile.No_Sequence[Raw_output_datafile.Tₖ .>= 0])
@@ -1154,6 +1242,12 @@ open("$(file_output_identifier)_output_data/$(fissionant_nucleus_identifier)_Ave
         avg_E_exi = Average_value(E_excitation, y_A_Z_TKE, A_range)
         avg_E_exi_L = Average_value(E_excitation, y_A_Z_TKE, A_L_range)
         avg_E_exi_H = Average_value(E_excitation, y_A_Z_TKE, A_H_range)
+        avg_RT = Average_value(RT_AH_Z_TKE, y_A_Z_TKE, A_H_range)
+        avg_T_init = Average_value(T_init_A_Z_TKE, y_A_Z_TKE, A_range)
+        avg_T_init_L = Average_value(T_init_A_Z_TKE, y_A_Z_TKE, A_L_range)
+        avg_T_init_H = Average_value(T_init_A_Z_TKE, y_A_Z_TKE, A_H_range)
         write(file, "<E*>_L = $avg_E_exi_L\n<E*>_H = $avg_E_exi_H\n<E*> = $avg_E_exi\n\n")
+        write(file, "<T_init>_L = $avg_T_init_L\n<T_init>_H = $avg_T_init_H\n<T_init> = $avg_T_init\n\n")
+        write(file, "<RT> = $avg_RT\n\n")
     end
 end

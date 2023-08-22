@@ -1,4 +1,4 @@
-file_output_identifier = "TESTING"                      #Identifier used in the filenames   
+file_output_identifier = "RTAHsuperfluid"                    #Identifier used in the filenames   
 fissionant_nucleus_identifier = "CF52"                  #Symbol identifier of the fissionant nucleus
 A₀, Z₀ = 252, 98                                        #(A,Z) of the fissionant nucleus
 A_H_min, A_H_max = 126, 174                             #Heavy fission fragment range 
@@ -9,5 +9,5 @@ density_parameter_type = "BSFG"                         #GC or BSFG
 evaporation_cs_type = "VARIABLE"                        #CONSTANT or VARIABLE
 isobaric_distribution_type = "DATA"                     #DATA or MEAN_VALUES
 No_ZperA = 5                                            #Number of normally distributed Z considered for each A
-txe_partitioning_type = "PARAM"                         #MSCZ, PARAM or RT
+txe_partitioning_type = "RT"                         #MSCZ, PARAM or RT
 secondary_outputs = true                                #Yield-averaged outputs true or false selector

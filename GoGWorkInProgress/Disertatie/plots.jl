@@ -403,28 +403,28 @@ if secondary_output_nu
 
         plot_tke_AH_comp = Scatter_data(tke_AH.Argument, tke_AH.Value, L"\mathrm{TKE(A)}", :blue, 4, :xcross)
         Plot_data(plot_tke_AH_comp, tke_AH.Argument, tke_AH.Value, "", :blue)
-        Scatter_data(plot_tke_AH_comp, tkep_AH.Argument, tkep_AH.Value, L"\mathrm{TKE_p(A)}", :red, 4, :circle)
-        Plot_data(plot_tke_AH_comp, tkep_AH.Argument, tkep_AH.Value, "", :red)
+        Scatter_data(plot_tke_AH_comp, tkep_AHp.Argument, tkep_AHp.Value, L"\mathrm{TKE_p(A)}", :red, 4, :circle)
+        Plot_data(plot_tke_AH_comp, tkep_AHp.Argument, tkep_AHp.Value, "", :red)
         Modify_plot(plot_tke_AH_comp)
         Modify_plot(
             plot_tke_AH_comp, L"\mathrm{A_H}", "TKE [MeV]", 
-            (minimum(tkep_AH.Argument), maximum(tkep_AH.Argument)), :identity, 
-            (minimum(tkep_AH.Value)*0.8, maximum(tkep_AH.Value)*1.2), :identity, latexstring("\$\\mathrm{TKE(A)\\: and\\: TKE_p(A)}\$ comparisson")
+            (minimum(tkep_AHp.Argument), maximum(tkep_AHp.Argument)), :identity, 
+            (minimum(tkep_AHp.Value)*0.8, maximum(tkep_AHp.Value)*1.2), :identity, latexstring("\$\\mathrm{TKE(A)\\: and\\: TKE_p(A)}\$ comparisson")
         )
-        xticks!(plot_tke_AH_comp, 10 *div(minimum(tkep_AH.Argument), 10):5:maximum(tkep_AH.Argument))
+        xticks!(plot_tke_AH_comp, 10 *div(minimum(tkep_AHp.Argument), 10):5:maximum(tkep_AHp.Argument))
         Process_plot(plot_tke_AH_comp, "tke_AHp_comparisson", fissionant_nucleus_identifier)
     
         plot_ke_A_comp = Scatter_data(ke_A.Argument, ke_A.Value, L"\mathrm{KE(A)}", :blue, 4, :xcross)
         Plot_data(plot_ke_A_comp, ke_A.Argument, ke_A.Value, "", :blue)
-        Scatter_data(plot_ke_A_comp, kep_A.Argument, kep_A.Value, L"\mathrm{KE_p(A)}", :red, 4, :circle)
-        Plot_data(plot_ke_A_comp, kep_A.Argument, kep_A.Value, "", :red)
+        Scatter_data(plot_ke_A_comp, kep_Ap.Argument, kep_Ap.Value, L"\mathrm{KE_p(A)}", :red, 4, :circle)
+        Plot_data(plot_ke_A_comp, kep_Ap.Argument, kep_Ap.Value, "", :red)
         Modify_plot(plot_ke_A_comp)
         Modify_plot(
             plot_ke_A_comp, "A", "KE [MeV]", 
-            (minimum(kep_A.Argument), maximum(kep_A.Argument)), :identity, 
-            (minimum(kep_A.Value)*0.8, maximum(kep_A.Value)*1.2), :identity, latexstring("\$\\mathrm{KE(A)\\: and\\: KE_p(A)}\$ comparisson")
+            (minimum(kep_Ap.Argument), maximum(kep_Ap.Argument)), :identity, 
+            (minimum(kep_Ap.Value)*0.8, maximum(kep_Ap.Value)*1.2), :identity, latexstring("\$\\mathrm{KE(A)\\: and\\: KE_p(A)}\$ comparisson")
         )
-        xticks!(plot_ke_A_comp, 10 *div(minimum(kep_A.Argument), 10):5:maximum(kep_A.Argument))
+        xticks!(plot_ke_A_comp, 10 *div(minimum(kep_Ap.Argument), 10):5:maximum(kep_Ap.Argument))
         Process_plot(plot_ke_A_comp, "ke_Ap_comparisson", fissionant_nucleus_identifier)
     end
     if secondary_output_Tₖ 
