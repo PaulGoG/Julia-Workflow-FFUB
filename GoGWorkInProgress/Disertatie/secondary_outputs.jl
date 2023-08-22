@@ -753,13 +753,13 @@ if secondary_output_nu
         kep_Z = Average_over_A_TKE(kep_A_Z_TKE, y_A_Z_TKE)
         kep_Ap, tkep_AHp = Average_Kinetic_Energy_post_neutron(A_H_min, kep_A_Z_TKE, tkep_AH_Z_TKE, y_A_Z_TKE, max_seq_A_Z_TKE)
         CSV.write(
-            "$(file_output_identifier)_output_data/Post_neutron/$(fissionant_nucleus_identifier)_TKEp_AH_$(file_output_identifier).dat", 
-            DataFrame(A_H = tkep_AHp.Argument, TKEp = tkep_AHp.Value), 
+            "$(file_output_identifier)_output_data/Post_neutron/$(fissionant_nucleus_identifier)_TKEp_AHp_$(file_output_identifier).dat", 
+            DataFrame(AHp = tkep_AHp.Argument, TKEp = tkep_AHp.Value), 
             writeheader=true, newline="\r\n", delim=' '
         )
         CSV.write(
-            "$(file_output_identifier)_output_data/Post_neutron/$(fissionant_nucleus_identifier)_KEp_A_$(file_output_identifier).dat", 
-            DataFrame(A = kep_Ap.Argument, KEp = kep_Ap.Value), 
+            "$(file_output_identifier)_output_data/Post_neutron/$(fissionant_nucleus_identifier)_KEp_Ap_$(file_output_identifier).dat", 
+            DataFrame(Ap = kep_Ap.Argument, KEp = kep_Ap.Value), 
             writeheader=true, newline="\r\n", delim=' '
         )
         CSV.write(
