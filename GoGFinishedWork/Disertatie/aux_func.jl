@@ -267,6 +267,29 @@ function Process_main_output(DSE_eq_output, evaporation_cs_type)
     end
     return Data
 end
+#Sorts any q(A,Z,TKE) in ascending order of A, then Z, then TKE
+function Sort_q_A_Z_TKE(q_A_Z_TKE, fragmdomain)
+    aux_A = copy(q_A_Z_TKE.A)
+    aux_Z = copy(q_A_Z_TKE.Z)
+    aux_TKE = zeros(length(q_A_Z_TKE.TKE))
+    aux_Value = zeros(length(q_A_Z_TKE.Value))
+    aux_index = 1
+    for index_fragmdomain in eachindex(fragmdomain.A)
+        for TKE in sort(unique(q_A_Z_TKE.TKE[(q_A_Z_TKE.A .== fragmdomain.A[index_fragmdomain]) .& (q_A_Z_TKE.Z .== fragmdomain.Z[index_fragmdomain])]))
+            aux_A[aux_index] = fragmdomain.A[index_fragmdomain]
+            aux_Z[aux_index] = fragmdomain.Z[index_fragmdomain]
+            aux_TKE[aux_index] = TKE
+            aux_Value[aux_index] = q_A_Z_TKE.Value[(q_A_Z_TKE.A .== fragmdomain.A[index_fragmdomain]) .& (q_A_Z_TKE.Z .== fragmdomain.Z[index_fragmdomain]) .& (q_A_Z_TKE.TKE .== TKE)][1]
+            aux_index += 1
+        end
+    end
+    for index in eachindex(aux_Value)
+        q_A_Z_TKE.A[index] = aux_A[index]
+        q_A_Z_TKE.Z[index] = aux_Z[index]
+        q_A_Z_TKE.TKE[index] = aux_TKE[index]
+        q_A_Z_TKE.Value[index] = aux_Value[index]
+    end
+end
 #Neutron multiplicity from raw output data
 function Neutron_multiplicity_A_Z_TKE(output_df_A_Z_TKE_NoSequence::DataFrame)
     ν = Distribution(Int[], Int[], Float64[], Int[], Float64[], Float64[])

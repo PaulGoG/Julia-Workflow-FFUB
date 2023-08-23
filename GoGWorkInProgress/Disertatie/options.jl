@@ -21,7 +21,7 @@ txe_partitioning_header = ["A", "Z", "Value"]
 txe_partitioning_delimiter = ' '
 txe_partitioning_firstdataline = 2
 
-txe_partitioning_segmentpoints = [(126, 0.5), (130, 0.14), (150, 0.607), (174, 0.865)]
+txe_partitioning_segmentpoints = [(126, 1.0), (130, 1.734), (134, 1.28), (138, 1.28), (150, 0.9), (167, 0.68), (174, 0.59)]
 
 yield_distribution_filename = "$(fissionant_nucleus_identifier)YATKE.VES"
 yield_distribution_header = ["A", "TKE", "Value", "σ"]
