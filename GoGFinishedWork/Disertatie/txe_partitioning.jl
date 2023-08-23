@@ -48,15 +48,17 @@ function TXE_partitioning(A_0, Z_0, A_H_range, fission_type, E_incident, fragmdo
                                             push!(E_excit.Z, Z_L)
                                             push!(E_excit.TKE, TKE)
                                             push!(E_excit.Value, E_excit_L)
-                                        elseif Z_L != Z_H && !isassigned(E_excit.Value[(E_excit.A .== A_H) .& (E_excit.Z .== Z_H) .& (E_excit.TKE .== TKE)], 1)
-                                            push!(E_excit.A, A_H)
-                                            push!(E_excit.Z, Z_H)
-                                            push!(E_excit.TKE, TKE)
-                                            push!(E_excit.Value, E_excit_H)
-                                            push!(E_excit.A, A_L)
-                                            push!(E_excit.Z, Z_L)
-                                            push!(E_excit.TKE, TKE)
-                                            push!(E_excit.Value, E_excit_L)
+                                        elseif Z_L != Z_H
+                                            if !isassigned(E_excit.Value[(E_excit.A .== A_H) .& (E_excit.Z .== Z_H) .& (E_excit.TKE .== TKE)], 1)
+                                                push!(E_excit.A, A_H)
+                                                push!(E_excit.Z, Z_H)
+                                                push!(E_excit.TKE, TKE)
+                                                push!(E_excit.Value, E_excit_H)
+                                                push!(E_excit.A, A_L)
+                                                push!(E_excit.Z, Z_L)
+                                                push!(E_excit.TKE, TKE)
+                                                push!(E_excit.Value, E_excit_L)
+                                            end
                                         else
                                             push!(E_excit.A, A_H)
                                             push!(E_excit.Z, Z_H)
@@ -71,7 +73,7 @@ function TXE_partitioning(A_0, Z_0, A_H_range, fission_type, E_incident, fragmdo
                 end
             end
         end
-        Sort_TXE_partitioning(E_excit, fragmdomain)
+        Sort_q_A_Z_TKE(E_excit, fragmdomain)
         return E_excit
     else 
         error("Neutron separation energy for fissionant nucleus ($(A_0),$(Z_0)) could not be calculated!")
@@ -104,15 +106,17 @@ function TXE_partitioning(A_0, Z_0, A_H_range, fission_type, E_incident, fragmdo
                                     push!(E_excit.Z, Z_L)
                                     push!(E_excit.TKE, TKE)
                                     push!(E_excit.Value, E_excit_L)
-                                elseif Z_L != Z_H && !isassigned(E_excit.Value[(E_excit.A .== A_H) .& (E_excit.Z .== Z_H) .& (E_excit.TKE .== TKE)], 1)
-                                    push!(E_excit.A, A_H)
-                                    push!(E_excit.Z, Z_H)
-                                    push!(E_excit.TKE, TKE)
-                                    push!(E_excit.Value, E_excit_H)
-                                    push!(E_excit.A, A_L)
-                                    push!(E_excit.Z, Z_L)
-                                    push!(E_excit.TKE, TKE)
-                                    push!(E_excit.Value, E_excit_L)
+                                elseif Z_L != Z_H 
+                                    if !isassigned(E_excit.Value[(E_excit.A .== A_H) .& (E_excit.Z .== Z_H) .& (E_excit.TKE .== TKE)], 1)
+                                        push!(E_excit.A, A_H)
+                                        push!(E_excit.Z, Z_H)
+                                        push!(E_excit.TKE, TKE)
+                                        push!(E_excit.Value, E_excit_H)
+                                        push!(E_excit.A, A_L)
+                                        push!(E_excit.Z, Z_L)
+                                        push!(E_excit.TKE, TKE)
+                                        push!(E_excit.Value, E_excit_L)
+                                    end
                                 else
                                     push!(E_excit.A, A_H)
                                     push!(E_excit.Z, Z_H)
@@ -125,7 +129,7 @@ function TXE_partitioning(A_0, Z_0, A_H_range, fission_type, E_incident, fragmdo
                 end
             end
         end
-        Sort_TXE_partitioning(E_excit, fragmdomain)
+        Sort_q_A_Z_TKE(E_excit, fragmdomain)
         return E_excit
     else 
         error("Neutron separation energy for fissionant nucleus ($(A_0),$(Z_0)) could not be calculated!")
@@ -162,15 +166,17 @@ function TXE_partitioning(A_0, Z_0, A_H_range, fission_type, E_incident, fragmdo
                                     push!(E_excit.Z, Z_L)
                                     push!(E_excit.TKE, TKE)
                                     push!(E_excit.Value, E_excit_L)
-                                elseif Z_L != Z_H && !isassigned(E_excit.Value[(E_excit.A .== A_H) .& (E_excit.Z .== Z_H) .& (E_excit.TKE .== TKE)], 1)
-                                    push!(E_excit.A, A_H)
-                                    push!(E_excit.Z, Z_H)
-                                    push!(E_excit.TKE, TKE)
-                                    push!(E_excit.Value, E_excit_H)
-                                    push!(E_excit.A, A_L)
-                                    push!(E_excit.Z, Z_L)
-                                    push!(E_excit.TKE, TKE)
-                                    push!(E_excit.Value, E_excit_L)
+                                elseif Z_L != Z_H
+                                    if !isassigned(E_excit.Value[(E_excit.A .== A_H) .& (E_excit.Z .== Z_H) .& (E_excit.TKE .== TKE)], 1)
+                                        push!(E_excit.A, A_H)
+                                        push!(E_excit.Z, Z_H)
+                                        push!(E_excit.TKE, TKE)
+                                        push!(E_excit.Value, E_excit_H)
+                                        push!(E_excit.A, A_L)
+                                        push!(E_excit.Z, Z_L)
+                                        push!(E_excit.TKE, TKE)
+                                        push!(E_excit.Value, E_excit_L)
+                                    end
                                 else
                                     push!(E_excit.A, A_H)
                                     push!(E_excit.Z, Z_H)
@@ -183,7 +189,7 @@ function TXE_partitioning(A_0, Z_0, A_H_range, fission_type, E_incident, fragmdo
                 end
             end
         end
-        Sort_TXE_partitioning(E_excit, fragmdomain)
+        Sort_q_A_Z_TKE(E_excit, fragmdomain)
         return E_excit
     else 
         error("Neutron separation energy for fissionant nucleus ($(A_0),$(Z_0)) could not be calculated!")
@@ -197,28 +203,6 @@ function TXE_partitioning(txe_partitioning_type, A₀, Z₀, A_H_range, fission_
         return TXE_partitioning(A₀, Z₀, A_H_range, fission_type, E_incident, fragmdomain, txe_partitioning_data, tkerange, dm)
     elseif txe_partitioning_type == "RT"
         return TXE_partitioning(A₀, Z₀, A_H_range, fission_type, E_incident, fragmdomain, txe_partitioning_data, tkerange, density_parameter_type, density_parameter_data, dm)
-    end
-end
-function Sort_TXE_partitioning(E_excit, fragmdomain)
-    aux_A = copy(E_excit.A)
-    aux_Z = copy(E_excit.Z)
-    aux_TKE = zeros(length(E_excit.TKE))
-    aux_Value = zeros(length(E_excit.Value))
-    aux_index = 1
-    for index_fragmdomain in eachindex(fragmdomain.A)
-        for TKE in unique(E_excit.TKE[(E_excit.A .== fragmdomain.A[index_fragmdomain]) .& (E_excit.Z .== fragmdomain.Z[index_fragmdomain])])
-            aux_A[aux_index] = fragmdomain.A[index_fragmdomain]
-            aux_Z[aux_index] = fragmdomain.Z[index_fragmdomain]
-            aux_TKE[aux_index] = TKE
-            aux_Value[aux_index] = E_excit.Value[(E_excit.A .== fragmdomain.A[index_fragmdomain]) .& (E_excit.Z .== fragmdomain.Z[index_fragmdomain]) .& (E_excit.TKE .== TKE)][1]
-            aux_index += 1
-        end
-    end
-    for index in eachindex(aux_Value)
-        E_excit.A[index] = aux_A[index]
-        E_excit.Z[index] = aux_Z[index]
-        E_excit.TKE[index] = aux_TKE[index]
-        E_excit.Value[index] = aux_Value[index]
     end
 end
 function Segments_TXE_partitioning(P::Vector{Tuple{Int, Float64}}, x::Int)
