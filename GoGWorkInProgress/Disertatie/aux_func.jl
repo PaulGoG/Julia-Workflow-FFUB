@@ -1,23 +1,3 @@
-#####
-#Load Julia packages for data manipulation
-using DataFrames, CSV
-
-#Define main struct objects
-abstract type AbstractDistribution end
-struct Distribution{T1 <: Vector{Int}, T2 <: Vector{Float64}} <: AbstractDistribution
-    A::T1
-    Z::T1
-    TKE::T2
-    No_Sequence::T1
-    Value
-    σ::T2
-end
-struct Distribution_unidym{T <: Vector{Float64}} <: AbstractDistribution
-    Argument
-    Value::T
-    σ::T
-end
-
 #Define value range for TKE
 tkerange = TKE_min:TKE_step:TKE_max
 
