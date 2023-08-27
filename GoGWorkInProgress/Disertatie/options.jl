@@ -1,4 +1,4 @@
-#Additional options for reading external files and true/true selector variables 
+#Additional options for reading external files and true/false selector variables 
 ########################################################################################################
 
 mass_excess_filename = "AME2020.ANA"
@@ -28,16 +28,16 @@ yield_distribution_header = ["A", "TKE", "Value", "σ"]
 yield_distribution_delimiter = ' '
 yield_distribution_firstdataline = 2
 
-secondary_output_Yield = true
-secondary_output_TXE_Q = true
-secondary_output_E_excitation = true
+secondary_output_Yield = false
+secondary_output_TXE_Q = false
+secondary_output_E_excitation = false
 secondary_output_nu = true
-secondary_output_Ap = true
-secondary_output_T = true
-secondary_output_Tₖ = true
-secondary_output_avg_ε = true
-secondary_output_avg_εₖ = true
-secondary_output_Eᵣ = true
+secondary_output_Ap = false
+secondary_output_T = false
+secondary_output_Tₖ = false
+secondary_output_avg_ε = false
+secondary_output_avg_εₖ = false
+secondary_output_Eᵣ = false
 
 ΔT, ΔTₖ, Δavg_ε, Δavg_εₖ, ΔEᵣ = 1e-2, 1e-2, 1e-2, 1e-2, 5e-1
 

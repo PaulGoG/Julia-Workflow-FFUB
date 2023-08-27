@@ -283,7 +283,7 @@ if secondary_output_nu
     yticks!(plot_ν_A, 0.0:0.5:maximum(ν_A.Value)*1.05)
     Process_plot(plot_ν_A, "nu_A", fissionant_nucleus_identifier)
 
-    avg_ν_Pair = Average_value(ν_AH_Pair, y_A, A_H_range)
+    avg_ν_Pair = Average_value(ν_Pair_AH_Z_TKE, y_A_Z_TKE, A_H_range)
     plot_ν_Pair_AH = Scatter_data(ν_AH_Pair.Argument, ν_AH_Pair.Value, "", :red, 5, :circle)
     Plot_data(plot_ν_Pair_AH, ν_AH_Pair.Argument, ν_AH_Pair.Value, latexstring("\$\\mathrm{<\\nu_{pair}>}\$ = $(round(avg_ν_Pair, digits = 2))"), :red)
     Modify_plot(plot_ν_Pair_AH)
@@ -308,7 +308,7 @@ if secondary_output_nu
     xticks!(plot_Ratio_ν_AH, 10 *div(minimum(ν_AH_Pair.Argument), 10):5:maximum(ν_AH_Pair.Argument))
     Process_plot(plot_Ratio_ν_AH, "Ratio_nuH_nuPair", fissionant_nucleus_identifier)
 
-    avg_ν_Pair = Average_value(ν_Pair_A_Z_TKE, y_A_Z_TKE, A_H_range)
+    avg_ν_Pair = Average_value(ν_Pair_AH_Z_TKE, y_A_Z_TKE, A_H_range)
     plot_P_ν = Scatter_data(probability_ν_Pair.Argument, probability_ν_Pair.Value, "", :red, 5, :circle)
     Plot_data(plot_P_ν, probability_ν_Pair.Argument, probability_ν_Pair.Value, latexstring("\$<\\nu>\$ = $(round(avg_ν_Pair, digits=2))"), :red)
     Modify_plot(plot_P_ν)

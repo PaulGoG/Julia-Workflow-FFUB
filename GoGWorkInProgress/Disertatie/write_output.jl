@@ -7,7 +7,7 @@ function Write_seq_output_P(A_0, Z_0, A_H_min, A_H_max, No_ZperA, tkerange,
     println("*writing DSE output data to file")
     horizontal_delimiter = lpad('-', 159, '-')
 
-    open("$(file_output_identifier)_output_data/$(fissionant_nucleus_identifier)_$(file_output_identifier)_readme.OUT", "w") do file
+    open("$(file_output_identifier)_output_data/$(fissionant_nucleus_identifier)_$(file_output_identifier)_readme.out", "w") do file
         write(file, "DSE main output file generated at $(Dates.format(now(), "HH:MM:SS")) corresponding to input data:\r\n")
         write(file, "$(fissionant_nucleus_identifier) $(file_output_identifier) (A₀ = $A_0, Z₀ = $Z_0), fission type: $fission_type, $No_ZperA Z per A, mass excess file - $mass_excess_filename\r\n")
         write(file, "Heavy Fragment mass number ranges from $A_H_min to $A_H_max\r\n")
@@ -28,7 +28,7 @@ function Write_seq_output_P(A_0, Z_0, A_H_min, A_H_max, No_ZperA, tkerange,
         write(file, "$horizontal_delimiter")
     end
 
-    open("$(file_output_identifier)_output_data/$(fissionant_nucleus_identifier)_$(file_output_identifier)_main_DSE.OUT", "w") do file
+    open("$(file_output_identifier)_output_data/$(fissionant_nucleus_identifier)_$(file_output_identifier)_main_DSE.out", "w") do file
         for A_H in A_H_min:A_H_max
             A_L = A_0 - A_H
             for Z_H in fragmdomain.Z[fragmdomain.A .== A_H]
@@ -145,7 +145,7 @@ function Write_seq_output_Y(A_0, Z_0, A_H_min, A_H_max, No_ZperA, tkerange,
     println("*writing DSE output data to file")
     horizontal_delimiter = lpad('-', 159, '-')
 
-    open("$(file_output_identifier)_output_data/$(fissionant_nucleus_identifier)_$(file_output_identifier)_readme.OUT", "w") do file
+    open("$(file_output_identifier)_output_data/$(fissionant_nucleus_identifier)_$(file_output_identifier)_readme.out", "w") do file
         write(file, "DSE main output file generated at $(Dates.format(now(), "HH:MM:SS")) corresponding to input data:\r\n")
         write(file, "$(fissionant_nucleus_identifier) $(file_output_identifier) (A₀ = $A_0, Z₀ = $Z_0), fission type: $fission_type, $No_ZperA Z per A, mass excess file - $mass_excess_filename\r\n")
         write(file, "Heavy Fragment mass number ranges from $A_H_min to $A_H_max\r\n")
@@ -166,7 +166,7 @@ function Write_seq_output_Y(A_0, Z_0, A_H_min, A_H_max, No_ZperA, tkerange,
         write(file, "$horizontal_delimiter")
     end
 
-    open("$(file_output_identifier)_output_data/$(fissionant_nucleus_identifier)_$(file_output_identifier)_main_DSE.OUT", "w") do file
+    open("$(file_output_identifier)_output_data/$(fissionant_nucleus_identifier)_$(file_output_identifier)_main_DSE.out", "w") do file
         for A_H in A_H_min:A_H_max
             A_L = A_0 - A_H
             for Z_H in sort(unique(y_A_Z_TKE.Z[y_A_Z_TKE.A .== A_H]))

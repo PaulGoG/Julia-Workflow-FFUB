@@ -185,10 +185,10 @@ function Pair_value(q_A::Distribution_unidym, A_0, A_H)
     val_H = q_A.Value[q_A.Argument .== A_H][1]
     return val_L + val_H
 end
-#Obtain Y(Z,Aₚ,TKE), Y(Z,Aₚ) distributions from Y(A,Z,TKE) & n(A,Z,TKE)
+#Obtain Yp(Z,Aₚ,TKE), Yp(Z,Aₚ) distributions from Y(A,Z,TKE) & n(A,Z,TKE)
 function Yield_post_neutron(y_A_Z_TKE::Distribution, n_A_Z_TKE)
-    yₚ_A_Z_TKE = Distribution(Int[], Int[], Float64[], Int[], Float64[], Float64[])
-    yₚ_A_Z = Distribution(Int[], Int[], Float64[], Int[], Float64[], Float64[])
+    yₚ_Aₚ_Z_TKE = Distribution(Int[], Int[], Float64[], Int[], Float64[], Float64[])
+    yₚ_Aₚ_Z = Distribution(Int[], Int[], Float64[], Int[], Float64[], Float64[])
     for A in unique(y_A_Z_TKE.A)
         for Z in unique(y_A_Z_TKE.Z[y_A_Z_TKE.A .== A])
             for TKE in y_A_Z_TKE.TKE[(y_A_Z_TKE.A .== A) .& (y_A_Z_TKE.Z .== Z)]
@@ -197,34 +197,34 @@ function Yield_post_neutron(y_A_Z_TKE::Distribution, n_A_Z_TKE)
                 if isassigned(n_A_Z_TKE.Value[(n_A_Z_TKE.A .== A) .& (n_A_Z_TKE.Z .== Z) .& (n_A_Z_TKE.TKE .== TKE)], 1)
                     n = n_A_Z_TKE.Value[(n_A_Z_TKE.A .== A) .& (n_A_Z_TKE.Z .== Z) .& (n_A_Z_TKE.TKE .== TKE)][1]
                     Aₚ = A - n
-                    if !isassigned(yₚ_A_Z_TKE.Value[(yₚ_A_Z_TKE.A .== Aₚ) .& (yₚ_A_Z_TKE.Z .== Z) .& (yₚ_A_Z_TKE.TKE .== TKE)], 1)
-                        push!(yₚ_A_Z_TKE.A, Aₚ)
-                        push!(yₚ_A_Z_TKE.Z, Z)
-                        push!(yₚ_A_Z_TKE.TKE, TKE)
-                        push!(yₚ_A_Z_TKE.Value, Y_A_Z_TKE)
-                        push!(yₚ_A_Z_TKE.σ, σY_A_Z_TKE)
+                    if !isassigned(yₚ_Aₚ_Z_TKE.Value[(yₚ_Aₚ_Z_TKE.A .== Aₚ) .& (yₚ_Aₚ_Z_TKE.Z .== Z) .& (yₚ_Aₚ_Z_TKE.TKE .== TKE)], 1)
+                        push!(yₚ_Aₚ_Z_TKE.A, Aₚ)
+                        push!(yₚ_Aₚ_Z_TKE.Z, Z)
+                        push!(yₚ_Aₚ_Z_TKE.TKE, TKE)
+                        push!(yₚ_Aₚ_Z_TKE.Value, Y_A_Z_TKE)
+                        push!(yₚ_Aₚ_Z_TKE.σ, σY_A_Z_TKE)
                     else
-                        yₚ_A_Z_TKE.Value[(yₚ_A_Z_TKE.A .== Aₚ) .& (yₚ_A_Z_TKE.Z .== Z) .& (yₚ_A_Z_TKE.TKE .== TKE)] .+= Y_A_Z_TKE
-                        yₚ_A_Z_TKE.σ[(yₚ_A_Z_TKE.A .== Aₚ) .& (yₚ_A_Z_TKE.Z .== Z) .& (yₚ_A_Z_TKE.TKE .== TKE)] .= sqrt(sum(yₚ_A_Z_TKE.σ[(yₚ_A_Z_TKE.A .== Aₚ) .& (yₚ_A_Z_TKE.Z .== Z) .& (yₚ_A_Z_TKE.TKE .== TKE)].^2) + σY_A_Z_TKE^2)
+                        yₚ_Aₚ_Z_TKE.Value[(yₚ_Aₚ_Z_TKE.A .== Aₚ) .& (yₚ_Aₚ_Z_TKE.Z .== Z) .& (yₚ_Aₚ_Z_TKE.TKE .== TKE)] .+= Y_A_Z_TKE
+                        yₚ_Aₚ_Z_TKE.σ[(yₚ_Aₚ_Z_TKE.A .== Aₚ) .& (yₚ_Aₚ_Z_TKE.Z .== Z) .& (yₚ_Aₚ_Z_TKE.TKE .== TKE)] .= sqrt(sum(yₚ_Aₚ_Z_TKE.σ[(yₚ_Aₚ_Z_TKE.A .== Aₚ) .& (yₚ_Aₚ_Z_TKE.Z .== Z) .& (yₚ_Aₚ_Z_TKE.TKE .== TKE)].^2) + σY_A_Z_TKE^2)
                     end
                 end
             end
         end
     end
-    f = 200/sum(yₚ_A_Z_TKE.Value)
-    yₚ_A_Z_TKE.Value .*= f
-    yₚ_A_Z_TKE.σ .*= f
-    for A in sort(unique(yₚ_A_Z_TKE.A))
-        for Z in sort(unique(yₚ_A_Z_TKE.Z[(yₚ_A_Z_TKE.A .== A)]))
-            Yₚ_A_Z = sum(yₚ_A_Z_TKE.Value[(yₚ_A_Z_TKE.A .== A) .& (yₚ_A_Z_TKE.Z .== Z)])
-            σYₚ_A_Z = sqrt(sum(yₚ_A_Z_TKE.σ[(yₚ_A_Z_TKE.A .== A) .& (yₚ_A_Z_TKE.Z .== Z)].^2))
-            push!(yₚ_A_Z.A, A)
-            push!(yₚ_A_Z.Z, Z)
-            push!(yₚ_A_Z.Value, Yₚ_A_Z)
-            push!(yₚ_A_Z.σ, σYₚ_A_Z)
+    f = 200/sum(yₚ_Aₚ_Z_TKE.Value)
+    yₚ_Aₚ_Z_TKE.Value .*= f
+    yₚ_Aₚ_Z_TKE.σ .*= f
+    for A in sort(unique(yₚ_Aₚ_Z_TKE.A))
+        for Z in sort(unique(yₚ_Aₚ_Z_TKE.Z[(yₚ_Aₚ_Z_TKE.A .== A)]))
+            Yₚ_Aₚ_Z = sum(yₚ_Aₚ_Z_TKE.Value[(yₚ_Aₚ_Z_TKE.A .== A) .& (yₚ_Aₚ_Z_TKE.Z .== Z)])
+            σYₚ_Aₚ_Z = sqrt(sum(yₚ_Aₚ_Z_TKE.σ[(yₚ_Aₚ_Z_TKE.A .== A) .& (yₚ_Aₚ_Z_TKE.Z .== Z)].^2))
+            push!(yₚ_Aₚ_Z.A, A)
+            push!(yₚ_Aₚ_Z.Z, Z)
+            push!(yₚ_Aₚ_Z.Value, Yₚ_Aₚ_Z)
+            push!(yₚ_Aₚ_Z.σ, σYₚ_Aₚ_Z)
         end
     end
-    return yₚ_A_Z_TKE, yₚ_A_Z 
+    return yₚ_Aₚ_Z_TKE, yₚ_Aₚ_Z 
 end
 #Compute KEₚ(A,Z,TKE) and TKEₚ(AH,Z,TKE)
 function Kinetic_Energy_post_neutron(A_0, Z_0, A_H_range, n_A_Z_TKE)
@@ -305,23 +305,23 @@ end
 #Compute RT(A_H,Z,TKE)
 function Ratio_of_Temperatures(A_0, Z_0, A_H_range, fragmdomain, E_exi_A_Z_TKE::Distribution, density_parameter_type, density_parameter_data)
     T0_A_Z_TKE = Distribution(Int[], Int[], Float64[], Int[], Float64[], Float64[])
-    RT_A_Z_TKE = Distribution(Int[], Int[], Float64[], Int[], Float64[], Float64[])
+    RT_AH_Z_TKE = Distribution(Int[], Int[], Float64[], Int[], Float64[], Float64[])
     for A in A_H_range
         for Z in unique(E_exi_A_Z_TKE.Z[E_exi_A_Z_TKE.A .== A])
             a_L = density_parameter(density_parameter_type, A_0 - A, Z_0 - Z, density_parameter_data)
             a_H = density_parameter(density_parameter_type, A, Z, density_parameter_data) 
             for TKE in E_exi_A_Z_TKE.TKE[(E_exi_A_Z_TKE.A .== A) .& (E_exi_A_Z_TKE.Z .== Z)]
-                if !isassigned(RT_A_Z_TKE.Value[(RT_A_Z_TKE.A .== A) .& (RT_A_Z_TKE.Z .== Z) .& (RT_A_Z_TKE.TKE .== TKE)], 1)
+                if !isassigned(RT_AH_Z_TKE.Value[(RT_AH_Z_TKE.A .== A) .& (RT_AH_Z_TKE.Z .== Z) .& (RT_AH_Z_TKE.TKE .== TKE)], 1)
                     E_exi_L = E_exi_A_Z_TKE.Value[(E_exi_A_Z_TKE.A .== A_0 - A) .& (E_exi_A_Z_TKE.Z .== Z_0 - Z) .& (E_exi_A_Z_TKE.TKE .== TKE)][1]
                     E_exi_H = E_exi_A_Z_TKE.Value[(E_exi_A_Z_TKE.A .== A) .& (E_exi_A_Z_TKE.Z .== Z) .& (E_exi_A_Z_TKE.TKE .== TKE)][1] 
                     T_L = sqrt(E_exi_L/a_L)
                     T_H = sqrt(E_exi_H/a_H)
                     RT = T_L/T_H
 
-                    push!(RT_A_Z_TKE.A, A)
-                    push!(RT_A_Z_TKE.Z, Z)
-                    push!(RT_A_Z_TKE.TKE, TKE)
-                    push!(RT_A_Z_TKE.Value, RT)
+                    push!(RT_AH_Z_TKE.A, A)
+                    push!(RT_AH_Z_TKE.Z, Z)
+                    push!(RT_AH_Z_TKE.TKE, TKE)
+                    push!(RT_AH_Z_TKE.Value, RT)
 
                     push!(T0_A_Z_TKE.A, A)
                     push!(T0_A_Z_TKE.Z, Z)
@@ -336,7 +336,7 @@ function Ratio_of_Temperatures(A_0, Z_0, A_H_range, fragmdomain, E_exi_A_Z_TKE::
         end
     end
     Sort_q_A_Z_TKE(T0_A_Z_TKE, fragmdomain)
-    return RT_A_Z_TKE, T0_A_Z_TKE
+    return RT_AH_Z_TKE, T0_A_Z_TKE
 end
 #Obtain vectorized singular distributions Y(A), Y(N), Y(Z), Y(TKE), TKE(AH) & KE(A) from Y(A,Z,TKE)
 function Singular_yield_distributions(y_A_Z_TKE::Distribution, A_0, A_H_min)
@@ -628,7 +628,7 @@ if secondary_output_nu
         No_Sequence = Raw_output_datafile.No_Sequence
         )
     )
-    ν_Pair_A_Z_TKE = Neutron_multiplicity_Pair_A_Z_TKE(A₀, Z₀, A_H_range, ν_A_Z_TKE)
+    ν_Pair_AH_Z_TKE = Neutron_multiplicity_Pair_A_Z_TKE(A₀, Z₀, A_H_range, ν_A_Z_TKE)
     max_seq_A_Z_TKE = Maximum_sequences_A_Z_TKE(DataFrame(
         A = Raw_output_datafile.A,
         Z = Raw_output_datafile.Z,
@@ -681,13 +681,13 @@ if secondary_output_nu
         DataFrame(TKE = ν_H_TKE.Argument, nu = ν_H_TKE.Value), 
         writeheader=true, newline="\r\n", delim=' '
     )
-    ν_Pair_TKE = Average_over_A_Z(ν_Pair_A_Z_TKE, y_A_Z_TKE)
+    ν_Pair_TKE = Average_over_A_Z(ν_Pair_AH_Z_TKE, y_A_Z_TKE)
     CSV.write(
         "$(file_output_identifier)_output_data/nu/$(fissionant_nucleus_identifier)_nu_Pair_TKE_$(file_output_identifier).dat", 
         DataFrame(TKE = ν_Pair_TKE.Argument, nu = ν_Pair_TKE.Value), 
         writeheader=true, newline="\r\n", delim=' '
     )
-    probability_ν_Pair = Probability_of_occurrence(ν_Pair_A_Z_TKE, y_A_Z_TKE, 1)
+    probability_ν_Pair = Probability_of_occurrence(ν_Pair_AH_Z_TKE, y_A_Z_TKE, 1)
     CSV.write(
         "$(file_output_identifier)_output_data/nu/$(fissionant_nucleus_identifier)_P_nu_Pair_$(file_output_identifier).dat", 
         DataFrame(nu = probability_ν_Pair.Argument, P = probability_ν_Pair.Value), 
@@ -1153,7 +1153,7 @@ open("$(file_output_identifier)_output_data/$(fissionant_nucleus_identifier)_Ave
         avg_ν_L = Average_value(ν_A_Z_TKE, y_A_Z_TKE, A_L_range)
         avg_ν_H = Average_value(ν_A_Z_TKE, y_A_Z_TKE, A_H_range)
         avg_ν = Average_value(ν_A_Z_TKE, y_A_Z_TKE, A_range)
-        avg_ν_Pair = Average_value(ν_AH_Pair, y_A, A_H_range)
+        avg_ν_Pair = Average_value(ν_Pair_AH_Z_TKE, y_A_Z_TKE, A_H_range)
         write(file, "<ν>_L = $avg_ν_L\n<ν>_H = $avg_ν_H\n<ν> = $avg_ν\n<ν>_pair = $avg_ν_Pair\n\n")
         if secondary_output_Ap
             avg_Ap_L = Average_yield_argument(yp_Ap, yp_Ap.Argument[yp_Ap.Argument .<= A_H_min])
