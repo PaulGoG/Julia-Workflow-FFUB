@@ -283,7 +283,7 @@ if secondary_output_nu
     yticks!(plot_ν_A, 0.0:0.5:maximum(ν_A.Value)*1.05)
     Process_plot(plot_ν_A, "nu_A", fissionant_nucleus_identifier)
 
-    avg_ν_Pair = Average_value(ν_Pair_AH_Z_TKE, y_A_Z_TKE, A_H_range)
+    avg_ν_Pair = Average_value(ν_Pair_A_Z_TKE, y_A_Z_TKE, A_H_range)
     plot_ν_Pair_AH = Scatter_data(ν_AH_Pair.Argument, ν_AH_Pair.Value, "", :red, 5, :circle)
     Plot_data(plot_ν_Pair_AH, ν_AH_Pair.Argument, ν_AH_Pair.Value, latexstring("\$\\mathrm{<\\nu_{pair}>}\$ = $(round(avg_ν_Pair, digits = 2))"), :red)
     Modify_plot(plot_ν_Pair_AH)
@@ -308,7 +308,7 @@ if secondary_output_nu
     xticks!(plot_Ratio_ν_AH, 10 *div(minimum(ν_AH_Pair.Argument), 10):5:maximum(ν_AH_Pair.Argument))
     Process_plot(plot_Ratio_ν_AH, "Ratio_nuH_nuPair", fissionant_nucleus_identifier)
 
-    avg_ν_Pair = Average_value(ν_Pair_AH_Z_TKE, y_A_Z_TKE, A_H_range)
+    avg_ν_Pair = Average_value(ν_Pair_A_Z_TKE, y_A_Z_TKE, A_H_range)
     plot_P_ν = Scatter_data(probability_ν_Pair.Argument, probability_ν_Pair.Value, "", :red, 5, :circle)
     Plot_data(plot_P_ν, probability_ν_Pair.Argument, probability_ν_Pair.Value, latexstring("\$<\\nu>\$ = $(round(avg_ν_Pair, digits=2))"), :red)
     Modify_plot(plot_P_ν)
@@ -950,7 +950,7 @@ if secondary_output_TXE_Q
     avg_Q = Average_value(Q_AH, y_A, A_H_range)
     plot_Q_AH = Scatter_data(Q_AH.Argument, Q_AH.Value, "", :red, 5, :circle)
     Plot_data(plot_Q_AH, Q_AH.Argument, Q_AH.Value, "<Q> = $(round(avg_Q, digits = 2)) MeV", :red)
-    Scatter_data(plot_Q_AH, Q_AH_Z.A, Q_AH_Z.Value, "", :blue, 4, :circle)
+    Scatter_data(plot_Q_AH, Q_A_Z.A, Q_A_Z.Value, "", :blue, 4, :circle)
     Modify_plot(plot_Q_AH)
     Modify_plot(
         plot_Q_AH, L"\mathrm{A_H}", "Q [MeV]", 
@@ -972,7 +972,7 @@ if secondary_output_TXE_Q
     xticks!(plot_TXE_AH, 10 *div(minimum(txe_AH.Argument), 10):5:maximum(txe_AH.Argument))
     Process_plot(plot_TXE_AH, "TXE_AH", fissionant_nucleus_identifier)
 
-    avg_TXE_TKE = Average_value(txe_AH_Z_TKE, y_A_Z_TKE, A_H_range) 
+    avg_TXE_TKE = Average_value(txe_A_Z_TKE, y_A_Z_TKE, A_H_range) 
     plot_TXE_TKE = Scatter_data(txe_TKE.Argument, txe_TKE.Value, "", :red, 5, :circle)
     Plot_data(plot_TXE_TKE, txe_TKE.Argument, txe_TKE.Value, "<TXE> = $(round(avg_TXE_TKE, digits = 2)) MeV", :red)
     Modify_plot(plot_TXE_TKE)
