@@ -109,8 +109,7 @@ function Solve_transcendental_eq(Eᵣ_k_last, Sₙ_k_last, a_k, A, k)
     trans_eq(Tₖ) = a_k *Tₖ^2 + epsilon_SCM(Tₖ) + (Sₙ_k_last - Eᵣ_k_last)
     T_k = find_zero(trans_eq, (0.0, Inf))
     
-    #Intentional cutoff values to match old Fortran code
-    #Should NOT exist in final version!!!
+    #Cutoff values to match old Fortran code root-searching algorithm
     if T_k > 2 || T_k < 1e-2
         T_k = NaN
     end

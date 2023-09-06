@@ -126,23 +126,23 @@ S0_new = Strength_function_new.(sort(unique(RIPL3_data.A)))
 
 pltlog = scatter(
     RIPL3_data.A, RIPL3_data.S_0, 
-    yscale=:log10, size = (1000, 900), color = :black, xlabel = "A", ylabel = "S₀", 
-    framestyle = :box, minorgrid = true, title = "s-wave neutron strength function in log10 scale", 
-    xticks = (20:10:300), label="RIPL3 data", dpi=300
+    yscale=:log10, size = (900, 700), color = :black, xlabel = "A", ylabel = "S₀", 
+    framestyle = :box, minorgrid = true, title = "", 
+    xlims = (15, 255), ylims = (9e-6, 1e-3),
+    xticks = (20:10:250), label="Date RIPL-3", dpi=600
     )
-pltlog = scatter!(pltlog, sort(unique(RIPL3_data.A)), S0_old, color = :red, label="S₀ old")
-pltlog = plot!(pltlog, sort(unique(RIPL3_data.A)), S0_new, color = :blue, label="S₀ new")
-vline!(pltlog, [70, 180], color = :green, label="", linestyle=:dashdot)
+pltlog = plot!(pltlog, sort(unique(RIPL3_data.A)), S0_new, color = :red, label="Parametrizare nouă")
+pltlog = plot!(pltlog, sort(unique(RIPL3_data.A)), S0_old, color = :blue, label="Parametrizare veche")
 
-pltlin = scatter(
+pltlog = scatter(
     RIPL3_data.A, RIPL3_data.S_0, 
-    yscale=:identity, size = (1000, 900), color = :black, xlabel = "A", ylabel = "S₀", 
-    framestyle = :box, minorgrid = true, title = "s-wave neutron strength function in linear scale",
-    xticks = (20:10:300), label="RIPL3 data", dpi=300, yformatter = :scientific
+    yscale=:identity, size = (900, 700), color = :black, xlabel = "A", ylabel = "S₀", 
+    framestyle = :box, minorgrid = true, title = "", 
+    xlims = (15, 255), ylims = (0.0, 7e-4),
+    xticks = (20:10:250), label="Date RIPL-3", dpi=600, yformatter = :scientific
     )
-pltlin = scatter!(pltlin, sort(unique(RIPL3_data.A)), S0_old, color = :red, label="S₀ old")
-pltlin = plot!(pltlin, sort(unique(RIPL3_data.A)), S0_new, color = :blue, label="S₀ new")
-vline!(pltlin, [70, 180], color = :green, label="", linestyle=:dashdot)
+pltlog = plot!(pltlog, sort(unique(RIPL3_data.A)), S0_new, color = :red, label="Parametrizare nouă")
+pltlog = plot!(pltlog, sort(unique(RIPL3_data.A)), S0_old, color = :blue, label="Parametrizare veche")
 =#
 #Generate ΔE_def for given β₀ & β_scission parametrization
 #=
@@ -203,6 +203,7 @@ Output =  DataFrame(A = ΔE_deformation.A, Z = ΔE_deformation.Z, ΔE_def = ΔE_
 newdatafile_name = "EXTRADEF.U5"
 CSV.write(newdatafile_name, Output, delim=' ')
 =#
+#Old output format idea
 #=
     open("output_data/$(fissionant_nucleus_identifier)_main_DSE_.OUT", "w") do file
         for A in unique(Processed_raw_output.A)

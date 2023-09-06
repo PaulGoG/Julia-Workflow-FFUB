@@ -10,7 +10,6 @@ include("txe_partitioning.jl")
 include("dse_eq_solvers.jl")
 include("write_output.jl")
 
-#Execute program function calls 
 fragmdomain = Fragmentation_domain(A₀, Z₀, No_ZperA, A_H_range, isobaric_distribution_data)
 E_excitation = TXE_partitioning(txe_partitioning_type, A₀, Z₀, A_H_range, fission_type, E_incident, 
                 fragmdomain, txe_partitioning_data, tkerange, density_parameter_type, density_parameter_data, dmass_excess)
