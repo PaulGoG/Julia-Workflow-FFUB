@@ -1,23 +1,3 @@
-#####
-#Load Julia packages for data manipulation
-using DataFrames, CSV
-
-#Define main struct objects
-abstract type AbstractDistribution end
-struct Distribution{T1 <: Vector{Int}, T2 <: Vector{Float64}} <: AbstractDistribution
-    A::T1
-    Z::T1
-    TKE::T2
-    No_Sequence::T1
-    Value
-    σ::T2
-end
-struct Distribution_unidym{T <: Vector{Float64}} <: AbstractDistribution
-    Argument
-    Value::T
-    σ::T
-end
-
 #Define value range for TKE
 tkerange = TKE_min:TKE_step:TKE_max
 
@@ -116,13 +96,13 @@ end
 
 #Define main functions
 
+#Most probable charge for a given heavy fragment
+function Most_probable_charge(A_0, Z_0, A_H, ΔZ)
+    return ΔZ + A_H *Z_0 /A_0
+end
 #Isobaric charge distribution p(Z,A)
 function p_A_Z(Z, Z_p, rms_A)
     return exp(-(Z - Z_p)^2 /(2 *rms_A^2)) /(sqrt(2*π) *rms_A)
-end
-#Compute the most probable charge for a given heavy fragment
-function Most_probable_charge(A_0, Z_0, A_H, ΔZ)
-    return ΔZ + A_H *Z_0 /A_0
 end
 #Q_value energy in MeV released at fission of (A,Z) nucleus 
 function Q_value_released(A_0, Z_0, A_H, Z_H, dm)
@@ -290,6 +270,22 @@ function Sort_q_A_Z_TKE(q_A_Z_TKE, fragmdomain)
         q_A_Z_TKE.Value[index] = aux_Value[index]
     end
 end
+#Maximum number of sequences from raw output data
+function Maximum_sequences_A_Z_TKE(output_df_A_Z_TKE_NoSequence::DataFrame)
+    sequences = Distribution(Int[], Int[], Float64[], Int[], Int[], Float64[])
+    for A in unique(output_df_A_Z_TKE_NoSequence.A)
+        for Z in unique(output_df_A_Z_TKE_NoSequence.Z[output_df_A_Z_TKE_NoSequence.A .== A])
+            for TKE in unique(output_df_A_Z_TKE_NoSequence.TKE[(output_df_A_Z_TKE_NoSequence.A .== A) .& (output_df_A_Z_TKE_NoSequence.Z .== Z)])
+                val = last(output_df_A_Z_TKE_NoSequence.No_Sequence[(output_df_A_Z_TKE_NoSequence.A .== A) .& (output_df_A_Z_TKE_NoSequence.Z .== Z) .& (output_df_A_Z_TKE_NoSequence.TKE .== TKE)])
+                push!(sequences.A, A)
+                push!(sequences.Z, Z)
+                push!(sequences.TKE, TKE)
+                push!(sequences.Value, val)
+            end
+        end
+    end
+    return sequences
+end
 #Neutron multiplicity from raw output data
 function Neutron_multiplicity_A_Z_TKE(output_df_A_Z_TKE_NoSequence::DataFrame)
     ν = Distribution(Int[], Int[], Float64[], Int[], Float64[], Float64[])
@@ -328,22 +324,6 @@ function Neutron_multiplicity_Pair_A_Z_TKE(A_0, Z_0, A_H_range, ν_A_Z_TKE::Dist
         end
     end
     return ν_Pair
-end
-#Maximum number of sequences from raw output data
-function Maximum_sequences_A_Z_TKE(output_df_A_Z_TKE_NoSequence::DataFrame)
-    sequences = Distribution(Int[], Int[], Float64[], Int[], Int[], Float64[])
-    for A in unique(output_df_A_Z_TKE_NoSequence.A)
-        for Z in unique(output_df_A_Z_TKE_NoSequence.Z[output_df_A_Z_TKE_NoSequence.A .== A])
-            for TKE in unique(output_df_A_Z_TKE_NoSequence.TKE[(output_df_A_Z_TKE_NoSequence.A .== A) .& (output_df_A_Z_TKE_NoSequence.Z .== Z)])
-                val = last(output_df_A_Z_TKE_NoSequence.No_Sequence[(output_df_A_Z_TKE_NoSequence.A .== A) .& (output_df_A_Z_TKE_NoSequence.Z .== Z) .& (output_df_A_Z_TKE_NoSequence.TKE .== TKE)])
-                push!(sequences.A, A)
-                push!(sequences.Z, Z)
-                push!(sequences.TKE, TKE)
-                push!(sequences.Value, val)
-            end
-        end
-    end
-    return sequences
 end
 #Average raw output data over valid emission sequences
 function SeqAvg_A_Z_TKE(output_df_A_Z_TKE_NoSequence_Value::DataFrame)
