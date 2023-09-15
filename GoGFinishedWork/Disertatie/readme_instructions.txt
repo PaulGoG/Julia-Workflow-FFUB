@@ -1,6 +1,10 @@
 Instructions for input.jl and options.jl file parameters
 ########################################################################################################
 
+!This public version of the program has been redacted and is missing key files and function definitions necessary for it to run succesfully!
+
+########################################################################################################
+
 Variables used for automating data reading from files have the following structure:
 data file name, column names, delimiter symbol, number of first row of actual data in file
 
@@ -14,7 +18,7 @@ Density level parameter computation method:
 
 Neutron evaporation cross section type:
 *CONSTANT for constant cross section
-*VARIABLE for energy-dependent cross section modelled with s-wave neutron strength function (Iwamoto)
+*VARIABLE for energy-dependent cross section modelled with s-wave neutron strength function
 
 Input type for the isobaric charge distribution p(Z,A):
 *MEAN_VALUES for ΔZ(A_H) = -0.5 & rms(A_H) = 0.6
@@ -27,10 +31,3 @@ Total Excitation Energy (TXE) partitioning method:
 Data provided in each case: 
 *Extra deformation energies for MSCZ via data file
 *Segment points in Vector of Tuples (txe_partitioning_segmentpoints) for PARAM & RT
-Segment points examples:
-*RT = T_L/T_H from modeling at scission
-235U: [(A_H_min, 1.2), (A_H_max, 1.2)] for constant RT = 1.2 (Okumura)
-252Cf: [(126, 1.0), (130, 2.0), (134, 1.38), (150, 0.88), (174, 0.6059)] with density parameter via BSFG Egidy-Bucurescu
-252Cf: [(126, 1.0), (130, 1.734), (134, 1.28), (138, 1.28), (150, 0.9), (167, 0.69), (174, 0.6)] with density parameter via superfluid model
-*Ratio = E*_H/TXE from modeling at scission
-252Cf: [(126, 0.5), (130, 0.14), (150, 0.607), (174, 0.865)] obtained from modeling at scission
