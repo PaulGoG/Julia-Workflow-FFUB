@@ -5,11 +5,11 @@ using Distributions, Plots, DataFrames, Optim
 testData = rand(Normal(150, 50), Int(1e5))
 testData = round.(testData, digits = 2)
 testDays = 0:length(testData)
-testδ = 5
+testδ = 15
 testTimeseries = Float64[]
 
 for i in eachindex(testData)
-    searchableData = testData[i:length(testData)]
+    searchableData = testData[i:lastindex(testData)]
     index_delta = findfirst(x -> x >= first(searchableData) + testδ, searchableData)
     if !isnothing(index_delta)
         push!(testTimeseries, testDays[index_delta + i] - testDays[i])
@@ -56,6 +56,7 @@ optimizer_result = optimize(parameters -> lossFunction(parameters, xdata, ydata)
 α, xₘ = Optim.minimizer(optimizer_result)
 
 P_PDF(x, α, xₘ) = (α - 1)/xₘ * (xₘ/x)^α
+P_CDF(x, α, xₘ) = (x/xₘ)^(1 - α)
 
 scatter(S.time, S.PDF, yscale = :log10)
 plot!(S.time, P_PDF.(S.time, α, xₘ))

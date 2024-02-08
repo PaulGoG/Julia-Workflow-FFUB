@@ -2,13 +2,13 @@ using QuadGK, Plots, DataFrames, LaTeXStrings
 
 cd(@__DIR__)
 
-Rₐ = 50e-3    #Raza amplasament in km
+Rₐ = 50    #Raza amplasament in m
 Pᵢ = 1e-9     #Probabilitatea de pierdere a controlului per km de zbor
 Nc = 7e4      #Nr. de zboruri anuale pe ruta analizata
 g = 0.23      #Densitatea de probabilitate unitara de prabusire a avionului dupa pierderea controlului in (r, r-dr)
 
 y₀_Min = 5       #Distanta minima dintre centrul amplasamentului si ruta de zbor in km
-y₀_Max = 100      #Distanta maxima dintre centrul amplasamentului si ruta de zbor in km
+y₀_Max = 50      #Distanta maxima dintre centrul amplasamentului si ruta de zbor in km
 x₀ = 200          #Lungimea rutei de zbor pe care se realizeaza integrarea in km
 
 freqAnualaPrabusire = DataFrame(R = Float64[], y₀ = Float64[], fR = Float64[], fRU = Float64[])
@@ -33,13 +33,13 @@ for y₀ in y₀_Min:y₀_Max
     for R in Rₐ*1e-1:Rₐ*1e-1:Rₐ*10
         push!(freqAnualaPrabusire.R, R)
         push!(freqAnualaPrabusire.y₀, y₀)
-        push!(freqAnualaPrabusire.fR, Pᵢ *Nc *π *R^2 *integralaRadiala)
-        push!(freqAnualaPrabusire.fRU, Pᵢ *Nc *π *R^2 *integralaRadialaUnghiulara)
+        push!(freqAnualaPrabusire.fR, Pᵢ *Nc *π *(R*1e-3)^2 *integralaRadiala)
+        push!(freqAnualaPrabusire.fRU, Pᵢ *Nc *π *(R*1e-3)^2 *integralaRadialaUnghiulara)
     end
 end
-
-
-#Reprezentari grafice
+################################
+################################
+################################
 function Grid_builder(q_x_y::DataFrame)
     x = sort(unique(q_x_y.x))
     y = sort(unique(q_x_y.y))
@@ -148,48 +148,46 @@ function Plot_legend_attributes(plt::Plots.Plot, lposition)
 end
 function Process_plot(plt::Plots.Plot, filename::String)
     savefig(plt, "$(filename).png")
-    println("*plotting $filename done!")
 end
 
 gr(size = (900, 900), dpi=600)
-xData = freqAnualaPrabusire.y₀
-yDataR = freqAnualaPrabusire.fR
-yDataRU = freqAnualaPrabusire.fRU
+xData = freqAnualaPrabusire.y₀[freqAnualaPrabusire.R .== Rₐ]
+yDataR = freqAnualaPrabusire.fR[freqAnualaPrabusire.R .== Rₐ]
+yDataRU = freqAnualaPrabusire.fRU[freqAnualaPrabusire.R .== Rₐ]
 
 plotFreq2DLin = Plot_data(xData, yDataR, "FDP radiala", :red)
 Plot_data(plotFreq2DLin, xData, yDataRU, "FDP radiala si unghiulara", :blue)
 Modify_plot(plotFreq2DLin)
 Modify_plot(
-    plotFreq2DLin, "y₀", "Frecventa anuala de prabusire", 
+    plotFreq2DLin, "y₀ (km)", "Frecventa anuala de prabusire", 
     (minimum(xData), maximum(xData)), :identity, 
-    (0.0, maximum(yDataR)*1.1), :identity, ""
+    (0.0, maximum(yDataR)), :identity, ""
 )
+xticks!(plotFreq2DLin, y₀_Min:5:y₀_Max)
+yticks!(plotFreq2DLin, [i*1e-8 for i in 0:10:100])
+#Process_plot(plotFreq2DLin, "FrecventaPrabusire2Dliniar")
 
-Process_plot(plot_y_A_lin, "y_A_lin", fissionant_nucleus_identifier)
-
-####
-
-plot_nSpectrum_ratio_Maxwellian = Plot_data(n_E_SL.E, Ratio_to_Maxwellian_SL, "", :red)
+plotFreq2DLog = Plot_data(xData, yDataR, "FDP radiala", :red)
+Plot_data(plotFreq2DLog, xData, yDataRU, "FDP radiala si unghiulara", :blue)
+Modify_plot(plotFreq2DLog)
 Modify_plot(
-    plot_nSpectrum_ratio_Maxwellian, "E [MeV]", "Ratio to Maxwellian spectrum", (first(n_E_SL.E), 10.0),
-    :log10, (0.5, 1.5), :identity, "SL Neutron spectrum as ratio to Maxwellian"
+    plotFreq2DLog, "y₀ (km)", "Frecventa anuala de prabusire", 
+    (minimum(xData), maximum(xData)), :identity, 
+    (minimum(yDataRU)*1e-1, 1.0), :log10, ""
 )
-hline!(plot_nSpectrum_ratio_Maxwellian, [1.0], linestyle = :dashdot, color = :black, label = latexstring("\$\\mathrm{T_M}\$ = $(round(T_M_eq_SL, digits = 2)) MeV"))
-Modify_plot(plot_nSpectrum_ratio_Maxwellian)
-xticks!(plot_nSpectrum_ratio_Maxwellian, [10.0^i for i in -10:10])
-Process_plot(plot_nSpectrum_ratio_Maxwellian, "nSpectrum_ratio_Maxwellian", fissionant_nucleus_identifier)
-
-####
+hline!(plotFreq2DLog, [1e-5], linestyle = :dashdot, color = :black, label = "Beyond DBA tip A")
+hline!(plotFreq2DLog, [1e-7], linestyle = :dash, color = :black, label = "Beyond DBA tip B")
+yticks!(plotFreq2DLog, [10.0^i for i in -20:0])
+xticks!(plotFreq2DLog, y₀_Min:5:y₀_Max)
+#Process_plot(plotFreq2DLog, "FrecventaPrabusire2Dlogaritmic")
 
 plotlyjs(size = (16, 9) .* 90, dpi=600)
-plot_surface_ν_A_TKE = Plot_surface(
-    DataFrame(x = ν_A_TKE.A, y = ν_A_TKE.TKE, z = ν_A_TKE.Value),
-    10, 10, 20, Int(round(10/TKE_step)), (120, 0), 
-    "ν(A,TKE)", (0.0, maximum(ν_A_TKE.Value) + 0.5), :identity,
+plotFreq3DSuprafata = Plot_surface(
+    DataFrame(x = freqAnualaPrabusire.R, y = freqAnualaPrabusire.y₀, z = freqAnualaPrabusire.fR),
+    20, 10, 5, 5, (120, 0), 
+    "Freq", (minimum(freqAnualaPrabusire.fR), maximum(freqAnualaPrabusire.fR)), :log10,
     :turbo
 )
-Modify_plot(plot_surface_ν_A_TKE, "A", "TKE", "")
-Modify_plot(plot_surface_ν_A_TKE)
-display(plot_surface_ν_A_TKE)
-
-####
+Modify_plot(plotFreq3DSuprafata, "R (m)", "y₀ (km)", "")
+Modify_plot(plotFreq3DSuprafata)
+display(plotFreq3DSuprafata)
