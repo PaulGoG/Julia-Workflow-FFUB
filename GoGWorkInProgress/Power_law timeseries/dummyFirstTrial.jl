@@ -95,6 +95,7 @@ d_KS = Optim.minimum(optimizer_result)
 P_PDF(x, α, xₘ) = (α - 1)/xₘ * (xₘ/x)^α
 xFScale = @view xData[xData .>= xₘ]
 
-scatter(xData, timeseries.pdf, yscale = :log10)
+scatter(xData, timeseries.pdf, xscale = :log10, yscale = :log10)
 plot!(xFScale, P_PDF.(xFScale, α, xₘ))
-yticks!([10.0^i for i in -10:10])
+yticks!([10.0^i for i in -10:0])
+xticks!([10^i for i in 0:10])

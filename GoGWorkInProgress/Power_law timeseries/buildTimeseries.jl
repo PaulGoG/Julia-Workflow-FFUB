@@ -1,7 +1,6 @@
 #Construction of waiting time series between Data and Data + δ at each point
 #Brute force O(n^2) solution
 function waiting_time_series(datapoints::DataFrame, δ)
-    println("*computing time series...")
     WTS = Int[]
     for index in eachindex(datapoints.Data)
         searchableData = @view datapoints.Data[(index + 1):end]
@@ -39,8 +38,10 @@ function wtsProbabilities(WTS::Array{Int})
         push!(timeseries.cdf, sum(timeseries.pdf))
         deleteat!(WTS, indices)
     end
-    normalizationFactor = last(timeseries.cdf)
-    timeseries.pdf ./= normalizationFactor
-    timeseries.cdf ./= normalizationFactor
+    if !isempty(timeseries)
+        normalizationFactor = last(timeseries.cdf)
+        timeseries.pdf ./= normalizationFactor
+        timeseries.cdf ./= normalizationFactor
+    end
     return timeseries
 end
