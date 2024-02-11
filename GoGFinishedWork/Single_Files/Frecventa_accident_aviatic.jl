@@ -2,14 +2,14 @@ using QuadGK, Plots, DataFrames, LaTeXStrings
 
 cd(@__DIR__)
 
-Rₐ = 50    #Raza amplasament in m
+Rₐ = 50       #Raza amplasament in m
 Pᵢ = 1e-9     #Probabilitatea de pierdere a controlului per km de zbor
 Nc = 7e4      #Nr. de zboruri anuale pe ruta analizata
 g = 0.23      #Densitatea de probabilitate unitara de prabusire a avionului dupa pierderea controlului in (r, r-dr)
 
 y₀_Min = 5       #Distanta minima dintre centrul amplasamentului si ruta de zbor in km
 y₀_Max = 50      #Distanta maxima dintre centrul amplasamentului si ruta de zbor in km
-x₀ = 200          #Lungimea rutei de zbor pe care se realizeaza integrarea in km
+x₀ = 200         #Lungimea rutei de zbor pe care se realizeaza integrarea in km
 
 freqAnualaPrabusire = DataFrame(R = Float64[], y₀ = Float64[], fR = Float64[], fRU = Float64[])
 
@@ -71,7 +71,7 @@ function Plot_surface(q_x_y::DataFrame, tick_size_xaxis::Int, tick_roundness_xax
         xticks = (collect(index_x_range), string.(Int.(round.(x[index_x_range])))), 
         yticks = (collect(index_y_range), string.(Int.(round.(y[index_y_range])))),
         camera = camera_angle,
-        c = color_scale,
+        c = cgrad(color_scale, scale = zaxisscale),
         zlabel = zaxisname,
         zlims = zaxislims,
         zscale = zaxisscale,
@@ -104,13 +104,6 @@ function Plot_heatmap(q_x_y::DataFrame, tick_size_xaxis::Int, tick_roundness_xax
 end
 function Plot_data(x, y, plot_label, plot_color)
     plt = plot(x, y, label = plot_label, color = plot_color)
-    return plt
-end
-function Bar_data(x, y, plot_label, color_bars, Δx)
-    plt = bar(
-        x, y, label = plot_label, 
-        linetype = :steppre, fillalpha = 0, linecolor = color_bars, bar_width = Δx
-    )
     return plt
 end
 function Plot_data(plt::Plots.Plot, x, y, plot_label, plot_color)
@@ -155,8 +148,8 @@ xData = freqAnualaPrabusire.y₀[freqAnualaPrabusire.R .== Rₐ]
 yDataR = freqAnualaPrabusire.fR[freqAnualaPrabusire.R .== Rₐ]
 yDataRU = freqAnualaPrabusire.fRU[freqAnualaPrabusire.R .== Rₐ]
 
-plotFreq2DLin = Plot_data(xData, yDataR, "FDP radiala", :red)
-Plot_data(plotFreq2DLin, xData, yDataRU, "FDP radiala si unghiulara", :blue)
+plotFreq2DLin = Plot_data(xData, yDataR, L"\mathrm{f_R}(r)", :red)
+Plot_data(plotFreq2DLin, xData, yDataRU, L"\mathrm{f_R}(r, \theta)", :blue)
 Modify_plot(plotFreq2DLin)
 Modify_plot(
     plotFreq2DLin, "y₀ (km)", "Frecventa anuala de prabusire", 
@@ -165,29 +158,41 @@ Modify_plot(
 )
 xticks!(plotFreq2DLin, y₀_Min:5:y₀_Max)
 yticks!(plotFreq2DLin, [i*1e-8 for i in 0:10:100])
+display(plotFreq2DLin)
 #Process_plot(plotFreq2DLin, "FrecventaPrabusire2Dliniar")
 
-plotFreq2DLog = Plot_data(xData, yDataR, "FDP radiala", :red)
-Plot_data(plotFreq2DLog, xData, yDataRU, "FDP radiala si unghiulara", :blue)
+plotFreq2DLog = Plot_data(xData, yDataR, L"\mathrm{f_R}(r)", :red)
+Plot_data(plotFreq2DLog, xData, yDataRU, L"\mathrm{f_R}(r, \theta)", :blue)
 Modify_plot(plotFreq2DLog)
 Modify_plot(
     plotFreq2DLog, "y₀ (km)", "Frecventa anuala de prabusire", 
     (minimum(xData), maximum(xData)), :identity, 
     (minimum(yDataRU)*1e-1, 1.0), :log10, ""
 )
-hline!(plotFreq2DLog, [1e-5], linestyle = :dashdot, color = :black, label = "Beyond DBA tip A")
-hline!(plotFreq2DLog, [1e-7], linestyle = :dash, color = :black, label = "Beyond DBA tip B")
+hline!(plotFreq2DLog, [1e-5], linestyle = :dashdot, color = :black, label = "Accident baza de proiectare de tip A")
+hline!(plotFreq2DLog, [1e-7], linestyle = :dash, color = :black, label = "Accident baza de proiectare de tip B")
 yticks!(plotFreq2DLog, [10.0^i for i in -20:0])
 xticks!(plotFreq2DLog, y₀_Min:5:y₀_Max)
+display(plotFreq2DLog)
 #Process_plot(plotFreq2DLog, "FrecventaPrabusire2Dlogaritmic")
 
 plotlyjs(size = (16, 9) .* 90, dpi=600)
+
 plotFreq3DSuprafata = Plot_surface(
-    DataFrame(x = freqAnualaPrabusire.R, y = freqAnualaPrabusire.y₀, z = freqAnualaPrabusire.fR),
-    20, 10, 5, 5, (120, 0), 
-    "Freq", (minimum(freqAnualaPrabusire.fR), maximum(freqAnualaPrabusire.fR)), :log10,
+    DataFrame(x = freqAnualaPrabusire.R, y = freqAnualaPrabusire.y₀, z = freqAnualaPrabusire.fRU),
+    10, 50, 5, 5, (120, 0), 
+    "Freq", (minimum(freqAnualaPrabusire.fRU), maximum(freqAnualaPrabusire.fRU)), :identity,
     :turbo
 )
 Modify_plot(plotFreq3DSuprafata, "R (m)", "y₀ (km)", "")
 Modify_plot(plotFreq3DSuprafata)
 display(plotFreq3DSuprafata)
+
+plotFreq3DHeatmap = Plot_heatmap(
+    DataFrame(x = freqAnualaPrabusire.R, y = freqAnualaPrabusire.y₀, z = freqAnualaPrabusire.fRU),
+    10, 50, 5, 5, 
+    "Freq", :turbo
+)
+Modify_plot(plotFreq3DHeatmap, "R (m)", "y₀ (km)", "")
+Modify_plot(plotFreq3DHeatmap)
+display(plotFreq3DHeatmap)
