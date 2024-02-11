@@ -8,12 +8,14 @@ cd(@__DIR__)
 
 δ_optimization = true
 triDimPlots = false
-const noDigits = 3
+const noDigits = 2
 
 datafileType = ".csv"
-datafileName = "meteoBucurestiImh"
-datafileTime = "days"
-datafileCol = 10
-datafileQuantity = "atmospheric pressure (millibars)"
+datafileName = "10628"
+datafileTime = "hours"
+#datafileCol = 11
+datafileCol = 9
+#datafileQuantity = "atmospheric pressure (millibars)"
+datafileQuantity = "wind speed (km/h)"
 
-δ = 1000.0
+δ = 5.0

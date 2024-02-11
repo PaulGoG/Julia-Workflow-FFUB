@@ -7,13 +7,17 @@ function P_CDF(x, parameters)
 end
 function lossKolmogorovSmirnov(parameters, xData, yData)
     xₘ = last(parameters)
-    xFScale = @view xData[xData .>= xₘ]
-    yFScale = [P_CDF(xFScale[i], parameters) for i in eachindex(xFScale)]
-    yDataPlaceholder = @view yData[xData .>= xₘ]
-    d_KS = abs.(yFScale .- yDataPlaceholder)
-    if !isempty(d_KS)
-        return maximum(d_KS)
-    else 
+    if xₘ > 0
+        xFScale = @view xData[xData .>= xₘ]
+        yFScale = [P_CDF(xFScale[i], parameters) for i in eachindex(xFScale)]
+        yDataPlaceholder = @view yData[xData .>= xₘ]
+        d_KS = abs.(yFScale .- yDataPlaceholder)
+        if !isempty(d_KS)
+            return maximum(d_KS)
+        else 
+            return Inf
+        end
+    else
         return Inf
     end
 end

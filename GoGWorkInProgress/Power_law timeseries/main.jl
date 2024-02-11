@@ -34,15 +34,15 @@ Plot_data(plotPDF_2D, xFScale, yFScale, fitLabel, :red)
 Modify_plot(plotPDF_2D)
 Modify_plot(
     plotPDF_2D, "time ($datafileTime)", "Pₖ", 
-    (minimum(timeseries.time)*1e-1, maximum(timeseries.time)*1e1), :log10, 
+    (0.1, maximum(timeseries.time)*1e1), :log10, 
     (minimum(timeseries.pdf)*1e-1, 1.0), :log10, "Probability Density Function of $datafileQuantity"
 )
-Plot_textbox(plotPDF_2D, minimum(timeseries.time*1e1), minimum(timeseries.pdf)*2e-1, 
+Plot_textbox(plotPDF_2D, 2.5, minimum(timeseries.pdf)*2e-1, 
             "Data source: $datafileName")
 xticks!(plotPDF_2D, [10^i for i in 0:10])
 yticks!(plotPDF_2D, [10.0^i for i in -10:0])
-Process_plot(plotPDF_2D, "PDF_$datafileName")
-println("*done plotting PDF_$datafileName\n")
+Process_plot(plotPDF_2D, "PDF_$(datafileName)_col$(datafileCol)")
+println("*done plotting PDF_$(datafileName)_col$(datafileCol)\n")
 
 #2D plot of KS(δ) at optimal (α, xₘ) values for each δ
 δ_range = δ*1e-2:δ*1e-1:δ*2
@@ -54,16 +54,16 @@ for δ_vals in δ_range
 end
 
 plotKSδ_2D = Scatter_data(δ_range, KS_vals, "", :red, 5, :circle)
-Scatter_data(plotKSδ_2D, [δ], [d_KS], "δ = $δ", :blue, 10, :xcross)
+Scatter_data(plotKSδ_2D, [δ], [d_KS], "δ = $δ", :black, 8, :star)
 Modify_plot(plotKSδ_2D)
 Modify_plot(
     plotKSδ_2D, "δ", "KS", 
-    (minimum(δ_range)*0.9, maximum(δ_range)*1.1), :identity, 
-    (minimum(KS_vals)*0.9, maximum(KS_vals)*1.1), :identity, ""
+    (minimum(δ_range) - δ*1e-1, maximum(δ_range) + δ*1e-1), :identity, 
+    (minimum(KS_vals)*0.9, maximum(KS_vals)*1.1), :identity, "Data source: $datafileName"
 )
 display(plotKSδ_2D)
-Process_plot(plotKSδ_2D, "KSdelta_$datafileName")
-println("\n*done plotting KSdelta_$datafileName")
+Process_plot(plotKSδ_2D, "KSdelta_$(datafileName)_col$(datafileCol)")
+println("\n*done plotting KSdelta_$(datafileName)_col$(datafileCol)")
 
 #3D plots (surface and heatmap) of KS values at various (α, xₘ) for fixed (given or optimal) δ value
 if triDimPlots
