@@ -9,9 +9,16 @@ if δ_optimization
     δ = optimumDelta(datapoints, δ)
 end
 
+#De adaugat: conventie numire ploturi, verificat PDF si CDF Pareto-Tsallis, 
+#Verificat if/else-uri la optimizare daca sunt calumea si "optimi" ca timp/memorie
+#Verificat timpi caracteristici la delta mari
+#Implementat switch pentru KS - sau χ^2 
+#Facut error-check pentru switch-uri dupa preamble intr-un error-handler
+#inclus !ifdir + mkdir
+
 println("*parameter optimization for δ = $δ inbound...\n")
 timeseries = wtsProbabilities(waiting_time_series(datapoints, δ))
-α, xₘ, d_KS = powerlawOptimize(timeseries)
+α, xₘ, d_KS = powerlawOptimize(timeseries, distribution_type)
 
 println("α = $(round(α, digits = noDigits))")
 println("xₘ = $(round(xₘ, digits = noDigits))")
@@ -19,18 +26,26 @@ println("KS = $(round(d_KS, digits = noDigits))\n")
 println("*executing plot figures...")
 
 gr(size = (1000, 1000), dpi = 600)
-P_PDF(x, α, xₘ) = (α - 1)/xₘ * (xₘ/x)^α
+Freescale_PDF(x, α, xₘ) = (α - 1)/xₘ * (xₘ/x)^α
+Pareto_Tsallis_PDF(x, α, λ) = α/λ *(1 + x/λ)^(-1-α)
 
 #Main 2D plot of PDF together with powerlaw fit of data at fixed (given or optimal) δ value
-xFScale = @view timeseries.time[timeseries.time .>= xₘ]
-yFScale = P_PDF.(xFScale, α, xₘ)
+if distribution_type == "FS"
+    xDistribution = @view timeseries.time[timeseries.time .>= xₘ]
+    yDistribution = P_PDF.(xDistribution, α, xₘ)
+elseif distribution_type == "PT"
+    xDistribution = timeseries.time
+    yDistribution = Pareto_Tsallis_PDF.(xDistribution, α, xₘ)
+end
+
+
 fitLabel =  string("KS = $(round(d_KS, digits = noDigits)); ",
             "α = $(round(α, digits = noDigits)); ",
             "xₘ = $(round(xₘ, digits = noDigits)); ",
             "δ = $δ")
 
 plotPDF_2D = Scatter_data(timeseries.time, timeseries.pdf, "", :blue, 3, :xcross)
-Plot_data(plotPDF_2D, xFScale, yFScale, fitLabel, :red)
+Plot_data(plotPDF_2D, xDistribution, yDistribution, fitLabel, :red)
 Modify_plot(plotPDF_2D)
 Modify_plot(
     plotPDF_2D, "time ($datafileTime)", "Pₖ", 
@@ -41,9 +56,10 @@ Plot_textbox(plotPDF_2D, 2.5, minimum(timeseries.pdf)*2e-1,
             "Data source: $datafileName")
 xticks!(plotPDF_2D, [10^i for i in 0:10])
 yticks!(plotPDF_2D, [10.0^i for i in -10:0])
-Process_plot(plotPDF_2D, "PDF_$(datafileName)_col$(datafileCol)")
-println("*done plotting PDF_$(datafileName)_col$(datafileCol)\n")
+Process_plot(plotPDF_2D, "PDF_$(datafileName)_col$(datafileCol)_$(δ)")
+println("*done plotting PDF_$(datafileName)_col$(datafileCol)_$(δ)\n")
 
+#=
 #2D plot of KS(δ) at optimal (α, xₘ) values for each δ
 δ_range = δ*1e-2:δ*1e-1:δ*2
 KS_vals = Float64[]
@@ -62,8 +78,8 @@ Modify_plot(
     (minimum(KS_vals)*0.9, maximum(KS_vals)*1.1), :identity, "Data source: $datafileName"
 )
 display(plotKSδ_2D)
-Process_plot(plotKSδ_2D, "KSdelta_$(datafileName)_col$(datafileCol)")
-println("\n*done plotting KSdelta_$(datafileName)_col$(datafileCol)")
+Process_plot(plotKSδ_2D, "KSdelta_$(datafileName)_col$(datafileCol)_$(δ)")
+println("\n*done plotting KSdelta_$(datafileName)_col$(datafileCol)_$(δ)")
 
 #3D plots (surface and heatmap) of KS values at various (α, xₘ) for fixed (given or optimal) δ value
 if triDimPlots
@@ -101,3 +117,4 @@ end
 
 println("*ending program execution at $(Dates.format(now(), "HH:MM:SS"))")
 println("*program execution succesful!")
+=#
