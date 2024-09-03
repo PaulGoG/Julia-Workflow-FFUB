@@ -27,8 +27,8 @@ display(plt)
 
 Timpi = collect(520.0:260:1040)
 N_exp = [3691.0, 3275.0, 2827.0, 2487.0]
-N = [log.(N_exp[1]./N_exp[i]) for i in 2:length(N_exp)]
-M = [N_exp[i] for i in 2:length(N_exp)]
+N = [log.(N_exp[1]./N_exp[i]) for i in 2:lastindex(N_exp)]
+M = [N_exp[i] for i in 2:lastindex(N_exp)]
 wt = M
 fit_fotopic = curve_fit(liniarizat, Timpi, N, wt, p0)
 lambda = last(fit_fotopic.param)
